@@ -18,7 +18,7 @@ src/main/java/com/restaurant/
 └── email/                     # Email service + Thymeleaf templates
 ```
 
-## Phân công — 4 người
+## Phân công 
 
 | Người  | Phụ trách | Nhánh Git |
 |--------|-----------|-----------|
@@ -26,15 +26,6 @@ src/main/java/com/restaurant/
 | **Thy**   | Table, Reservation, Menu Management, thuật toán tối ưu gợi ý bàn | `feature/table-reservation-menu` |
 | **Sinh**  | Order, Payment, Invoice, Voucher | `feature/order-payment-voucher` |
 | **Minh**  | KDS (Kitchen Display System), Customer Loyalty, Point | `feature/kds-loyalty` |
-
-## Entity sở hữu
-
-| Entity | Người |
-|--------|-------|
-| User, PasswordResetToken | Thắng |
-| Table, Reservation, MenuItem | Thy |
-| Order, OrderItem, Invoice, Voucher | Sinh |
-| Customer, PointTransaction | Minh |
 
 ## API Endpoints chính
 
@@ -63,16 +54,6 @@ src/main/java/com/restaurant/
 - PostgreSQL
 - Maven 3.9+
 
-### Setup database
-```bash
-psql -U postgres -c "CREATE DATABASE restaurant_dev;"
-```
-
-### Chạy dev
-```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
-```
-
 Swagger UI: http://localhost:8080/swagger-ui.html
 
 ## Git workflow
@@ -80,15 +61,5 @@ Swagger UI: http://localhost:8080/swagger-ui.html
 1. Mỗi người làm việc trên nhánh riêng (xem bảng phân công)
 2. Pull request → review bởi ít nhất 1 người → merge vào `dev`
 3. **KHÔNG sửa chung file**. Nếu cần dữ liệu của module khác → gọi API.
-4. Migration: V1__ (Thắng), V2__ (Thy), V3__ (Sinh), V4__ (Minh)
-
-## Phong cách code
-
-- Entity: JPA `@Entity` + `@Table`, không dùng Lombok cho entity
-- DTO: Dùng Java `record` (hoặc class nếu cần)
-- Service: Interface + Implementation
-- Validation: Jakarta Bean Validation (`@NotNull`, `@NotBlank`, `@Email`, `@Size`)
-- Exception: GlobalExceptionHandler + custom exceptions
-- MapStruct cho entity ↔ DTO mapping
-- Thymeleaf cho email templates + invoice HTML
-- WebSocket STOMP cho KDS real-time notification
+4. Phần của Sinh với Minh sẽ dễ bị xung đột, nên Sinh làm trước, Minh thực hiện phần frontend xong rồi qua làm sau, thường xuyên colab với nhau để merge các features lại nhé.
+5. Migration: V1_Thang, V2_Thy, V3_Sinh, V4_Minh
