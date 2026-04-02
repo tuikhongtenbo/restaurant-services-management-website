@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Xác nhận đặt bàn</title>
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <h2 style="color: #2c3e50;">Xác nhận đặt bàn thành công</h2>
+    <p>Xin chào <strong th:text="${customerName}">Khách hàng</strong>,</p>
+    <p>Cảm ơn bạn đã đặt bàn tại nhà hàng của chúng tôi!</p>
+
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="color: #27ae60; margin-top: 0;">Chi tiết đặt bàn</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="padding: 8px 0; color: #7f8c8d;">Mã đặt bàn</td>
+                <td style="padding: 8px 0; font-weight: bold;" th:text="${reservationCode}">RS001</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; color: #7f8c8d;">Ngày giờ</td>
+                <td style="padding: 8px 0;" th:text="${reservedAt}">01/01/2026 19:00</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; color: #7f8c8d;">Số người</td>
+                <td style="padding: 8px 0;" th:text="${partySize}">4 người</td>
+            </tr>
+            <tr>
+                <td style="padding: 8px 0; color: #7f8c8d;">Trạng thái</td>
+                <td style="padding: 8px 0; color: #27ae60; font-weight: bold;">Đã xác nhận</td>
+            </tr>
+        </table>
+    </div>
+
+    <p>Nhân viên của chúng tôi sẽ gọi điện xác nhận trong thời gian sớm nhất.</p>
+    <p style="color: #7f8c8d; font-size: 14px;">
+        Nếu bạn cần thay đổi hoặc hủy đặt bàn, vui lòng liên hệ:<br>
+        📞 0xxx.xxx.xxx | ✉️ info@restaurant.com
+    </p>
+
+    <hr style="border: none; border-top: 1px solid #ecf0f1; margin: 20px 0;">
+    <p style="color: #95a5a6; font-size: 12px;">
+        © <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2026</span>
+        Restaurant Management System
+    </p>
+</body>
+</html>

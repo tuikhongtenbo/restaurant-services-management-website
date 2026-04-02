@@ -1,0 +1,31 @@
+# ================================================
+# TEST Profile
+# ================================================
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/restaurant_test
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: create-drop    # Test: tao lai moi lan run
+
+  mail:
+    host: localhost
+    port: 1025
+    username: test
+    password: test
+
+jwt:
+  secret: TEST_SECRET_KEY_MUST_BE_AT_LEAST_256_BITS_LONG_FOR_TESTING_PURPOSES_ONLY
+  expiration: 3600000
+  refresh-expiration: 7200000
+
+vnpay:
+  base-url: http://localhost:9999
+
+server:
+  port: 0    # Random port cho test

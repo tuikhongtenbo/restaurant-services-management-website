@@ -1,0 +1,74 @@
+# ================================================
+# PROD Profile
+# ================================================
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:restaurant}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate    # PROD: chi validate, dung initdb.sql
+
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# === JWT ===
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+# === VNPay (PROD) ===
+vnpay:
+  version: 2.1.0
+  tmn-code: ${VNPAY_TMN_CODE}
+  hash-secret: ${VNPAY_HASH_SECRET}
+  base-url: https://.vnpayment.vn
+  return-url: ${VNPAY_RETURN_URL}
+
+# === MoMo (PROD) ===
+momo:
+  endpoint: https://payment.momo.vn
+  partner-code: ${MOMO_PARTNER_CODE}
+  access-key: ${MOMO_ACCESS_KEY}
+  secret-key: ${MOMO_SECRET_KEY}
+  return-url: ${MOMO_RETURN_URL}
+
+# === ZaloPay (PROD) ===
+zalopay:
+  app-id: ${ZALOPAY_APP_ID}
+  key1: ${ZALOPAY_KEY1}
+  key2: ${ZALOPAY_KEY2}
+  endpoint: https://openapi.zalopay.vn
+  callback-url: ${ZALOPAY_CALLBACK_URL}
+
+# === Server ===
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: never
+    include-binding-errors: never
+
+logging:
+  level:
+    com.restaurant: INFO
+    org.springframework.security: WARN

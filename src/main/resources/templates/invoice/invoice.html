@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Hóa đơn thanh toán</title>
+    <style>
+        body { font-family: 'Courier New', monospace; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .info-table { width: 100%; margin-bottom: 20px; }
+        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .items-table th, .items-table td { border: 1px solid #333; padding: 8px; text-align: left; }
+        .items-table th { background: #f0f0f0; }
+        .totals { text-align: right; margin-bottom: 20px; }
+        .totals p { margin: 5px 0; }
+        .footer { text-align: center; color: #666; font-size: 12px; }
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 style="margin: 0;">RESTAURANT MANAGEMENT</h1>
+        <p>Địa chỉ: ... | Tel: ...</p>
+        <h2 style="text-decoration: underline;">HÓA ĐƠN</h2>
+    </div>
+
+    <table class="info-table">
+        <tr>
+            <td><strong>Mã hóa đơn:</strong> <span th:text="${invoiceNumber}">INV001</span></td>
+            <td><strong>Ngày:</strong> <span th:text="${createdAt}">01/01/2026 20:00</span></td>
+        </tr>
+        <tr>
+            <td><strong>Thu ngân:</strong> <span th:text="${cashierName}">Nguyen Van A</span></td>
+            <td><strong>Bàn:</strong> <span th:text="${tableNumber}">A01</span></td>
+        </tr>
+        <tr th:if="${customerName}">
+            <td><strong>Khách hàng:</strong> <span th:text="${customerName}">Nguyen Van B</span></td>
+            <td><strong>Điểm tích lũy:</strong> +<span th:text="${pointsEarned}">100</span></td>
+        </tr>
+    </table>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>STT</th>
+                <th>Tên món</th>
+                <th>Đơn giá</th>
+                <th>SL</th>
+                <th>Thành tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="item, iter : ${items}">
+                <td th:text="${iter.index + 1}">1</td>
+                <td th:text="${item.name}">Mon A</td>
+                <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}">100,000</td>
+                <td th:text="${item.quantity}">2</td>
+                <td th:text="${#numbers.formatDecimal(item.total, 0, 'COMMA', 0, 'POINT')}">200,000</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <p>Tạm tính: <span th:text="${#numbers.formatDecimal(subtotal, 0, 'COMMA', 0, 'POINT')}">500,000</span> VND</p>
+        <p th:if="${voucherDiscount}">Giảm giá (Voucher): -<span th:text="${#numbers.formatDecimal(voucherDiscount, 0, 'COMMA', 0, 'POINT')}">50,000</span> VND</p>
+        <p th:if="${pointsDeducted}">Điểm đã dùng: -<span th:text="${#numbers.formatDecimal(pointsDeducted, 0, 'COMMA', 0, 'POINT')}">10,000</span> VND</p>
+        <p>Thuế VAT (<span th:text="${vatRate}">10</span>%): <span th:text="${#numbers.formatDecimal(vatAmount, 0, 'COMMA', 0, 'POINT')}">45,000</span> VND</p>
+        <h2 th:text="'TỔNG CỘNG: ' + ${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VND'">TỔNG CỘNG: 495,000 VND</h2>
+        <p>Thanh toán: <span th:text="${paymentMethod}">Tiền mặt</span></p>
+    </div>
+
+    <div th:if="${customerPoints}">
+        <p><strong>Điểm tích lũy:</strong> Bạn được cộng <span th:text="${pointsEarned}">100</span> điểm.
+           Tổng điểm hiện tại: <span th:text="${customerPoints}">1,500</span> điểm.</p>
+    </div>
+
+    <div class="footer">
+        <p>Cảm ơn quý khách! Hẹn gặp lại!</p>
+        <p>Hotline: 0xxx.xxx.xxx | www.restaurant.com</p>
+    </div>
+</body>
+</html>
