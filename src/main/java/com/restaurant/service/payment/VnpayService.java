@@ -1,6 +1,6 @@
 package com.restaurant.service.payment;
 
-// SINH
+// MINH
 // TODO: @Service
 // Methods:
 //   String createPaymentUrl(UUID invoiceId, BigDecimal amount, String ipAddress)

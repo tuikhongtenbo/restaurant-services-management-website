@@ -1,6 +1,6 @@
 package com.restaurant.service.payment;
 
-// SINH
+// MINH
 // TODO: @Service
 // Methods:
 //   CheckoutResponse previewCheckout(CheckoutRequest request, UUID cashierId)

@@ -1,6 +1,6 @@
 package com.restaurant.dto.response.order;
 
-// SINH - Response don hang
+// MINH - Response don hang
 // TODO:
 //   UUID id
 //   UUID tableId

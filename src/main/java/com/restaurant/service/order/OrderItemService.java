@@ -1,6 +1,6 @@
 package com.restaurant.service.order;
 
-// SINH
+// THY
 // TODO: @Service
 // Methods:
 //   List<OrderItemResponse> getItemsByOrderId(UUID orderId)

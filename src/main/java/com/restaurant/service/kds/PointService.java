@@ -1,6 +1,6 @@
 package com.restaurant.service.kds;
 
-// MINH
+// SINH
 // TODO: @Service
 // Methods:
 //   int calculatePoints(BigDecimal amount) → tien → diem

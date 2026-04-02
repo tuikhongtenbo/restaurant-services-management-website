@@ -1,6 +1,6 @@
 package com.restaurant.controller.payment;
 
-// SINH
+// MINH
 // @RestController @RequestMapping("/api/payments")
 // @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER')")
 //

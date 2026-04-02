@@ -1,6 +1,6 @@
 package com.restaurant.dto.request.order;
 
-// SINH - Tao don hang
+// MINH - Tao don hang
 // TODO:
 // @NotNull UUID tableId
 // Integer guestCount

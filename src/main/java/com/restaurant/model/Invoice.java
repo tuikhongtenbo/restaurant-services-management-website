@@ -1,6 +1,6 @@
 package com.restaurant.model;
 
-// SINH - Entity: Invoice (Hoa don)
+// MINH - Entity: Invoice (Hoa don)
 // TODO: Implement Invoice entity
 // @Entity @Table(name = "invoices")
 // Fields:

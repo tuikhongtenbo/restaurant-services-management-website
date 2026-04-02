@@ -1,6 +1,6 @@
 package com.restaurant.model;
 
-// MINH - Entity: PointTransaction (Lich su diem)
+// SINH - Entity: PointTransaction (Lich su diem)
 // TODO: Implement PointTransaction entity
 // @Entity @Table(name = "point_transactions")
 // Fields:

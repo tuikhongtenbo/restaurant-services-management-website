@@ -1,6 +1,6 @@
 package com.restaurant.repository;
 
-// SINH
+// MINH
 // TODO: JpaRepository<Order, UUID>
 // Custom queries:
 //   - Optional<Order> findByTableIdAndStatus(UUID tableId, OrderStatus status)

@@ -1,6 +1,6 @@
 package com.restaurant.dto.response.kds;
 
-// MINH - KDS Ticket hien thi tren man hinh bep
+// SINH - KDS Ticket hien thi tren man hinh bep
 // TODO:
 //   UUID itemId
 //   UUID orderId

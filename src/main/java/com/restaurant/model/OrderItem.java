@@ -1,6 +1,6 @@
 package com.restaurant.model;
 
-// SINH - Entity: OrderItem (Chi tiet don hang)
+// MINH - Entity: OrderItem (Chi tiet don hang)
 // TODO: Implement OrderItem entity
 // @Entity @Table(name = "order_items")
 // Fields:

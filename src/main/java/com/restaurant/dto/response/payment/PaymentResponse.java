@@ -1,6 +1,6 @@
 package com.restaurant.dto.response.payment;
 
-// SINH - Response thanh toan QR / payment gateway
+// MINH - Response thanh toan QR / payment gateway
 // TODO:
 //   String paymentUrl (VNPay/Momo/ZaloPay URL)
 //   String qrData (noi dung QR neu can)

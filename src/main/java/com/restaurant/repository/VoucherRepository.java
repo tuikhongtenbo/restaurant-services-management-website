@@ -1,6 +1,6 @@
 package com.restaurant.repository;
 
-// SINH
+// MINH
 // TODO: JpaRepository<Voucher, UUID>
 // Custom queries:
 //   - Optional<Voucher> findByCode(String code)

@@ -1,6 +1,6 @@
 package com.restaurant.dto.response.payment;
 
-// SINH - Preview checkout truoc khi thanh toan
+// MINH - Preview checkout truoc khi thanh toan
 // TODO:
 //   UUID orderId
 //   UUID? invoiceId (neu da tao)

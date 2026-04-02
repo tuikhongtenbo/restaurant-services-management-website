@@ -1,6 +1,6 @@
 package com.restaurant.dto.request.payment;
 
-// SINH - Checkout
+// MINH - Checkout
 // TODO:
 // @NotNull UUID orderId
 // String customerPhone (nullable - neu khach khong tich diem)

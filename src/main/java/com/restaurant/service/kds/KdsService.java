@@ -1,6 +1,6 @@
 package com.restaurant.service.kds;
 
-// MINH
+// SINH
 // TODO: @Service
 // Methods:
 //   List<KdsTicketResponse> getTickets() → tat ca ticket chua served, sap xep theo thoi gian

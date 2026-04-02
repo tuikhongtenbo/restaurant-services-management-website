@@ -1,6 +1,6 @@
 package com.restaurant.model;
 
-// SINH - Entity: Voucher (Ma giam gia)
+// MINH - Entity: Voucher (Ma giam gia)
 // TODO: Implement Voucher entity
 // @Entity @Table(name = "vouchers")
 // Fields:

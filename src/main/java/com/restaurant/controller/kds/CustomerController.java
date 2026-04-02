@@ -1,6 +1,6 @@
 package com.restaurant.controller.kds;
 
-// MINH
+// SINH
 // @RestController @RequestMapping("/api/customers")
 // @PreAuthorize("hasAnyRole('ADMIN','MANAGER','CASHIER')")
 //

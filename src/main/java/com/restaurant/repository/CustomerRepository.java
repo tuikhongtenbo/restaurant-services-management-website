@@ -1,6 +1,6 @@
 package com.restaurant.repository;
 
-// MINH
+// SINH
 // TODO: JpaRepository<Customer, UUID>
 // Custom queries:
 //   - Optional<Customer> findByPhone(String phone)

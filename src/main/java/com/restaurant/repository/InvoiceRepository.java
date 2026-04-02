@@ -1,6 +1,6 @@
 package com.restaurant.repository;
 
-// SINH
+// MINH
 // TODO: JpaRepository<Invoice, UUID>
 // Custom queries:
 //   - List<Invoice> findByCashierId(UUID cashierId)

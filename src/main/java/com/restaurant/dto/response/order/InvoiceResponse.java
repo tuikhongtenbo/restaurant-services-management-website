@@ -1,6 +1,6 @@
 package com.restaurant.dto.response.order;
 
-// SINH - Response hoa don
+// MINH - Response hoa don
 // TODO:
 //   UUID id
 //   String invoiceNumber

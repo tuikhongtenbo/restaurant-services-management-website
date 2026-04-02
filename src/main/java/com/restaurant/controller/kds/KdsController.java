@@ -1,6 +1,6 @@
 package com.restaurant.controller.kds;
 
-// MINH - Man hinh bep
+// SINH - Man hinh bep
 // @RestController @RequestMapping("/api/kds")
 // @PreAuthorize("hasRole('KITCHEN_STAFF')")
 //

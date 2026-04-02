@@ -1,6 +1,6 @@
 package com.restaurant.dto.response.order;
 
-// SINH - Response chi tiet mon trong don
+// MINH - Response chi tiet mon trong don
 // TODO:
 //   UUID id
 //   UUID itemId

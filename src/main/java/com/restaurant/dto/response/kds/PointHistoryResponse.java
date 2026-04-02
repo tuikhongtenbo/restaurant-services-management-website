@@ -1,6 +1,6 @@
 package com.restaurant.dto.response.kds;
 
-// MINH - Response lich su diem
+// SINH - Response lich su diem
 // TODO:
 //   UUID transactionId
 //   PointTransactionType type
