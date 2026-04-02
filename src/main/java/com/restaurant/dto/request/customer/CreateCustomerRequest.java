@@ -1,6 +1,6 @@
 package com.restaurant.dto.request.customer;
 
-// SINH - Tao khach hang (tu dong khi checkout)
+// MINH - Tao khach hang (tu dong khi checkout)
 // TODO:
 // String fullName
 // String phone

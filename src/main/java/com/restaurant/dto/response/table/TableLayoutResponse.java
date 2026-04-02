@@ -1,6 +1,6 @@
 package com.restaurant.dto.response.table;
 
-// THANG - Response so do mat bang
+// THY - Response so do mat bang
 // TODO:
 //   List<AreaGroup>
 //     String areaName

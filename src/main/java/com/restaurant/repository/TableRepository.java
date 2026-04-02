@@ -1,6 +1,6 @@
 package com.restaurant.repository;
 
-// THANG
+// THY
 // TODO: JpaRepository<Table, UUID>
 // Custom queries:
 //   - Optional<Table> findByNumber(String number)

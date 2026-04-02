@@ -1,6 +1,6 @@
 package com.restaurant.dto.request.table;
 
-// THANG
+// THY
 // TODO:
 // @NotBlank String number
 // @NotNull @Min(1) Integer capacity

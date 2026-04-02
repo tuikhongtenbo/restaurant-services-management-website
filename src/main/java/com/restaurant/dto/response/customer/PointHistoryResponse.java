@@ -1,6 +1,6 @@
 package com.restaurant.dto.response.customer;
 
-// SINH - Response lich su diem
+// MINH - Response lich su diem
 // TODO:
 //   UUID transactionId
 //   PointTransactionType type

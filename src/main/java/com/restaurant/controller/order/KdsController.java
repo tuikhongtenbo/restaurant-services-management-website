@@ -1,6 +1,6 @@
 package com.restaurant.controller.order;
 
-// SINH - Man hinh bep
+// MINH - Man hinh bep
 // @RestController @RequestMapping("/api/kds")
 // @PreAuthorize("hasRole('KITCHEN_STAFF')")
 //

@@ -1,6 +1,6 @@
 package com.restaurant.service.customer;
 
-// SINH
+// MINH
 // TODO: @Service
 // Methods:
 //   Page<CustomerResponse> getCustomers(String tier, Pageable pageable)

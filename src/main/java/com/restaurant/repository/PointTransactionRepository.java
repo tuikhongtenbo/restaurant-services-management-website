@@ -1,6 +1,6 @@
 package com.restaurant.repository;
 
-// SINH
+// MINH
 // TODO: JpaRepository<PointTransaction, UUID>
 // Custom queries:
 //   - List<PointTransaction> findByCustomerIdOrderByCreatedAtDesc(UUID customerId)

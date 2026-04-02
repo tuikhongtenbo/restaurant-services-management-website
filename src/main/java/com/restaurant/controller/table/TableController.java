@@ -1,6 +1,6 @@
 package com.restaurant.controller.table;
 
-// THANG
+// THY
 // @RestController @RequestMapping("/api/tables")
 //
 // GET    /                   → Page<TableResponse> (filter: area, status)

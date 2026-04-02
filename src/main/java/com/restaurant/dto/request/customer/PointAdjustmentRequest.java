@@ -1,6 +1,6 @@
 package com.restaurant.dto.request.customer;
 
-// SINH - Dieu chinh diem thu cong
+// MINH - Dieu chinh diem thu cong
 // TODO:
 // @NotNull Integer points (am hoac duong)
 // @NotBlank String reason

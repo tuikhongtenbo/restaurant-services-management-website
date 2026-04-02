@@ -1,6 +1,6 @@
 package com.restaurant.model;
 
-// SINH - Entity: Customer (Khach hang than thiet)
+// MINH - Entity: Customer (Khach hang than thiet)
 // TODO: Implement Customer entity
 // @Entity @Table(name = "customers")
 // Fields:

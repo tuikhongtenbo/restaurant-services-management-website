@@ -1,6 +1,6 @@
 package com.restaurant.model;
 
-// THANG - Entity: Table (Quan ly ban)
+// THY - Entity: Table (Quan ly ban)
 // TODO: Implement Table entity
 // @Entity @Table(name = "tables")
 // Fields:

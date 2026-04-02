@@ -1,6 +1,6 @@
 package com.restaurant.dto.response.customer;
 
-// SINH - Response tra cuu diem (public)
+// MINH - Response tra cuu diem (public)
 // TODO:
 //   String phone
 //   String? fullName

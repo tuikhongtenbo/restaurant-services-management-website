@@ -1,6 +1,6 @@
 package com.restaurant.service.table;
 
-// THANG
+// THY
 // TODO: @Service
 // Methods:
 //   Page<TableResponse> getTables(String area, TableStatus status, Pageable pageable)

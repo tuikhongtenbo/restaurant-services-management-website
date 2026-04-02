@@ -1,6 +1,6 @@
 package com.restaurant.notification;
 
-// SINH
+// MINH
 // TODO: @Service
 // Methods:
 //   void notifyTicketReady(UUID itemId, UUID orderId, String tableNumber, String itemName)

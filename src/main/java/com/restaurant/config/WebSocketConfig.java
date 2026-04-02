@@ -1,6 +1,6 @@
 package com.restaurant.config;
 
-// TODO: SINH - Implement WebSocketConfig
+// TODO: MINH - Implement WebSocketConfig (STOMP cho KDS)
 // - STOMP over WebSocket
 // - Endpoint: /ws/kds
 // - Subscribe: /topic/kds/{kitchenStaffId}

@@ -1,6 +1,6 @@
 package com.restaurant.dto.response.table;
 
-// THANG - Response thong tin ban
+// THY - Response thong tin ban
 // TODO:
 //   UUID id
 //   String number

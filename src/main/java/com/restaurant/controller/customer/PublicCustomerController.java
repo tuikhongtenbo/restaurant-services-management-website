@@ -1,6 +1,6 @@
 package com.restaurant.controller.customer;
 
-// SINH - Tra cuu diem (khach hang tra cuu, khong can login)
+// MINH - Tra cuu diem (khach hang tra cuu, khong can login)
 // @RestController @RequestMapping("/api/public/customers")
 //
 // GET    /lookup?phone=            → CustomerLookupResponse

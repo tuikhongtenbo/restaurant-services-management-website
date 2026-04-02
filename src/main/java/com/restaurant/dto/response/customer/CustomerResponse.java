@@ -1,6 +1,6 @@
 package com.restaurant.dto.response.customer;
 
-// SINH - Response khach hang
+// MINH - Response khach hang
 // TODO:
 //   UUID id
 //   String phone

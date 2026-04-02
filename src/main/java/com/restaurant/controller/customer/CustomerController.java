@@ -1,6 +1,6 @@
 package com.restaurant.controller.customer;
 
-// SINH
+// MINH
 // @RestController @RequestMapping("/api/customers")
 // @PreAuthorize("hasAnyRole('ADMIN','MANAGER','CASHIER')")
 //
