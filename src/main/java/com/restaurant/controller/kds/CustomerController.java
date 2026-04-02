@@ -1,4 +1,4 @@
-package com.restaurant.controller.customer;
+package com.restaurant.controller.kds;
 
 // MINH
 // @RestController @RequestMapping("/api/customers")

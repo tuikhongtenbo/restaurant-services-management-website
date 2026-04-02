@@ -1,4 +1,4 @@
-package com.restaurant.dto.response.payment;
+package com.restaurant.dto.response.order;
 
 // SINH - Response hoa don
 // TODO:

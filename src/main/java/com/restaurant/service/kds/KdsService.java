@@ -1,4 +1,4 @@
-package com.restaurant.service.order;
+package com.restaurant.service.kds;
 
 // MINH
 // TODO: @Service

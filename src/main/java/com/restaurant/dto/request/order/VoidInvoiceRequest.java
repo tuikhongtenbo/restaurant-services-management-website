@@ -1,4 +1,4 @@
-package com.restaurant.dto.request.payment;
+package com.restaurant.dto.request.order;
 
 // SINH - Huy hoa don
 // TODO:

@@ -1,4 +1,4 @@
-package com.restaurant.dto.response.customer;
+package com.restaurant.dto.response.kds;
 
 // MINH - Response khach hang
 // TODO:

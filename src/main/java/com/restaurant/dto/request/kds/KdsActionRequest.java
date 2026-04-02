@@ -1,4 +1,4 @@
-package com.restaurant.dto.request.order;
+package com.restaurant.dto.request.kds;
 
 // SINH - KDS action
 // TODO: (optional)

@@ -1,4 +1,4 @@
-package com.restaurant.controller.payment;
+package com.restaurant.controller.order;
 
 // SINH
 // @RestController @RequestMapping("/api/invoices")

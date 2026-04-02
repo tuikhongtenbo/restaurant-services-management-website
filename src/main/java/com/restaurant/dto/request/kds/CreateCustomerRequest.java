@@ -1,4 +1,4 @@
-package com.restaurant.dto.request.customer;
+package com.restaurant.dto.request.kds;
 
 // MINH - Tao khach hang (tu dong khi checkout)
 // TODO:

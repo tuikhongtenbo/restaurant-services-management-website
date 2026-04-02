@@ -1,4 +1,4 @@
-package com.restaurant.dto.response.order;
+package com.restaurant.dto.response.kds;
 
 // MINH - KDS Ticket hien thi tren man hinh bep
 // TODO:

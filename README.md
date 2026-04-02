@@ -23,9 +23,9 @@ src/main/java/com/restaurant/
 | Người  | Phụ trách | Nhánh Git |
 |--------|-----------|-----------|
 | **Thắng** | Auth, User Management, Security, Config, Common, Email | `feature/auth-infra` |
-| **Thy**   | Table, Reservation, Menu Management, thuật toán tối ưu gợi ý bàn | `feature/table-reservation-menu` |
-| **Sinh**  | Order, Payment, Invoice, Voucher | `feature/order-payment-voucher` |
-| **Minh**  | KDS (Kitchen Display System), Customer Loyalty, Point | `feature/kds-loyalty` |
+| **Thy**   | Table, Reservation, Menu Management, Order, thuật toán tối ưu gợi ý bàn | `feature/table-reservation-menu` |
+| **Sinh**  | KDS (Kitchen Display System), Customer Loyalty, Point | `feature/kds-loyalty` |
+| **Minh**  | Order, Payment, Invoice, Voucher | `feature/order-payment-voucher` |
 
 ## API Endpoints chính
 
@@ -61,5 +61,5 @@ Swagger UI: http://localhost:8080/swagger-ui.html
 1. Mỗi người làm việc trên nhánh riêng (xem bảng phân công)
 2. Pull request → review bởi ít nhất 1 người → merge vào `dev`
 3. **KHÔNG sửa chung file**. Nếu cần dữ liệu của module khác → gọi API.
-4. Phần của Sinh với Minh sẽ dễ bị xung đột, nên Sinh làm trước, Minh thực hiện phần frontend xong rồi qua làm sau, thường xuyên colab với nhau để merge các features lại nhé.
-5. Migration: V1_Thang, V2_Thy, V3_Sinh, V4_Minh
+4. Phần của Thy với Sinh sẽ dễ bị xung đột (Order ↔ Menu), nên Thy làm trước, Sinh thực hiện phần frontend xong rồi qua làm sau, thường xuyên colab với nhau để merge các features lại nhé.
+5. Migration: V1_Thang, V2_Thy, V3_Minh, V4_Sinh

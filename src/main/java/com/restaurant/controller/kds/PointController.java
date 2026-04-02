@@ -1,4 +1,4 @@
-package com.restaurant.controller.customer;
+package com.restaurant.controller.kds;
 
 // MINH - Diem tich luy
 // @RestController @RequestMapping("/api/points")

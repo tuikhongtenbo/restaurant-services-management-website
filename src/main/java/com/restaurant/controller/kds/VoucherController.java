@@ -1,4 +1,4 @@
-package com.restaurant.controller.customer;
+package com.restaurant.controller.kds;
 
 // SINH - Quan ly voucher
 // @RestController @RequestMapping("/api/vouchers")

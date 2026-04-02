@@ -1,4 +1,4 @@
-package com.restaurant.service.customer;
+package com.restaurant.service.kds;
 
 // SINH
 // TODO: @Service

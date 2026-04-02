@@ -1,4 +1,4 @@
-package com.restaurant.controller.customer;
+package com.restaurant.controller.kds;
 
 // MINH - Tra cuu diem (khach hang tra cuu, khong can login)
 // @RestController @RequestMapping("/api/public/customers")

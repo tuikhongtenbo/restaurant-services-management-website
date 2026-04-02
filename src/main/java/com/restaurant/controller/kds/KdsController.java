@@ -1,4 +1,4 @@
-package com.restaurant.controller.order;
+package com.restaurant.controller.kds;
 
 // MINH - Man hinh bep
 // @RestController @RequestMapping("/api/kds")

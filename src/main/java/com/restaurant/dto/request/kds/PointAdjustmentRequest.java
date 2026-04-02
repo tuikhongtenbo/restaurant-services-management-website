@@ -1,4 +1,4 @@
-package com.restaurant.dto.request.customer;
+package com.restaurant.dto.request.kds;
 
 // MINH - Dieu chinh diem thu cong
 // TODO:
