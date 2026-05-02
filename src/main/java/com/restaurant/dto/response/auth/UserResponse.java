@@ -1,6 +1,5 @@
 package com.restaurant.dto.response.auth;
 
-import com.restaurant.common.enums.UserRole;
 import com.restaurant.common.enums.UserStatus;
 import lombok.Builder;
 import lombok.Data;

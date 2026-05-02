@@ -1,6 +1,5 @@
 package com.restaurant.repository;
 
-import com.restaurant.common.enums.UserRole;
 import com.restaurant.common.enums.UserStatus;
 import com.restaurant.model.User;
 import org.springframework.data.domain.Page;

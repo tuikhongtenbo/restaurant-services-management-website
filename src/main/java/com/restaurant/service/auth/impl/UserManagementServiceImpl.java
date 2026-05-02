@@ -1,6 +1,5 @@
 package com.restaurant.service.auth.impl;
 
-import com.restaurant.common.enums.UserRole;
 import com.restaurant.common.enums.UserStatus;
 import com.restaurant.common.exceptions.BusinessException;
 import com.restaurant.dto.request.auth.RegisterRequest;

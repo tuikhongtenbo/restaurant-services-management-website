@@ -1,6 +1,5 @@
 package com.restaurant.model;
 
-import com.restaurant.common.enums.UserRole;
 import com.restaurant.common.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;

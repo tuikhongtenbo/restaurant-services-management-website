@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Customer Auth — Restaurant Management</title>
+  <title>Admin Test — Restaurant Management</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -15,12 +15,12 @@
       --bg-card:       #161a22;
       --bg-input:      #1e2330;
       --border:        #2a3044;
-      --border-focus:  #f97316;
+      --border-focus:  #6366f1;
       --text-primary:  #f0f2f8;
       --text-muted:    #6b7694;
-      --accent:        #f97316;
-      --accent-hover:  #ea6a08;
-      --accent-glow:   rgba(249,115,22,.25);
+      --accent:        #6366f1;
+      --accent-hover:  #4f46e5;
+      --accent-glow:   rgba(99,102,241,.25);
       --success:       #22c55e;
       --danger:        #ef4444;
       --radius:        12px;
@@ -49,7 +49,7 @@
     .page-header h1 {
       font-size: 1.6rem;
       font-weight: 700;
-      background: linear-gradient(135deg, #f97316 0%, #facc15 100%);
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -95,7 +95,8 @@
       letter-spacing: .04em;
       text-transform: uppercase;
     }
-    .badge-customer { background: rgba(249,115,22,.15); color: #f97316; }
+    .badge-staff    { background: rgba(99,102,241,.15);  color: #818cf8; }
+    .badge-admin    { background: rgba(168,85,247,.15);  color: #c084fc; }
     .badge-me       { background: rgba(34,197,94,.15);   color: #22c55e; }
 
     .card-desc {
@@ -131,6 +132,35 @@
     }
     input::placeholder { color: #3d4860; }
 
+    /* ── Checkboxes ── */
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+      background: #0a0c10;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .checkbox-item input[type="checkbox"] {
+      width: auto;
+      accent-color: var(--accent);
+    }
+    .checkbox-item label {
+      margin-bottom: 0;
+      font-size: .8rem;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
     /* ── Buttons ── */
     .btn {
       width: 100%;
@@ -159,12 +189,13 @@
       cursor: not-allowed;
     }
 
-    .btn-ghost {
-      background: rgba(34,197,94,.1);
-      color: var(--success);
-      border: 1px solid rgba(34,197,94,.25);
+    .btn-secondary {
+      background: rgba(99,102,241,.15);
+      color: #818cf8;
+      border: 1px solid rgba(99,102,241,.3);
+      margin-top: 10px;
     }
-    .btn-ghost:hover { background: rgba(34,197,94,.2); }
+    .btn-secondary:hover { background: rgba(99,102,241,.25); }
 
     /* ── Token display ── */
     .token-box {
@@ -239,13 +270,6 @@
       line-height: 1.6;
     }
 
-    /* ── Divider ── */
-    .divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 20px 0;
-    }
-
     /* ── Spinner ── */
     @keyframes spin { to { transform: rotate(360deg); } }
     .spinner {
@@ -308,9 +332,9 @@
 <body>
 
   <div class="page-header">
-    <div class="logo-icon">🍽️</div>
-    <h1>Customer Portal</h1>
-    <p>Đăng nhập, đăng ký cho khách hàng · <code style="color:#f97316">localhost:8080</code></p>
+    <div class="logo-icon">👑</div>
+    <h1>Admin & Staff Portal</h1>
+    <p>Đăng nhập nhân viên và tạo tài khoản · <code style="color:#6366f1">localhost:8080</code></p>
   </div>
 
   <div class="status-bar" id="status-bar">
@@ -321,58 +345,66 @@
 
   <div class="grid">
 
-    <!-- ── Card 1: Customer Login ── -->
+    <!-- ── Card 1: Staff / Admin Login ── -->
     <div class="card">
       <div class="card-title">
-        Đăng nhập Customer
-        <span class="badge badge-customer">POST</span>
+        Đăng nhập Staff / Admin
+        <span class="badge badge-staff">POST</span>
       </div>
-      <p class="card-desc">/api/auth/customer/login · Dùng phone hoặc email + password</p>
+      <p class="card-desc">/api/auth/login · Dùng email + password</p>
 
-      <form id="customer-login-form" onsubmit="handleCustomerLogin(event)">
+      <form id="staff-login-form" onsubmit="handleStaffLogin(event)">
         <div class="form-group">
-          <label for="cl-login-id">Phone hoặc Email</label>
-          <input id="cl-login-id" type="text" placeholder="0901234567 hoặc user@email.com" required />
+          <label for="sl-email">Email</label>
+          <input id="sl-email" type="email" placeholder="admin@restaurant.com" required />
         </div>
         <div class="form-group">
-          <label for="cl-password">Password</label>
-          <input id="cl-password" type="password" placeholder="••••••••" required />
+          <label for="sl-password">Password</label>
+          <input id="sl-password" type="password" placeholder="••••••••" required />
         </div>
-        <button class="btn btn-primary" id="cl-submit" type="submit">Đăng nhập</button>
+        <button class="btn btn-primary" id="sl-submit" type="submit">Đăng nhập</button>
       </form>
 
-      <div id="cl-response" style="display:none"></div>
+      <div id="sl-response" style="display:none"></div>
     </div>
 
-    <!-- ── Card 2: Customer Register ── -->
+    <!-- ── Card 2: Create Employee Account ── -->
     <div class="card">
       <div class="card-title">
-        Đăng ký Customer
-        <span class="badge badge-customer">POST</span>
+        Tạo tài khoản Nhân viên
+        <span class="badge badge-admin">POST</span>
       </div>
-      <p class="card-desc">/api/auth/customer/register · Tạo tài khoản khách hàng mới</p>
+      <p class="card-desc">/api/admin/users · Yêu cầu token Admin/Manager</p>
 
-      <form id="customer-register-form" onsubmit="handleCustomerRegister(event)">
+      <button class="btn btn-secondary" style="margin-bottom: 14px; margin-top: 0" id="fetch-roles-btn" onclick="handleFetchRoles()">Lấy danh sách Role</button>
+      
+      <form id="create-staff-form" onsubmit="handleCreateStaff(event)">
         <div class="form-group">
-          <label for="cr-name">Họ và tên</label>
-          <input id="cr-name" type="text" placeholder="Nguyễn Văn A" required />
+          <label for="cs-name">Họ và tên</label>
+          <input id="cs-name" type="text" placeholder="Trần Văn B" required />
         </div>
         <div class="form-group">
-          <label for="cr-phone">Số điện thoại</label>
-          <input id="cr-phone" type="text" placeholder="0901234567" required />
+          <label for="cs-email">Email</label>
+          <input id="cs-email" type="email" placeholder="staff@restaurant.com" required />
         </div>
         <div class="form-group">
-          <label for="cr-email">Email</label>
-          <input id="cr-email" type="email" placeholder="user@example.com" required />
+          <label for="cs-phone">Số điện thoại</label>
+          <input id="cs-phone" type="text" placeholder="0901112223" required />
         </div>
         <div class="form-group">
-          <label for="cr-password">Password</label>
-          <input id="cr-password" type="password" placeholder="••••••••" required />
+          <label for="cs-password">Password</label>
+          <input id="cs-password" type="password" placeholder="••••••••" required />
         </div>
-        <button class="btn btn-primary" id="cr-submit" type="submit">Đăng ký</button>
+        <div class="form-group">
+          <label>Vai trò (Roles)</label>
+          <div class="checkbox-group" id="roles-container">
+            <span style="font-size: 0.8rem; color: #6b7694">Vui lòng "Lấy danh sách Role" trước.</span>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="cs-submit" type="submit">Tạo tài khoản</button>
       </form>
 
-      <div id="cr-response" style="display:none"></div>
+      <div id="cs-response" style="display:none"></div>
     </div>
 
     <!-- ── Card 3: Verify Token / Me ── -->
@@ -381,15 +413,13 @@
         Xác minh Token (me)
         <span class="badge badge-me">GET</span>
       </div>
-      <p class="card-desc">Gọi /me với token hiện tại để kiểm tra thông tin khách hàng</p>
+      <p class="card-desc">/api/auth/me · Kiểm tra quyền hiện tại</p>
 
-      <button class="btn btn-ghost" id="me-customer-btn" onclick="handleGetMe()">
-        GET /api/auth/customer/me
+      <button class="btn btn-primary" id="me-staff-btn" onclick="handleGetMe()">
+        Kiểm tra thông tin tài khoản
       </button>
 
-      <hr class="divider" />
-
-      <div class="token-label">Token hiện tại trong bộ nhớ</div>
+      <div class="token-label" style="margin-top: 20px">Token hiện tại trong bộ nhớ</div>
       <div class="token-box">
         <button class="copy-btn" onclick="copyToken()">Copy</button>
         <div class="token-value" id="current-token-display">— chưa có —</div>
@@ -402,7 +432,7 @@
     <div class="card">
       <div class="card-title">
         Quên mật khẩu
-        <span class="badge badge-customer">POST</span>
+        <span class="badge badge-staff">POST</span>
       </div>
       <p class="card-desc">/api/auth/forgot-password · Gửi mã OTP 6 số qua email</p>
 
@@ -421,7 +451,7 @@
     <div class="card">
       <div class="card-title">
         Đặt lại mật khẩu
-        <span class="badge badge-customer">POST</span>
+        <span class="badge badge-staff">POST</span>
       </div>
       <p class="card-desc">/api/auth/reset-password · Dùng mã OTP để đổi mật khẩu</p>
 
@@ -455,10 +485,10 @@
     if (isLoading) {
       btn.disabled = true;
       btn.dataset.originalText = btn.textContent;
-      btn.innerHTML = '<span class="spinner"></span>Đang gửi…';
+      btn.innerHTML = '<span class="spinner"></span>Đang xử lý…';
     } else {
       btn.disabled = false;
-      btn.textContent = btn.dataset.originalText;
+      btn.textContent = btn.dataset.originalText || btn.textContent;
     }
   }
 
@@ -491,7 +521,7 @@
     document.getElementById('status-dot').className = 'status-indicator active';
     const preview = token.length > 40 ? token.slice(0, 40) + '…' : token;
     document.getElementById('status-text').innerHTML =
-      `Token Khách Hàng đã lưu · <strong>${preview}</strong>`;
+      `Token Admin/Staff đã lưu · <strong>${preview}</strong>`;
   }
 
   function clearStoredToken() {
@@ -526,41 +556,85 @@
 
   /* ─── Handlers ─── */
 
-  async function handleCustomerLogin(event) {
+  async function handleStaffLogin(event) {
     event.preventDefault();
-    setLoading('cl-submit', true);
-    const loginId = document.getElementById('cl-login-id').value.trim();
-    const password = document.getElementById('cl-password').value;
+    setLoading('sl-submit', true);
+    const email    = document.getElementById('sl-email').value.trim();
+    const password = document.getElementById('sl-password').value;
     try {
-      const { ok, status, data } = await callApi('POST', '/api/auth/customer/login', { loginId, password }, false);
-      renderResponse('cl-response', ok, status, data);
+      const { ok, status, data } = await callApi('POST', '/api/auth/login', { email, password }, false);
+      renderResponse('sl-response', ok, status, data);
       if (ok && data?.data?.accessToken) {
         saveToken(data.data.accessToken, data.data.tokenType);
       }
     } catch (error) {
-      renderInfo('cl-response', `Không thể kết nối: ${error.message}`);
+      renderInfo('sl-response', `Không thể kết nối: ${error.message}`);
     } finally {
-      setLoading('cl-submit', false);
+      setLoading('sl-submit', false);
     }
   }
 
-  async function handleCustomerRegister(event) {
-    event.preventDefault();
-    setLoading('cr-submit', true);
-    const fullName = document.getElementById('cr-name').value.trim();
-    const phone    = document.getElementById('cr-phone').value.trim();
-    const email    = document.getElementById('cr-email').value.trim();
-    const password = document.getElementById('cr-password').value;
+  async function handleFetchRoles() {
+    if (!storedToken) {
+      renderInfo('cs-response', 'Chưa có token! Hãy đăng nhập bằng tài khoản Admin/Manager trước.');
+      return;
+    }
+    setLoading('fetch-roles-btn', true);
     try {
-      const { ok, status, data } = await callApi('POST', '/api/auth/customer/register', { fullName, phone, email, password }, false);
-      renderResponse('cr-response', ok, status, data);
-      if (ok && data?.data?.accessToken) {
-        saveToken(data.data.accessToken, data.data.tokenType);
+      const { ok, status, data } = await callApi('GET', '/api/admin/roles', null, true);
+      if (ok && data?.data) {
+        const container = document.getElementById('roles-container');
+        container.innerHTML = '';
+        data.data.forEach(role => {
+          const div = document.createElement('div');
+          div.className = 'checkbox-item';
+          div.innerHTML = `
+            <input type="checkbox" id="role-${role.id}" name="roles" value="${role.id}" />
+            <label for="role-${role.id}">${role.name} ${role.description ? '- ' + role.description : ''}</label>
+          `;
+          container.appendChild(div);
+        });
+      } else {
+        renderResponse('cs-response', ok, status, data);
       }
     } catch (error) {
-      renderInfo('cr-response', `Không thể kết nối: ${error.message}`);
+      renderInfo('cs-response', `Không thể kết nối: ${error.message}`);
     } finally {
-      setLoading('cr-submit', false);
+      setLoading('fetch-roles-btn', false);
+    }
+  }
+
+  async function handleCreateStaff(event) {
+    event.preventDefault();
+    if (!storedToken) {
+      renderInfo('cs-response', 'Chưa có token! Hãy đăng nhập Admin.');
+      return;
+    }
+    
+    // Get checked roles
+    const checkboxes = document.querySelectorAll('input[name="roles"]:checked');
+    const roleIds = Array.from(checkboxes).map(cb => cb.value);
+    
+    if (roleIds.length === 0) {
+      renderInfo('cs-response', 'Vui lòng chọn ít nhất 1 role.');
+      return;
+    }
+
+    setLoading('cs-submit', true);
+    const fullName = document.getElementById('cs-name').value.trim();
+    const email    = document.getElementById('cs-email').value.trim();
+    const phone    = document.getElementById('cs-phone').value.trim();
+    const password = document.getElementById('cs-password').value;
+    
+    try {
+      const { ok, status, data } = await callApi('POST', '/api/admin/users', { 
+        fullName, email, phone, password, roleIds 
+      }, true);
+      renderResponse('cs-response', ok, status, data);
+    } catch (error) {
+      renderInfo('cs-response', `Không thể kết nối: ${error.message}`);
+    } finally {
+      setLoading('cs-submit', false);
     }
   }
 
@@ -569,15 +643,14 @@
       renderInfo('me-response', 'Chưa có token. Đăng nhập trước đã!');
       return;
     }
-    const originalText = document.getElementById('me-customer-btn').textContent;
-    document.getElementById('me-customer-btn').disabled = true;
+    setLoading('me-staff-btn', true);
     try {
-      const { ok, status, data } = await callApi('GET', '/api/auth/customer/me', null, true);
+      const { ok, status, data } = await callApi('GET', '/api/auth/me', null, true);
       renderResponse('me-response', ok, status, data);
     } catch (error) {
       renderInfo('me-response', `Không thể kết nối: ${error.message}`);
     } finally {
-      document.getElementById('me-customer-btn').disabled = false;
+      setLoading('me-staff-btn', false);
     }
   }
 

@@ -1,6 +1,5 @@
 package com.restaurant.dto.request.auth;
 
-import com.restaurant.common.enums.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

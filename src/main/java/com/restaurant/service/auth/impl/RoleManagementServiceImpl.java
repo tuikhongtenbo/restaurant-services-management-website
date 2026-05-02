@@ -83,6 +83,17 @@ public class RoleManagementServiceImpl implements RoleManagementService {
         return authorities;
     }
 
+    @Override
+    public java.util.List<com.restaurant.dto.response.auth.RoleResponse> getAllRoles() {
+        return roleRepository.findAll().stream()
+                .map(role -> com.restaurant.dto.response.auth.RoleResponse.builder()
+                        .id(role.getId())
+                        .name(role.getName())
+                        .description(role.getDescription())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
     private void logAudit(User targetUser, Role role, String action, String reason) {
         UUID performedById = null;
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
