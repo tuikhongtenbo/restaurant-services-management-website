@@ -1,16 +1,20 @@
 package com.restaurant.dto.response.auth;
 
-// THANG - Thong tin user tra ve cho admin
-// TODO:
-//   UUID id
-//   String employeeId
-//   String fullName
-//   String phone
-//   String email
-//   UserRole role
-//   UserStatus status
-//   Integer failedAttempts
-//   LocalDateTime createdAt
-//   String createdByName
+import com.restaurant.common.enums.UserRole;
+import com.restaurant.common.enums.UserStatus;
+import lombok.Builder;
+import lombok.Data;
+
+import java.util.UUID;
+
+@Data
+@Builder
 public class UserResponse {
+    private UUID id;
+    private String employeeId;
+    private String fullName;
+    private String email;
+    private String phone;
+    private java.util.Set<String> roles;
+    private UserStatus status;
 }
