@@ -9,13 +9,13 @@ spring:
     active: dev
 
   jpa:
-    open-in-view: false          # TUY CHON: false de tranh LazyInitializationException
+    open-in-view: false # TUY CHON: false de tranh LazyInitializationException
     properties:
       hibernate:
         format_sql: true
         use_sql_comments: true
     hibernate:
-      ddl-auto: validate          # Chi kiem tra schema, khong tu tao (dung initdb.sql)
+      ddl-auto: validate # Chi kiem tra schema, khong tu tao (dung initdb.sql)
     show-sql: false
 
   jackson:
@@ -23,8 +23,6 @@ spring:
     time-zone: Asia/Ho_Chi_Minh
     serialization:
       write-dates-as-timestamps: false
-
-  jackson:
     default-property-inclusion: non_null
 
 logging:
