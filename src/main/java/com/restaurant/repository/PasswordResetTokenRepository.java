@@ -1,8 +1,17 @@
 package com.restaurant.repository;
 
-// THANG
-// TODO: JpaRepository<PasswordResetToken, UUID>
-// Custom queries:
-//   - Optional<PasswordResetToken> findByToken(String token)
-//   - Optional<PasswordResetToken> findByUserIdAndUsedAtIsNull(UUID userId)
-//   - void deleteByUserId(UUID userId)
+import com.restaurant.model.Customer;
+import com.restaurant.model.PasswordResetToken;
+import com.restaurant.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+import java.util.UUID;
+
+@Repository
+public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, UUID> {
+    Optional<PasswordResetToken> findByToken(String token);
+    Optional<PasswordResetToken> findByUserAndUsedAtIsNull(User user);
+    Optional<PasswordResetToken> findByCustomerAndUsedAtIsNull(Customer customer);
+}

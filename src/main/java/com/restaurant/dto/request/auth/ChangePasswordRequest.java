@@ -4,9 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
-public class ResetPasswordRequest {
-    @NotBlank(message = "Token is required")
-    private String token;
+public class ChangePasswordRequest {
+    @NotBlank(message = "Current password is required")
+    private String currentPassword;
 
     @NotBlank(message = "New password is required")
     private String newPassword;
