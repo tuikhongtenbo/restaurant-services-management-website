@@ -1,11 +1,9 @@
 package com.restaurant.service.auth;
 
-// THANG
-// TODO: @Service
-// Methods:
-//   void createResetToken(User user) → gui email
-//   boolean validateToken(String token)
-//   void resetPassword(String token, String newPassword)
-//   void deleteToken(String token)
+import com.restaurant.dto.request.auth.ForgotPasswordRequest;
+import com.restaurant.dto.request.auth.ResetPasswordRequest;
+
 public interface PasswordResetService {
+    void forgotPassword(ForgotPasswordRequest request);
+    void resetPassword(ResetPasswordRequest request);
 }

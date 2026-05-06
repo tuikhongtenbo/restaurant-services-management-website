@@ -4,16 +4,18 @@ import com.restaurant.common.enums.UserStatus;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
 @Builder
-public class UserResponse {
+public class CustomerResponse {
     private UUID id;
-    private String employeeId;
     private String fullName;
     private String email;
     private String phone;
-    private java.util.Set<String> roles;
     private UserStatus status;
+    private String tier;
+    private BigDecimal totalSpent;
+    private Integer currentPoints;
 }
