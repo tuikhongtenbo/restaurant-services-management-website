@@ -1,5 +1,24 @@
 package com.restaurant.dto.response.table;
 
+import com.restaurant.common.enums.TableStatus;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.UUID;
+
+@Getter
+@Setter
+@Builder  // Service dùng .builder() để tạo response dễ dàng
+public class TableResponse {
+    private UUID id;
+    private String number;
+    private Integer capacity;
+    private TableStatus status;
+    private Boolean isActive;
+    // Không có updatedAt — client không cần thiết
+}
+
 // THY - Response thong tin ban
 // TODO:
 //   UUID id
@@ -11,5 +30,5 @@ package com.restaurant.dto.response.table;
 //   Integer posY
 //   Boolean isActive
 //   LocalDateTime updatedAt
-public class TableResponse {
-}
+
+// dto/response/TableResponse.java
