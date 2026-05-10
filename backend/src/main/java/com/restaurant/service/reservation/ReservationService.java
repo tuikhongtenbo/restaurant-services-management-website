@@ -16,4 +16,5 @@ package com.restaurant.service.reservation;
 //   TableResponse suggestTable(Integer partySize, LocalDateTime dateTime)
 //   ReservationCalendarResponse getCalendar(LocalDate date)
 public interface ReservationService {
+    
 }

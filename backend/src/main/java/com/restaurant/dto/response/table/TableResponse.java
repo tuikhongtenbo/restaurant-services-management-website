@@ -7,16 +7,20 @@ import lombok.Setter;
 
 import java.util.UUID;
 
-@Getter
-@Setter
-@Builder  // Service dùng .builder() để tạo response dễ dàng
+// Trả về cho mọi trường hợp — xem bàn, mở bàn, đóng bàn
+@Getter 
+@Setter 
+@Builder
 public class TableResponse {
     private UUID id;
-    private String number;
-    private Integer capacity;
-    private TableStatus status;
+    private String number;        // "01"
+    private Integer capacity;     // 4
+    private String status;        // "EMPTY" | "SERVING" | "CLEANING"
     private Boolean isActive;
-    // Không có updatedAt — client không cần thiết
+
+    // Thêm field này vì UI cần biết bàn đang có order nào
+    // null = bàn đang trống
+    private UUID currentOrderId;
 }
 
 // THY - Response thong tin ban

@@ -39,6 +39,9 @@ public class Table {
     @Builder.Default               // Giữ giá trị default khi dùng Builder
     private TableStatus status = TableStatus.EMPTY;  // Mặc định: bàn trống
 
+    @Column(name = "area", length = 50)
+    private String area;  // Vị trí bàn: Tang_1, Tang_2, San_vuon, Phong_VIP
+
     @Column(name = "is_active")
     @Builder.Default
     private Boolean isActive = true;  // Mặc định: bàn đang hoạt động
@@ -62,8 +65,6 @@ public class Table {
 //   - capacity : INT (> 0)
 //   - status   : VARCHAR(10) [empty|serving|cleaning]
 //   - area     : VARCHAR(50) [Tang_1|Tang_2|San_vuon|Phong_VIP]
-//   - posX     : INT (vi tri keo tha)
-//   - posY     : INT (vi tri keo tha)
 //   - isActive : BOOLEAN DEFAULT TRUE
 //   - updatedAt: TIMESTAMPTZ
 // Annotations: @Enumerated for status
