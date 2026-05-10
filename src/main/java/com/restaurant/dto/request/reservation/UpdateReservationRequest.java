@@ -1,5 +1,20 @@
 package com.restaurant.dto.request.reservation;
 
+import com.restaurant.common.enums.ReservationStatus;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class UpdateReservationRequest {
+
+    @NotNull(message = "Trạng thái không được trống")
+    private ReservationStatus status;
+
+    private String cancelReason;  // Chỉ cần khi status = CANCELLED
+}
+
 // THY - Sua dat ban
 // TODO:
 // String customerName
@@ -7,5 +22,3 @@ package com.restaurant.dto.request.reservation;
 // Integer partySize
 // LocalDateTime reservedAt
 // String note
-public class UpdateReservationRequest {
-}
