@@ -2,15 +2,14 @@ package com.restaurant.service.impl;
 
 import com.restaurant.common.enums.OrderStatus;
 import com.restaurant.common.enums.TableStatus;
-import com.restaurant.common.exception.BusinessException; // ← dùng BusinessException
+import com.restaurant.common.exception.BusinessException;
 import com.restaurant.dto.request.CreateTableRequest;
 import com.restaurant.dto.request.OpenTableRequest;
 import com.restaurant.dto.request.UpdateTableRequest;
 import com.restaurant.dto.response.TableLayoutResponse;
 import com.restaurant.dto.response.TableResponse;
-import com.restaurant.mapper.TableMapper;              // ← dùng Mapper
 import com.restaurant.model.Order;
-import com.restaurant.model.RestaurantTable;
+import com.restaurant.model.Table;
 import com.restaurant.repository.OrderRepository;
 import com.restaurant.repository.TableRepository;
 import com.restaurant.service.TableService;
@@ -27,61 +26,39 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional
-
-
-@Service
-@RequiredArgsConstructor
 public class TableServiceImpl implements TableService {
 
     private final TableRepository tableRepository;
+    private final OrderRepository orderRepository;
+
+    private TableResponse toResponse(Table table) {
+        return TableResponse.builder()
+                .id(table.getId())
+                .number(table.getNumber())
+                .capacity(table.getCapacity())
+                .status(table.getStatus())
+                .isActive(table.getIsActive())
+                .build();
+    }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<TableResponse> getTables(
-            String area,
-            TableStatus status,
-            Pageable pageable) {
-
+    public Page<TableResponse> getTables(String area, TableStatus status, Pageable pageable) {
         if (status != null) {
             return tableRepository
                     .findByIsActiveTrueAndStatus(area, status, pageable)
-                    .map(table -> TableResponse.builder()
-                            .id(table.getId())
-                            .tableNumber(table.getTableNumber())
-                            .area(table.getArea())
-                            .status(table.getStatus())
-                            .capacity(table.getCapacity())
-                            .build());
+                    .map(this::toResponse); 
         }
 
         return tableRepository
                 .findByIsActiveTrue(pageable)
-                .map(table -> TableResponse.builder()
-                        .id(table.getId())
-                        .tableNumber(table.getTableNumber())
-                        .area(table.getArea())
-                        .status(table.getStatus())
-                        .capacity(table.getCapacity())
-                        .build());
+                .map(this::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
     public TableResponse getTableById(UUID id) {
-
-        RestaurantTable table = tableRepository.findById(id)
-                .orElseThrow(() ->
-                        new BusinessException(
-                                "Không tìm thấy bàn: " + id
-                        ));
-
-        return TableResponse.builder()
-                .id(table.getId())
-                .tableNumber(table.getTableNumber())
-                .area(table.getArea())
-                .status(table.getStatus())
-                .capacity(table.getCapacity())
-                .build();
+        return toResponse(findOrThrow(id));
     }
 
     @Override
@@ -90,19 +67,18 @@ public class TableServiceImpl implements TableService {
             throw new BusinessException("Số bàn '" + request.getNumber() + "' đã tồn tại");
         }
 
-        RestaurantTable table = RestaurantTable.builder()
+        Table table = Table.builder()
                 .number(request.getNumber())
                 .capacity(request.getCapacity())
                 .build();
 
-        return tableMapper.toTableResponse(tableRepository.save(table));
+        return toResponse(tableRepository.save(table));
     }
 
     @Override
     public TableResponse updateTable(UUID id, UpdateTableRequest request) {
-        RestaurantTable table = findOrThrow(id);
+        Table table = findOrThrow(id);
 
-        // Đổi số bàn → kiểm tra số mới chưa bị dùng bởi bàn khác
         if (!table.getNumber().equals(request.getNumber())
                 && tableRepository.existsByNumber(request.getNumber())) {
             throw new BusinessException("Số bàn '" + request.getNumber() + "' đã tồn tại");
@@ -111,33 +87,28 @@ public class TableServiceImpl implements TableService {
         table.setNumber(request.getNumber());
         table.setCapacity(request.getCapacity());
 
-        return tableMapper.toTableResponse(table);
+        tableRepository.save(table);
     }
 
     @Override
-    public TableResponse updateTable(UUID id, UpdateTableRequest request) {
-        RestaurantTable table = findOrThrow(id);
+    public void deleteTable(UUID id) {
+        Table table = findOrThrow(id);
 
-        // Đổi số bàn → kiểm tra số mới chưa bị dùng bởi bàn khác
-        if (!table.getNumber().equals(request.getNumber())
-                && tableRepository.existsByNumber(request.getNumber())) {
-            throw new BusinessException("Số bàn '" + request.getNumber() + "' đã tồn tại");
+        if (table.getStatus() == TableStatus.SERVING) {
+            throw new BusinessException("Không thể xóa bàn đang có khách");
         }
 
-        table.setNumber(request.getNumber());
-        table.setCapacity(request.getCapacity());
-
-        return tableMapper.toTableResponse(table);
+        table.setIsActive(false);
+        tableRepository.save(table);
     }
 
     @Override
     public TableResponse openTable(UUID id, OpenTableRequest request, UUID waiterId) {
-        RestaurantTable table = findOrThrow(id);
+        Table table = findOrThrow(id);
 
-        // Validate giống pattern teammate: check từng điều kiện, ném lỗi ngay
         if (table.getStatus() != TableStatus.EMPTY) {
             throw new BusinessException(
-                    "Bàn " + table.getNumber() + " không trống (đang " + table.getStatus() + ")"
+                "Bàn " + table.getNumber() + " không trống (đang " + table.getStatus() + ")"
             );
         }
 
@@ -145,42 +116,38 @@ public class TableServiceImpl implements TableService {
             throw new BusinessException("Bàn đã có order đang mở");
         }
 
-        // Tạo order mới — gắn với bàn và waiter
         Order order = Order.builder()
                 .table(table)
                 .build();
         orderRepository.save(order);
 
-        // Đổi trạng thái bàn
         table.setStatus(TableStatus.SERVING);
 
-        return tableMapper.toTableResponse(table);
+        tableRepository.save(table);
     }
 
     @Override
     public TableResponse closeTable(UUID id) {
-        RestaurantTable table = findOrThrow(id);
+        Table table = findOrThrow(id);
 
         if (table.getStatus() != TableStatus.SERVING) {
             throw new BusinessException("Bàn không trong trạng thái SERVING");
         }
 
-        // Giống pattern teammate: validate business rule trước khi thực hiện
         if (orderRepository.existsByTableIdAndStatus(table.getId(), OrderStatus.OPEN)) {
-            throw new BusinessException("Bàn còn order chưa thanh toán, không thể đóng");
+            throw new BusinessException("Bàn còn order chưa thanh toán");
         }
 
         table.setStatus(TableStatus.CLEANING);
 
-        return tableMapper.toTableResponse(table);
+        tableRepository.save(table);
     }
 
     @Override
     @Transactional(readOnly = true)
     public TableLayoutResponse getLayout() {
-        List<RestaurantTable> all = tableRepository.findByIsActiveTrue();
+        List<Table> all = tableRepository.findByIsActiveTrue();
 
-        // Dùng stream filter đếm từng loại — không cần thêm query DB
         long available = all.stream()
                 .filter(t -> t.getStatus() == TableStatus.EMPTY).count();
         long occupied  = all.stream()
@@ -189,7 +156,7 @@ public class TableServiceImpl implements TableService {
                 .filter(t -> t.getStatus() == TableStatus.CLEANING).count();
 
         return TableLayoutResponse.builder()
-                .tables(all.stream().map(tableMapper::toTableResponse).toList())
+                .tables(all.stream().map(this::toResponse).toList())
                 .total(all.size())
                 .available((int) available)
                 .occupied((int) occupied)
@@ -204,19 +171,17 @@ public class TableServiceImpl implements TableService {
                 .findByIsActiveTrueAndStatus(TableStatus.EMPTY)
                 .stream()
                 .filter(t -> t.getCapacity() >= capacity)
-                .sorted((a, b) -> {
-                    // Gợi ý bàn "vừa đủ" — lãng phí ít nhất
-                    // 3 người → bàn 4 (waste=1) hơn bàn 8 (waste=5)
-                    int wasteA = a.getCapacity() - capacity;
-                    int wasteB = b.getCapacity() - capacity;
-                    return Integer.compare(wasteA, wasteB);
-                })
-                .map(tableMapper::toTableResponse)
+                .sorted((a, b) -> Integer.compare(
+                        a.getCapacity() - capacity,
+                        b.getCapacity() - capacity
+                ))
+                .map(this::toResponse)
                 .toList();
     }
 
-    private RestaurantTable findOrThrow(UUID id) {
+    private Table findOrThrow(UUID id) {
         return tableRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy bàn: " + id));
     }
+
 }
