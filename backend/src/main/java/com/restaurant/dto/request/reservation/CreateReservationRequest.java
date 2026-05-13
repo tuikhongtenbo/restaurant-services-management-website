@@ -6,8 +6,7 @@ import lombok.Setter;
 
 import java.time.OffsetDateTime;
 
-@Getter
-@Setter
+@Data
 public class CreateReservationRequest {
 
     @NotBlank(message = "Tên khách không được trống")

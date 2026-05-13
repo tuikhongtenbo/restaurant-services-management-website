@@ -4,12 +4,15 @@ import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.lang.annotation.Native;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 
-@Getter
-@Setter
+@Data
 public class CreateMenuItemRequest {
+
+    @NotNull(message = "Nhân viên tạo món ăn không được để trống")
+    private UUID updatedBy;  // UUID của staff đang tạo món này
 
     @NotBlank(message = "Tên món không được trống")
     @Size(max = 100)
@@ -19,6 +22,8 @@ public class CreateMenuItemRequest {
     private String category;
 
     private String description;
+
+    @NotBlank(message = "URL ảnh không được trống")
     private String imageUrl;
 
     @NotNull(message = "Giá không được trống")

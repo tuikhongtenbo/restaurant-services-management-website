@@ -6,5 +6,6 @@ package com.restaurant.service.menu;
 //   List<String> getAllCategories()
 //   List<CategoryResponse> getMenuGroupedByCategory() → public menu
 public interface CategoryService {
-    
+    List<String> getAllCategories();
+    List<CategoryResponse> getMenuGroupedByCategory();
 }

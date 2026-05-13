@@ -1,16 +1,11 @@
 package com.restaurant.dto.request.reservation;
 
+import javax.annotation.processing.Generated;
+
 // THY - Huy dat ban
 // TODO:
 // String reason
+@Data
 public class CancelReservationRequest {
     private String reason;
-
-    public String getReason() {
-        return reason;
-    }
-
-    public void setReason(String reason) {
-        this.reason = reason;
-    }
 }

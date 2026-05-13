@@ -41,16 +41,16 @@ public class MenuItem {
     private BigDecimal price;  // Giá gốc: 150000
 
     @Column(name = "promo_price", precision = 12, scale = 0)
-    private BigDecimal promoPrice;  // Giá KM: 120000 — null = không KM
+    private BigDecimal promoPrice = null;  // Giá KM: 120000 — null = không KM
 
     @Column(name = "promo_start")
-    private LocalTime promoStart;  // KM từ 17:00
+    private LocalTime promoStart = null;  // KM từ 17:00
 
     @Column(name = "promo_end")
-    private LocalTime promoEnd;    // KM đến 21:00
+    private LocalTime promoEnd = null;    // KM đến 21:00
 
     @Column(columnDefinition = "TEXT")
-    private String tags;  // "spicy,popular,new" — tìm kiếm dễ hơn
+    private String tags = null;  // "spicy,popular,new" — tìm kiếm dễ hơn
 
     @Enumerated(EnumType.STRING)
     @Column(length = 15)
@@ -59,11 +59,11 @@ public class MenuItem {
     // AVAILABLE | OUT_OF_STOCK | HIDDEN
 
     @Column(name = "sort_order")
-    private Integer sortOrder;  // Thứ tự hiển thị trong menu
+    private Integer sortOrder ;  // Thứ tự hiển thị trong menu
 
     // Staff nào cập nhật món này lần cuối
     @Column(name = "updated_by")
-    private UUID updatedBy;  // Lưu UUID như teammate làm với createdBy
+    private UUID updatedBy = null;  // Lưu UUID như teammate làm với createdBy
 
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;

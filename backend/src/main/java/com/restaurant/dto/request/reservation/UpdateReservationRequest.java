@@ -5,8 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
-@Setter
+@Data
 public class UpdateReservationRequest {
 
     @NotNull(message = "Trạng thái không được trống")

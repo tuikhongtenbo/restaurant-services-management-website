@@ -14,7 +14,8 @@ import lombok.Setter;
 // Integer posX, Integer posY
 // dto/request/UpdateTableRequest.java
 // ADMIN sửa thông tin bàn — giống Create, dùng riêng để sau dễ mở rộng
-@Getter @Setter
+@Data
+
 public class UpdateTableRequest {
 
     @NotBlank(message = "Số bàn không được trống")

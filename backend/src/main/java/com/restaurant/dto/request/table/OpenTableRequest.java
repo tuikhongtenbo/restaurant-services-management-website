@@ -9,8 +9,7 @@ import lombok.Setter;
 // TODO:
 // @NotNull Integer guestCount
 // UUID waiterId (nullable - neu khong truyen thi tu gan)
-@Getter
-@Setter
+@Data
 public class OpenTableRequest {
 
     private UUID reservationId;

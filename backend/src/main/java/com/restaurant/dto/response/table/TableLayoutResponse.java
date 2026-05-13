@@ -8,9 +8,9 @@ import lombok.Getter;
 //   List<AreaGroup>
 //     String areaName
 //     List<TableResponse> tables
-@Getter 
-@Setter 
+@Data
 @Builder
+
 public class TableLayoutResponse {
     private List<TableResponse> tables;  // toàn bộ bàn
 

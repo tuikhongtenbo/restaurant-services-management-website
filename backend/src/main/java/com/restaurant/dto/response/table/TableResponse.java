@@ -7,9 +7,10 @@ import lombok.Setter;
 
 import java.util.UUID;
 
+import javax.annotation.processing.SupportedAnnotationTypes;
+
 // Trả về cho mọi trường hợp — xem bàn, mở bàn, đóng bàn
-@Getter 
-@Setter 
+@Data
 @Builder
 public class TableResponse {
     private UUID id;

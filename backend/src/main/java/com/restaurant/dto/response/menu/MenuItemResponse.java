@@ -9,9 +9,9 @@ import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
 @Builder
+
 public class MenuItemResponse {
     private UUID id;
     private String category;
@@ -25,6 +25,7 @@ public class MenuItemResponse {
     private String tags;
     private MenuItemStatus status;
     private Integer sortOrder;
+    private LocalDateTime createdAt;
     // updatedBy không trả ra — không cần thiết với client
 }
 

@@ -6,8 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
-@Setter
+@Data
 // Không cần @Builder ở đây — DTO chỉ nhận data từ client
 public class CreateTableRequest {
 

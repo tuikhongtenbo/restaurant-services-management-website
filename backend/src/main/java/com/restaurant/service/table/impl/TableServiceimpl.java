@@ -122,11 +122,6 @@ public class TableServiceImpl implements TableService {
             throw new BusinessException("Bàn đã có order đang mở");
         }
 
-        Order order = Order.builder()
-                .table(table)
-                .build();
-        orderRepository.save(order);
-
         table.setStatus(TableStatus.SERVING);
 
         tableRepository.save(table);

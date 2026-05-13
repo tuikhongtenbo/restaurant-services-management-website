@@ -7,9 +7,9 @@ import lombok.Setter;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
 @Builder
+
 public class ReservationResponse {
     private UUID id;
     private String customerName;
@@ -17,7 +17,7 @@ public class ReservationResponse {
     private Integer partySize;
     private OffsetDateTime reservedAt;
     private String note;
-    private String status;   // Trả về String cho frontend dễ đọc
+    private String status;   
     private String source;
     private UUID confirmedBy;  // UUID của nhân viên confirm, sẽ map sang tên ở frontend
     private OffsetDateTime createdAt;
