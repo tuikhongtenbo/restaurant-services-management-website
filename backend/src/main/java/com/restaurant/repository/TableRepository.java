@@ -36,4 +36,10 @@ public interface TableRepository extends JpaRepository<Table, UUID> {
     // Kiểm tra bàn có tồn tại với số bàn đó không (tránh trùng)
     // existsBy + Number → SELECT COUNT(*) > 0 WHERE number = ?
     boolean existsByNumber(String number);
+
+    boolean existsByTableIdAndStatus(UUID tableId, TableStatus status); 
+
+    List<Table> findByIsActiveTrue();
+
+    List<Table> findByIsActiveTrueAndStatus(TableStatus status);
 }

@@ -25,6 +25,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@EnableScheduling
 public class ReservationServiceImpl implements ReservationService {
 
     private final ReservationRepository reservationRepository;
@@ -231,36 +232,63 @@ public class ReservationServiceImpl implements ReservationService {
         return toResponse(reservationRepository.save(r));
     }
 
-    // AUTO ASSIGN TABLE
-    // Chạy mỗi phút — tìm reservation sắp đến và assign bàn
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 60000) // Chạy mỗi 60 giây
     @Override
     @Transactional
     public void autoAssignTables() {
-        OffsetDateTime now  = OffsetDateTime.now();
-        OffsetDateTime soon = now.plusMinutes(ASSIGN_BEFORE_MINUTES.getValue());
 
-        // Tìm reservation CONFIRMED, chưa có bàn, sắp đến trong 30 phút
-        List<Reservation> upcoming = reservationRepository
-                .findUnassignedUpcoming(now, soon);
+        // Thời gian hiện tại
+        OffsetDateTime now = OffsetDateTime.now();
 
+        // Thời gian giới hạn:
+        // ví dụ hiện tại 10:00, cộng thêm 30 phút → 10:30
+        OffsetDateTime soon =
+                now.plusMinutes(ASSIGN_BEFORE_MINUTES.getValue());
+
+        // Lấy các reservation:
+        // - đã CONFIRMED
+        // - chưa có bàn
+        // - sắp đến giờ trong khoảng now → soon
+        List<Reservation> upcoming =
+                reservationRepository.findUnassignedUpcoming(now, soon);
+
+        // Duyệt từng reservation
         upcoming.forEach(reservation -> {
 
-            // Tìm bàn EMPTY phù hợp nhất — vừa đủ chỗ, lãng phí ít nhất
+            // Tìm tất cả bàn đang EMPTY và còn hoạt động
             tableRepository
                     .findByIsActiveTrueAndStatus(TableStatus.EMPTY)
+
+                    // Chỉ giữ bàn đủ chỗ cho số khách
                     .stream()
-                    .filter(t -> t.getCapacity() >= reservation.getPartySize())
+                    .filter(table ->
+                            table.getCapacity()
+                                    >= reservation.getPartySize())
+
+                    // Chọn bàn phù hợp nhất:
+                    // bàn dư ít ghế nhất
                     .min((a, b) -> Integer.compare(
-                            a.getCapacity() - reservation.getPartySize(),
-                            b.getCapacity() - reservation.getPartySize()
+                            a.getCapacity()
+                                    - reservation.getPartySize(),
+
+                            b.getCapacity()
+                                    - reservation.getPartySize()
                     ))
+
+                    // Nếu tìm được bàn phù hợp
                     .ifPresent(table -> {
-                        // Giữ bàn → RESERVED
+
+                        // Đổi trạng thái bàn:
+                        // EMPTY → RESERVED
                         table.setStatus(TableStatus.RESERVED);
+
                         // Gắn bàn vào reservation
                         reservation.setTableId(table.getId());
+
+                        // Lưu reservation
                         reservationRepository.save(reservation);
+
+                        // Lưu trạng thái bàn
                         tableRepository.save(table);
                     });
         });
