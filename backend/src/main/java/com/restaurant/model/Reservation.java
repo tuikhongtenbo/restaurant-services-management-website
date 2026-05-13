@@ -69,6 +69,9 @@ public class Reservation {
     protected void onCreate() {
         createdAt = OffsetDateTime.now();
     }
+
+    @Column(name = "table_id")
+    private UUID tableId;  // null = chưa assign bàn
 }
 // THY - Entity: Reservation (Dat ban truoc)
 // TODO: Implement Reservation entity
@@ -86,4 +89,5 @@ public class Reservation {
 //   - cancelledBy    : UUID, FK → users.id
 //   - cancelReason   : TEXT
 //   - createdAt      : TIMESTAMPTZ
+//   - tableId        : UUID, FK → tables.id (null = chưa assign bàn)
 // Annotations: @Enumerated for status & source

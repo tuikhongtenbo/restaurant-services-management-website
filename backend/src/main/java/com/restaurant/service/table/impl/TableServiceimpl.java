@@ -31,6 +31,12 @@ public class TableServiceImpl implements TableService {
     private final TableRepository tableRepository;
     private final OrderRepository orderRepository;
 
+    // Helper methods
+    private Table findOrThrow(UUID id) {
+        return tableRepository.findById(id)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy bàn: " + id));
+    }
+    // Helper method 
     private TableResponse toResponse(Table table) {
         return TableResponse.builder()
                 .id(table.getId())
@@ -72,7 +78,7 @@ public class TableServiceImpl implements TableService {
                 .capacity(request.getCapacity())
                 .build();
 
-        return toResponse(tableRepository.save(table));
+        tableRepository.save(table);
     }
 
     @Override
@@ -124,6 +130,7 @@ public class TableServiceImpl implements TableService {
         table.setStatus(TableStatus.SERVING);
 
         tableRepository.save(table);
+        return toResponse(table);
     }
 
     @Override
@@ -178,10 +185,4 @@ public class TableServiceImpl implements TableService {
                 .map(this::toResponse)
                 .toList();
     }
-
-    private Table findOrThrow(UUID id) {
-        return tableRepository.findById(id)
-                .orElseThrow(() -> new BusinessException("Không tìm thấy bàn: " + id));
-    }
-
 }

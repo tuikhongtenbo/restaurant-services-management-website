@@ -19,8 +19,8 @@ public class ReservationResponse {
     private String note;
     private String status;   // Trả về String cho frontend dễ đọc
     private String source;
+    private String confirmedByName;
     private OffsetDateTime createdAt;
-    // Không trả confirmedBy, cancelledBy dạng UUID thô
     // — sẽ thêm sau khi cần
 }
 

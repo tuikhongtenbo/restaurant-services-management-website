@@ -4,4 +4,13 @@ package com.restaurant.dto.request.reservation;
 // TODO:
 // String reason
 public class CancelReservationRequest {
+    private String reason;
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
 }

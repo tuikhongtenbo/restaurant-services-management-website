@@ -20,7 +20,7 @@ public class TableResponse {
 
     // Thêm field này vì UI cần biết bàn đang có order nào
     // null = bàn đang trống
-    private UUID currentOrderId;
+    //private UUID currentOrderId;
 }
 
 // THY - Response thong tin ban
