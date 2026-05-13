@@ -142,10 +142,8 @@ public class TableServiceImpl implements TableService {
         }
 
         if (orderRepository.existsByTableIdAndStatus(table.getId(), OrderStatus.OPEN)) {
-            throw new BusinessException("Bàn còn order chưa thanh toán");
+            throw new BusinessException("Bàn vẫn còn order đang mở");
         }
-
-        table.setStatus(TableStatus.CLEANING);
 
         tableRepository.save(table);
     }

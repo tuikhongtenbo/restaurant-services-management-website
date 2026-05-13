@@ -287,67 +287,6 @@ public class ReservationServiceImpl implements ReservationService {
         });
     }
 
-    // Không có slot cố định — tính theo thời điểm khách muốn
-    @Override
-    @Transactional(readOnly = true)
-    public List<AvailableSlot> getAvailableSlots(LocalDate date, Integer partySize) {
-
-        // Tổng bàn đủ chỗ ngồi
-        long totalCapable = tableRepository
-                .findByIsActiveTrue()
-                .stream()
-                .filter(t -> t.getCapacity() >= partySize)
-                .count();
-
-        // Lấy tất cả reservation trong ngày đó
-        OffsetDateTime dayStart = toStartOfDay(date);
-        OffsetDateTime dayEnd   = dayStart.plusDays(1);
-
-        List<Reservation> dayReservations = reservationRepository
-                .findByReservedAtBetweenOrderByReservedAtAsc(dayStart, dayEnd)
-                .stream()
-                .filter(r -> r.getStatus() == ReservationStatus.PENDING
-                          || r.getStatus() == ReservationStatus.CONFIRMED)
-                .toList();
-
-        // Tạo slot mỗi 30 phút — từ 10:00 đến 22:00
-        // Không cố định mà tính động dựa theo reservation thực tế
-        List<AvailableSlot> slots = new java.util.ArrayList<>();
-        LocalTime cursor = LocalTime.of(10, 0);
-        LocalTime closing = LocalTime.of(22, 0);
-
-        while (cursor.isBefore(closing)) {
-            LocalTime slotStart = cursor;
-            LocalTime slotEnd   = cursor.plusHours(RESERVATION_DURATION_HOURS.getValue());
-
-            OffsetDateTime slotStartDt = date.atTime(slotStart).atOffset(ZoneOffset.UTC);
-            OffsetDateTime slotEndDt   = date.atTime(slotEnd).atOffset(ZoneOffset.UTC);
-
-            // Đếm reservation chồng lên slot này
-            long booked = dayReservations.stream()
-                    .filter(r -> {
-                        // Reservation chồng lên slot nếu khoảng thời gian giao nhau
-                        OffsetDateTime rStart = r.getReservedAt()
-                                .minusHours(RESERVATION_DURATION_HOURS.getValue());
-                        OffsetDateTime rEnd   = r.getReservedAt()
-                                .plusHours(RESERVATION_DURATION_HOURS.getValue());
-                        return rStart.isBefore(slotEndDt) && rEnd.isAfter(slotStartDt);
-                    })
-                    .count();
-
-            int available = (int) Math.max(totalCapable - booked, 0);
-
-            slots.add(AvailableSlot.builder()
-                    .startTime(slotStart)
-                    .endTime(slotEnd)
-                    .availableTables(available)
-                    .build());
-
-            cursor = cursor.plusMinutes(30); // bước nhảy 30 phút
-        }
-        return slots;
-    }
-
     @Override
     @Transactional(readOnly = true)
     public ReservationCalendarResponse getCalendar(LocalDate date) {
