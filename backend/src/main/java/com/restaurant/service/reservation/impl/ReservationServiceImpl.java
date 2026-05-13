@@ -2,6 +2,7 @@ package com.restaurant.service.impl;
 
 import com.restaurant.common.enums.ReservationSource;
 import com.restaurant.common.enums.ReservationStatus;
+import com.restaurant.common.enums.ReservationTime;
 import com.restaurant.common.enums.TableStatus;
 import com.restaurant.common.exception.BusinessException;
 import com.restaurant.dto.request.CreateReservationRequest;
@@ -29,14 +30,6 @@ public class ReservationServiceImpl implements ReservationService {
     private final ReservationRepository reservationRepository;
     private final TableRepository tableRepository;
 
-    // Bàn được giữ trước bao nhiêu phút
-    private static final int ASSIGN_BEFORE_MINUTES = 30;
-    // Tự động hủy sau bao nhiêu phút quá giờ
-    private static final int AUTO_CANCEL_MINUTES = 30;
-    // Mỗi lần đặt bàn chiếm bao nhiêu giờ
-    private static final int RESERVATION_DURATION_HOURS = 2;
-
-
     // PRIVATE HELPERS 
     // Release bàn về EMPTY khi cancel/noShow
     private void releaseTable(Reservation reservation) {
@@ -44,6 +37,8 @@ public class ReservationServiceImpl implements ReservationService {
             tableRepository.findById(reservation.getTableId())
                     .ifPresent(table -> table.setStatus(TableStatus.EMPTY));
             reservation.setTableId(null);
+            reservationRepository.save(reservation);
+            tableRepository.save(table);
         }
     }
 
@@ -67,6 +62,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .status(r.getStatus().name())
                 .source(r.getSource().name())
                 .tableId(r.getTableId())  // cho client biết bàn nào đã được assign
+                .confirmedBy(r.getConfirmedBy())
                 .createdAt(r.getCreatedAt())
                 .build();
     }
@@ -104,12 +100,31 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public ReservationResponse create(CreateReservationRequest request, UUID staffId) {
+    public ReservationResponse createAndConfirm(CreateReservationRequest request, UUID staffId) {
 
+        // Tạo reservation — tableId = null, chưa assign bàn
+        Reservation r = Reservation.builder()
+                .customerName(request.getCustomerName())
+                .customerPhone(request.getCustomerPhone())
+                .partySize(request.getPartySize())
+                .reservedAt(request.getReservedAt())
+                .note(request.getNote())
+                .source(request.getSource())
+                .status(ReservationStatus.PENDING)
+                .tableId(null)  // chưa assign — scheduler sẽ làm sau
+                .build();
+
+        reservationRepository.save(r);
+
+         if (r.getStatus() != ReservationStatus.PENDING) {
+            throw new BusinessException(
+                "Chỉ confirm được PENDING, hiện tại: " + r.getStatus()
+            );
+        }
         // Kiểm tra trong khoảng ±2 tiếng có bàn trống không
         OffsetDateTime wantedTime = request.getReservedAt();
-        OffsetDateTime rangeStart = wantedTime.minusHours(RESERVATION_DURATION_HOURS);
-        OffsetDateTime rangeEnd   = wantedTime.plusHours(RESERVATION_DURATION_HOURS);
+        OffsetDateTime rangeStart = wantedTime.minusHours(RESERVATION_DURATION_HOURS.getValue());
+        OffsetDateTime rangeEnd   = wantedTime.plusHours(RESERVATION_DURATION_HOURS.getValue());
 
         // Đếm bàn đủ sức chứa
         long totalCapable = tableRepository
@@ -121,32 +136,24 @@ public class ReservationServiceImpl implements ReservationService {
         // Đếm reservation đã book trong khung giờ đó
         long alreadyBooked = reservationRepository
                 .countByStatusInAndReservedAtBetween(
-                    List.of(ReservationStatus.PENDING, ReservationStatus.CONFIRMED),
+                    List.of(ReservationStatus.CONFIRMED),
                     rangeStart, rangeEnd
                 );
 
         if (alreadyBooked >= totalCapable) {
+            r.setStatus(ReservationStatus.REJECTED);
+            reservationRepository.save(r);
             throw new BusinessException(
                 "Không còn bàn trống cho " + request.getPartySize()
                 + " người vào lúc " + wantedTime
             );
         }
-
-        // Tạo reservation — tableId = null, chưa assign bàn
-        Reservation reservation = Reservation.builder()
-                .customerName(request.getCustomerName())
-                .customerPhone(request.getCustomerPhone())
-                .partySize(request.getPartySize())
-                .reservedAt(request.getReservedAt())
-                .note(request.getNote())
-                .source(ReservationSource.STAFF)
-                .status(ReservationStatus.PENDING)
-                .tableId(null)  // chưa assign — scheduler sẽ làm sau
-                .build();
-
-        return toResponse(reservationRepository.save(reservation));
+        r.setStatus(ReservationStatus.CONFIRMED);
+        r.setConfirmedBy(staffId);
+        System.err.println("Đặt bàn thành công!" );
+        return toResponse(reservationRepository.save(r));
     }
-
+    
     @Override
     public ReservationResponse update(UUID id, UpdateReservationRequest request) {
         Reservation r = findOrThrow(id);
@@ -160,22 +167,6 @@ public class ReservationServiceImpl implements ReservationService {
         if (request.getPartySize()     != null) r.setPartySize(request.getPartySize());
         if (request.getReservedAt()    != null) r.setReservedAt(request.getReservedAt());
         if (request.getNote()          != null) r.setNote(request.getNote());
-
-        return toResponse(reservationRepository.save(r));
-    }
-
-    @Override
-    public ReservationResponse confirm(UUID id, UUID confirmedBy) {
-        Reservation r = findOrThrow(id);
-
-        if (r.getStatus() != ReservationStatus.PENDING) {
-            throw new BusinessException(
-                "Chỉ confirm được PENDING, hiện tại: " + r.getStatus()
-            );
-        }
-
-        r.setStatus(ReservationStatus.CONFIRMED);
-        r.setConfirmedBy(confirmedBy);
 
         return toResponse(reservationRepository.save(r));
     }
@@ -242,11 +233,12 @@ public class ReservationServiceImpl implements ReservationService {
 
     // AUTO ASSIGN TABLE
     // Chạy mỗi phút — tìm reservation sắp đến và assign bàn
-    // @Scheduled(fixedRate = 60000) — khai báo ở class khác hoặc dùng @Scheduled trực tiếp
+    @Scheduled(fixedRate = 60000)
     @Override
+    @Transactional
     public void autoAssignTables() {
         OffsetDateTime now  = OffsetDateTime.now();
-        OffsetDateTime soon = now.plusMinutes(ASSIGN_BEFORE_MINUTES);
+        OffsetDateTime soon = now.plusMinutes(ASSIGN_BEFORE_MINUTES.getValue());
 
         // Tìm reservation CONFIRMED, chưa có bàn, sắp đến trong 30 phút
         List<Reservation> upcoming = reservationRepository
@@ -268,16 +260,18 @@ public class ReservationServiceImpl implements ReservationService {
                         table.setStatus(TableStatus.RESERVED);
                         // Gắn bàn vào reservation
                         reservation.setTableId(table.getId());
+                        reservationRepository.save(reservation);
+                        tableRepository.save(table);
                     });
         });
-        // @Transactional tự save tất cả thay đổi
     }
 
     // AUTO CANCEL EXPIRED
     // Chạy mỗi phút — hủy reservation quá giờ không thấy khách
     @Override
+    @Transactional
     public void autoCancelExpired() {
-        OffsetDateTime cutoff = OffsetDateTime.now().minusMinutes(AUTO_CANCEL_MINUTES);
+        OffsetDateTime cutoff = OffsetDateTime.now().minusMinutes(AUTO_CANCEL_MINUTES.getValue());
 
         List<Reservation> expired = reservationRepository
                 .findByStatusAndReservedAtBefore(ReservationStatus.CONFIRMED, cutoff);
@@ -288,7 +282,7 @@ public class ReservationServiceImpl implements ReservationService {
 
             r.setStatus(ReservationStatus.CANCELLED);
             r.setCancelReason(
-                "Tự động hủy: khách không đến sau " + AUTO_CANCEL_MINUTES + " phút"
+                "Tự động hủy: khách không đến sau " + AUTO_CANCEL_MINUTES.getValue() + " phút"
             );
         });
     }
@@ -324,7 +318,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         while (cursor.isBefore(closing)) {
             LocalTime slotStart = cursor;
-            LocalTime slotEnd   = cursor.plusHours(RESERVATION_DURATION_HOURS);
+            LocalTime slotEnd   = cursor.plusHours(RESERVATION_DURATION_HOURS.getValue());
 
             OffsetDateTime slotStartDt = date.atTime(slotStart).atOffset(ZoneOffset.UTC);
             OffsetDateTime slotEndDt   = date.atTime(slotEnd).atOffset(ZoneOffset.UTC);
@@ -334,9 +328,9 @@ public class ReservationServiceImpl implements ReservationService {
                     .filter(r -> {
                         // Reservation chồng lên slot nếu khoảng thời gian giao nhau
                         OffsetDateTime rStart = r.getReservedAt()
-                                .minusHours(RESERVATION_DURATION_HOURS);
+                                .minusHours(RESERVATION_DURATION_HOURS.getValue());
                         OffsetDateTime rEnd   = r.getReservedAt()
-                                .plusHours(RESERVATION_DURATION_HOURS);
+                                .plusHours(RESERVATION_DURATION_HOURS.getValue());
                         return rStart.isBefore(slotEndDt) && rEnd.isAfter(slotStartDt);
                     })
                     .count();
@@ -351,7 +345,6 @@ public class ReservationServiceImpl implements ReservationService {
 
             cursor = cursor.plusMinutes(30); // bước nhảy 30 phút
         }
-
         return slots;
     }
 
@@ -371,5 +364,5 @@ public class ReservationServiceImpl implements ReservationService {
                 .arrived((int)   all.stream().filter(r -> r.getStatus() == ReservationStatus.ARRIVED).count())
                 .cancelled((int) all.stream().filter(r -> r.getStatus() == ReservationStatus.CANCELLED).count())
                 .build();
-    }
+        }
 }

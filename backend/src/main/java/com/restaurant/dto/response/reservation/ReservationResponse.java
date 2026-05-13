@@ -19,7 +19,7 @@ public class ReservationResponse {
     private String note;
     private String status;   // Trả về String cho frontend dễ đọc
     private String source;
-    private String confirmedByName;
+    private UUID confirmedBy;  // UUID của nhân viên confirm, sẽ map sang tên ở frontend
     private OffsetDateTime createdAt;
     // — sẽ thêm sau khi cần
 }
