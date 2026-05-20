@@ -1,19 +1,37 @@
 package com.restaurant.dto.request.reservation;
 
-import com.restaurant.common.enums.ReservationStatus;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.Size;
+import lombok.*;
 
-@Data
+import java.time.OffsetDateTime;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class UpdateReservationRequest {
 
-    @NotNull(message = "Trạng thái không được trống")
-    private ReservationStatus status;
+    @NotBlank(message = "Tên khách không được trống")
+    @Size(max = 100, message = "Tên không quá 100 ký tự")
+    private String customerName;
 
-    private String cancelReason;  // Chỉ cần khi status = CANCELLED
+    @NotBlank(message = "Số điện thoại không được trống")
+    private String customerPhone;
+
+    @NotNull(message = "Số người không được trống")
+    @Min(value = 1)
+    @Max(value = 50)
+    private Integer partySize;
+
+    @NotNull(message = "Giờ đặt bàn không được trống")
+    private OffsetDateTime reservedAt;
+
+    private String note;
 }
-
 // THY - Sua dat ban
 // TODO:
 // String customerName

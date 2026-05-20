@@ -45,11 +45,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
             OffsetDateTime end,
             ReservationStatus status
     );
-    
-    List<Reservation> findUnassignedUpcoming(
-            OffsetDateTime start,
-            OffsetDateTime end
-    );
 
     List<Reservation> findByStatusAndReservedAtBefore(
             ReservationStatus status,
@@ -63,5 +58,18 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
 
     // Lấy đặt bàn theo SĐT khách — STAFF tìm kiếm
     List<Reservation> findByCustomerPhone(String phone);
+
+    @Query("SELECT COUNT(r) FROM Reservation r WHERE r.status IN :statuses AND r.reservedAt BETWEEN :start AND :end")
+    long countByStatusInAndReservedAtBetween(
+            @Param("statuses") List<ReservationStatus> statuses,
+            @Param("start") OffsetDateTime start,
+            @Param("end") OffsetDateTime end
+    );
+
+    @Query("SELECT r FROM Reservation r WHERE r.status = 'CONFIRMED' AND r.tableId IS NULL AND r.reservedAt BETWEEN :start AND :end")
+    List<Reservation> findUnassignedUpcoming(
+            @Param("start") OffsetDateTime start,
+            @Param("end") OffsetDateTime end
+    );
 
 }

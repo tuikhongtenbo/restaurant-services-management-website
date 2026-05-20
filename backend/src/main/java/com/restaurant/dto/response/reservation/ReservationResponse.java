@@ -1,15 +1,14 @@
 package com.restaurant.dto.response.reservation;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-
+import lombok.*;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Builder
-
+@NoArgsConstructor
+@AllArgsConstructor
 public class ReservationResponse {
     private UUID id;
     private String customerName;
@@ -19,11 +18,12 @@ public class ReservationResponse {
     private String note;
     private String status;   
     private String source;
-    private UUID confirmedBy;  // UUID của nhân viên confirm, sẽ map sang tên ở frontend
+    private UUID tableId; 
+    private UUID confirmedBy;  
+    private UUID cancelledBy;
+    private String cancelReason;
     private OffsetDateTime createdAt;
-    // — sẽ thêm sau khi cần
 }
-
 // THY - Response dat ban
 // TODO:
 //   UUID id

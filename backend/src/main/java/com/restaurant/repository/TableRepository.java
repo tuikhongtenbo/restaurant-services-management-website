@@ -12,34 +12,35 @@ package com.restaurant.repository;
 
 import com.restaurant.common.enums.TableStatus;
 import com.restaurant.model.Table;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.UUID;
 
-@Repository  // Báo Spring: đây là Repository — được quản lý bởi Spring
+@Repository
 public interface TableRepository extends JpaRepository<Table, UUID> {
-    // JpaRepository<Entity, KiểuIdCủaEntity>
-    // Kế thừa sẵn: save() findById() findAll() deleteById() existsById()
 
-    // Đặt tên đúng quy tắc → Spring tự tạo SQL, không cần viết body
-    // findBy + Status → SELECT * FROM tables WHERE status = ?
-    List<Table> findByStatus(TableStatus status);
-
-    // findBy + IsActive → SELECT * FROM tables WHERE is_active = ?
-    List<Table> findByIsActive(Boolean isActive);
-
-    // findBy + IsActive + Status → WHERE is_active=? AND status=?
-    List<Table> findByIsActiveAndStatus(Boolean isActive, TableStatus status);
-
-    // Kiểm tra bàn có tồn tại với số bàn đó không (tránh trùng)
-    // existsBy + Number → SELECT COUNT(*) > 0 WHERE number = ?
+    // Kiểm tra trùng số bàn ăn khi thêm mới hoặc cập nhật
     boolean existsByNumber(String number);
 
-    boolean existsByTableIdAndStatus(UUID tableId, TableStatus status); 
-
+    // Lấy danh sách bàn đang hoạt động phục vụ cho sơ đồ mặt bằng Layout
     List<Table> findByIsActiveTrue();
 
+    // Tìm kiếm phân trang tất cả bàn đang hoạt động
+    Page<Table> findByIsActiveTrue(Pageable pageable);
+
+    // HỖ TRỢ FILTER THEO TRẠNG THÁI: Tìm kiếm phân trang bàn theo trạng thái (status)
+    Page<Table> findByIsActiveTrueAndStatus(TableStatus status, Pageable pageable);
+
+    // HỖ TRỢ FILTER THEO CẢ KHU VỰC VÀ TRẠNG THÁI:
+    Page<Table> findByIsActiveTrueAndAreaAndStatus(String area, TableStatus status, Pageable pageable);
+
+    // HỖ TRỢ FILTER THEO KHU VỰC:
+    Page<Table> findByIsActiveTrueAndArea(String area, Pageable pageable);
+
+    // Lấy danh sách bàn trống để tìm kiếm bàn phù hợp với sức chứa
     List<Table> findByIsActiveTrueAndStatus(TableStatus status);
 }
