@@ -1,14 +1,11 @@
 package com.restaurant.dto.response.menu;
 
 import com.restaurant.common.enums.MenuItemStatus;
-import java.util.List;
+import lombok.Data;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.math.BigDecimal;
 import java.util.UUID;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.Builder;
 
 @Data

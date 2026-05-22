@@ -1,13 +1,14 @@
 package com.restaurant.service.menu.impl;
 
 import com.restaurant.common.enums.MenuItemStatus;
-import com.restaurant.common.exception.BusinessException;
+import com.restaurant.common.exceptions.BusinessException;
 import com.restaurant.dto.request.menu.CreateMenuItemRequest;
 import com.restaurant.dto.request.menu.UpdateMenuItemRequest;
 import com.restaurant.dto.response.menu.MenuItemResponse;
+import com.restaurant.dto.response.menu.PriceHistoryResponse;
 import com.restaurant.model.MenuItem;
 import com.restaurant.repository.MenuItemRepository;
-import com.restaurant.repository.OrderItemRepository;
+//import com.restaurant.repository.OrderItemRepository;
 import com.restaurant.service.menu.MenuService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,7 +26,7 @@ import java.util.UUID;
 public class MenuServiceImpl implements MenuService {
 
     private final MenuItemRepository menuItemRepository;
-    private final OrderItemRepository orderItemRepository; // dùng cho getRecommended()
+    // private final OrderItemRepository orderItemRepository; // dùng cho getRecommended()
 
     // 1. GET ITEMS (ADMIN)
     // Có filter category + status + tag + phân trang
@@ -37,20 +37,15 @@ public class MenuServiceImpl implements MenuService {
 
         // Lấy tất cả rồi filter — đơn giản, phù hợp data nhỏ
         // Nếu data lớn → dùng Specification hoặc @Query
-        return menuItemRepository.findAll(pageable)
-                .map(item -> {
-                    // Filter thủ công trong map
-                    if (category != null && !item.getCategory().equals(category))
-                        return null;
-                    if (status != null && item.getStatus() != status)
-                        return null;
-                    if (tag != null && (item.getTags() == null
-                            || !item.getTags().contains(tag)))
-                        return null;
-                    return toResponse(item);
-                })
-                // Lọc bỏ null
-                .filter(r -> r != null);
+        var page = menuItemRepository.findAll(pageable);
+        var content = page.getContent().stream()
+                .filter(item -> category == null || category.equals(item.getCategory()))
+                .filter(item -> status == null || item.getStatus() == status)
+                .filter(item -> tag == null || (item.getTags() != null && item.getTags().contains(tag)))
+                .map(this::toResponse)
+                .toList();
+
+        return new org.springframework.data.domain.PageImpl<>(content, pageable, content.size());
     }
 
     // 2. GET BY ID
@@ -192,7 +187,7 @@ public class MenuServiceImpl implements MenuService {
 
     // 11. GET RECOMMENDED 
     // Gợi ý món bán chạy — đếm số lần xuất hiện trong order_items
-    @Override
+    /*@Override
     @Transactional(readOnly = true)
     public List<MenuItemResponse> getRecommended() {
 
@@ -210,7 +205,7 @@ public class MenuServiceImpl implements MenuService {
                 .map(this::toResponse)
                 .toList();
     }
-
+*/
     // 2 HELPERS 
 
     private MenuItem findOrThrow(UUID id) {
@@ -226,29 +221,18 @@ public class MenuServiceImpl implements MenuService {
                 .description(item.getDescription())
                 .imageUrl(item.getImageUrl())
                 .price(item.getPrice())
-                .effectivePrice(calcEffectivePrice(item))
                 .promoPrice(item.getPromoPrice())
                 .promoStart(item.getPromoStart())
                 .promoEnd(item.getPromoEnd())
                 .tags(item.getTags())
                 .status(item.getStatus())
                 .sortOrder(item.getSortOrder())
-                .createdAt(item.getCreatedAt())
-                .updatedAt(item.getUpdatedAt())
                 .build();
     }
 
-    private BigDecimal calcEffectivePrice(MenuItem item) {
-        if (item.getPromoPrice() == null
-                || item.getPromoStart() == null
-                || item.getPromoEnd() == null) {
-            return item.getPrice();
-        }
-
-        LocalTime now = LocalTime.now();
-        boolean inPromo = now.isAfter(item.getPromoStart())
-                       && now.isBefore(item.getPromoEnd());
-
-        return inPromo ? item.getPromoPrice() : item.getPrice();
+    @Override
+    public List<MenuItemResponse> getRecommended() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getRecommended'");
     }
 }

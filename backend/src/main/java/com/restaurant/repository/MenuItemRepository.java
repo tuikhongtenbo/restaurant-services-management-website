@@ -1,6 +1,5 @@
 package com.restaurant.repository;
 
-import java.util.Queue;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -37,13 +36,4 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, UUID> {
     Page<MenuItem> findByCategoryAndStatusOrderBySortOrderAsc(String category, MenuItemStatus status, Pageable pageable);
     boolean existsByCategoryAndName(String category, String name);
     
-    // OrderItemRepository — thêm query đếm món bán chạy
-    @Query("""
-        SELECT oi.item.id FROM OrderItem oi
-        WHERE oi.status = 'SERVED'
-        GROUP BY oi.item.id
-        ORDER BY COUNT(oi.id) DESC
-        LIMIT :limit
-        """)
-    List<UUID> findTopSellingItemIds(@Param("limit") int limit);
 }

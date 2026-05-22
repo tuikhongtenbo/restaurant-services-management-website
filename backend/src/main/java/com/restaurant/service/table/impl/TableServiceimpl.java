@@ -1,8 +1,8 @@
-package com.restaurant.service.impl;
+package com.restaurant.service.table.impl;
 
 import com.restaurant.common.enums.OrderStatus;
 import com.restaurant.common.enums.TableStatus;
-import com.restaurant.common.exception.BusinessException;
+import com.restaurant.common.exceptions.BusinessException;
 import com.restaurant.dto.request.table.CreateTableRequest;
 import com.restaurant.dto.request.table.OpenTableRequest;
 import com.restaurant.dto.request.table.UpdateTableRequest;
@@ -13,6 +13,7 @@ import com.restaurant.repository.OrderRepository;
 import com.restaurant.repository.TableRepository;
 import com.restaurant.service.table.TableService;
 import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

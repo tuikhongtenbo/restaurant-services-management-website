@@ -9,10 +9,6 @@ import com.restaurant.service.menu.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -52,17 +48,15 @@ public class CategoryServiceImpl implements CategoryService {
         Map<String, List<MenuItem>> grouped = availableItems.stream()
                 .collect(Collectors.groupingBy(MenuItem::getCategory));
 
-        // Chuyển Map → List<CategoryResponse>
+        // Chuyển Map -> List<CategoryResponse>
         return grouped.entrySet().stream()
-                .map(entry -> CategoryResponse.builder()
-                        .category(entry.getKey())
-                        .items(entry.getValue().stream()
-                                .map(this::toResponse)
-                                .toList())
-                        .totalItems(entry.getValue().size())
-                        .build())
-                .sorted((a, b) -> a.getCategory().compareTo(b.getCategory()))
-                .toList();
+        .map(entry -> CategoryResponse.builder()
+                .category(entry.getKey())
+                .items(entry.getValue().stream()
+                        .map(this::toResponse)
+                        .toList())
+                .build())
+        .toList();        // <--- THÊM DÒNG NÀY VÀO ĐÂY để gom luồng lớn thành List!
     }
 
     // HELPER 
@@ -74,30 +68,12 @@ public class CategoryServiceImpl implements CategoryService {
                 .description(item.getDescription())
                 .imageUrl(item.getImageUrl())
                 .price(item.getPrice())
-                .effectivePrice(calcEffectivePrice(item))
                 .promoPrice(item.getPromoPrice())
                 .promoStart(item.getPromoStart())
                 .promoEnd(item.getPromoEnd())
                 .tags(item.getTags())
                 .status(item.getStatus())
                 .sortOrder(item.getSortOrder())
-                .createdAt(item.getCreatedAt())
-                .updatedAt(item.getUpdatedAt())
                 .build();
-    }
-
-    // Tính giá hiệu lực — đang trong giờ KM không?
-    private BigDecimal calcEffectivePrice(MenuItem item) {
-        if (item.getPromoPrice() == null
-                || item.getPromoStart() == null
-                || item.getPromoEnd() == null) {
-            return item.getPrice();   // không có KM → giá gốc
-        }
-
-        LocalTime now = LocalTime.now();
-        boolean inPromo = now.isAfter(item.getPromoStart())
-                       && now.isBefore(item.getPromoEnd());
-
-        return inPromo ? item.getPromoPrice() : item.getPrice();
     }
 }

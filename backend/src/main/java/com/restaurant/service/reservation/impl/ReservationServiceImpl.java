@@ -1,9 +1,9 @@
-package com.restaurant.service.impl;
+package com.restaurant.service.reservation.impl;
 
 import com.restaurant.common.enums.ReservationSource;
 import com.restaurant.common.enums.ReservationStatus;
 import com.restaurant.common.enums.TableStatus;
-import com.restaurant.common.exception.BusinessException;
+import com.restaurant.common.exceptions.BusinessException;
 import com.restaurant.dto.request.reservation.CreateReservationRequest;
 import com.restaurant.dto.request.reservation.UpdateReservationRequest;
 import com.restaurant.dto.response.reservation.ReservationCalendarResponse;
@@ -25,6 +25,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
