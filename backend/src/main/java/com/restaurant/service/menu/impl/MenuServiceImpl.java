@@ -2,10 +2,9 @@ package com.restaurant.service.menu.impl;
 
 import com.restaurant.common.enums.MenuItemStatus;
 import com.restaurant.common.exception.BusinessException;
-import com.restaurant.dto.request.CreateMenuItemRequest;
-import com.restaurant.dto.request.UpdateMenuItemRequest;
-import com.restaurant.dto.response.MenuItemResponse;
-import com.restaurant.dto.response.PriceHistoryResponse;
+import com.restaurant.dto.request.menu.CreateMenuItemRequest;
+import com.restaurant.dto.request.menu.UpdateMenuItemRequest;
+import com.restaurant.dto.response.menu.MenuItemResponse;
 import com.restaurant.model.MenuItem;
 import com.restaurant.repository.MenuItemRepository;
 import com.restaurant.repository.OrderItemRepository;

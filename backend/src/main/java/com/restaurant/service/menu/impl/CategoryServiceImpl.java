@@ -1,8 +1,8 @@
 package com.restaurant.service.menu.impl;
 
 import com.restaurant.common.enums.MenuItemStatus;
-import com.restaurant.dto.response.CategoryResponse;
-import com.restaurant.dto.response.MenuItemResponse;
+import com.restaurant.dto.response.menu.CategoryResponse;
+import com.restaurant.dto.response.menu.MenuItemResponse;
 import com.restaurant.model.MenuItem;
 import com.restaurant.repository.MenuItemRepository;
 import com.restaurant.service.menu.CategoryService;

@@ -1,5 +1,5 @@
 package com.restaurant.service.table;
-
+import com.restaurant.common.enums.TableStatus;
 import com.restaurant.dto.request.table.CreateTableRequest;
 import com.restaurant.dto.request.table.OpenTableRequest;
 import com.restaurant.dto.request.table.UpdateTableRequest;
