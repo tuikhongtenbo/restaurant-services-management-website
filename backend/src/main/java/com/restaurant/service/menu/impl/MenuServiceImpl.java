@@ -231,8 +231,11 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<MenuItemResponse> getRecommended() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getRecommended'");
+        return menuItemRepository.findByStatusOrderBySortOrderAsc(MenuItemStatus.AVAILABLE).stream()
+                .limit(5)
+                .map(this::toResponse)
+                .toList();
     }
 }
