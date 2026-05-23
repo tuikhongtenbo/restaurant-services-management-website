@@ -29,16 +29,13 @@ public interface TableRepository extends JpaRepository<Table, UUID> {
     // Lấy danh sách bàn đang hoạt động phục vụ cho sơ đồ mặt bằng Layout
     List<Table> findByIsActiveTrue();
 
-    // Tìm kiếm phân trang tất cả bàn đang hoạt động
     Page<Table> findByIsActiveTrue(Pageable pageable);
 
     // HỖ TRỢ FILTER THEO TRẠNG THÁI: Tìm kiếm phân trang bàn theo trạng thái (status)
     Page<Table> findByIsActiveTrueAndStatus(TableStatus status, Pageable pageable);
 
-    // HỖ TRỢ FILTER THEO CẢ KHU VỰC VÀ TRẠNG THÁI:
     Page<Table> findByIsActiveTrueAndAreaAndStatus(String area, TableStatus status, Pageable pageable);
 
-    // HỖ TRỢ FILTER THEO KHU VỰC:
     Page<Table> findByIsActiveTrueAndArea(String area, Pageable pageable);
 
     // Lấy danh sách bàn trống để tìm kiếm bàn phù hợp với sức chứa

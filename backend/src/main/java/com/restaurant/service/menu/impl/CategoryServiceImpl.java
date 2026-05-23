@@ -9,6 +9,7 @@ import com.restaurant.service.menu.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -62,7 +63,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     // HELPER 
     private MenuItemResponse toResponse(MenuItem item) {
-        return MenuItemResponse.builder()
+        MenuItemResponse response = MenuItemResponse.builder()
                 .id(item.getId())
                 .category(item.getCategory())
                 .name(item.getName())
@@ -76,5 +77,20 @@ public class CategoryServiceImpl implements CategoryService {
                 .status(item.getStatus())
                 .sortOrder(item.getSortOrder())
                 .build();
+
+        if (!isPromoActive(item)) {
+            response.setPromoPrice(null);
+            response.setPromoStart(null);
+            response.setPromoEnd(null);
+        }
+        return response;
+    }
+
+    private boolean isPromoActive(MenuItem item) {
+        if (item.getPromoPrice() == null || item.getPromoStart() == null || item.getPromoEnd() == null) {
+            return false;
+        }
+        LocalTime now = LocalTime.now();
+        return !now.isBefore(item.getPromoStart()) && !now.isAfter(item.getPromoEnd());
     }
 }

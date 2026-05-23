@@ -31,7 +31,7 @@ public class PublicMenuController {
 
     @GetMapping("/items/{id}")
     public ResponseEntity<ApiResponse<MenuItemResponse>> getMenuItemById(@PathVariable UUID id) {
-        MenuItemResponse item = menuService.getById(id);
+        MenuItemResponse item = menuService.getPublicById(id);
         return ResponseEntity.ok(ApiResponse.success("Menu item retrieved successfully", item));
     }
 

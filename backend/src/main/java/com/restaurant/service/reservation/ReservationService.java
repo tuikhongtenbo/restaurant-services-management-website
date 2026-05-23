@@ -5,10 +5,13 @@ import com.restaurant.dto.request.reservation.CreateReservationRequest;
 import com.restaurant.dto.request.reservation.UpdateReservationRequest;
 import com.restaurant.dto.response.reservation.ReservationCalendarResponse;
 import com.restaurant.dto.response.reservation.ReservationResponse;
+import com.restaurant.dto.response.table.TableResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
 import java.util.UUID;
 
 public interface ReservationService {
@@ -50,4 +53,14 @@ public interface ReservationService {
     //Lấy thông tin tổng hợp số lượng đặt bàn bóc tách theo từng trạng thái phục vụ cho màn hình Dashboard/Calendar
      
     ReservationCalendarResponse getCalendar(LocalDate date);
+
+    List<LocalDate> getAvailableDates();
+
+    List<LocalTime> getAvailableTimes(LocalDate date, Integer partySize);
+
+    List<LocalTime> getAvailableSlots(LocalDate date, Integer partySize);
+
+    TableResponse suggestTable(Integer partySize);
+
+    void delete(UUID id);
 }

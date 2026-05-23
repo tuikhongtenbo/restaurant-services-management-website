@@ -33,6 +33,7 @@ public interface MenuService {
     MenuItemResponse updateSortOrder(UUID id, Integer sortOrder);
     void delete(UUID id);
     Page<MenuItemResponse> getPublicMenu(String category, Pageable pageable);
+    MenuItemResponse getPublicById(UUID id);
     PriceHistoryResponse getPriceHistory(UUID id);
     List<MenuItemResponse> getRecommended();
 }

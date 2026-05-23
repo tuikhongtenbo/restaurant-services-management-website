@@ -40,9 +40,9 @@ public class MenuServiceImpl implements MenuService {
         // Lấy tất cả rồi filter — đơn giản, phù hợp data nhỏ.
         // Khi dùng pageable với filter ở memory, cần tạo lại PageImpl với tổng chính xác.
         var filteredItems = menuItemRepository.findAll().stream()
-                .filter(item -> category == null || category.equals(item.getCategory()))
+                .filter(item -> category == null || category.isBlank() || category.equals(item.getCategory()))
                 .filter(item -> status == null || item.getStatus() == status)
-                .filter(item -> tag == null || (item.getTags() != null && item.getTags().contains(tag)))
+                .filter(item -> tag == null || tag.isBlank() || (item.getTags() != null && item.getTags().contains(tag)))
                 .map(this::toResponse)
                 .toList();
 
@@ -66,7 +66,7 @@ public class MenuServiceImpl implements MenuService {
     @Transactional(readOnly = true)
     public Page<MenuItemResponse> getPublicMenu(String category, Pageable pageable) {
 
-        if (category != null) {
+        if (category != null && !category.isBlank()) {
             return menuItemRepository
                     .findByCategoryAndStatusOrderBySortOrderAsc(
                         category, MenuItemStatus.AVAILABLE, pageable)
@@ -76,6 +76,16 @@ public class MenuServiceImpl implements MenuService {
         return menuItemRepository
                 .findByStatusOrderBySortOrderAsc(MenuItemStatus.AVAILABLE, pageable)
                 .map(this::toPublicResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MenuItemResponse getPublicById(UUID id) {
+        MenuItem item = findOrThrow(id);
+        if (item.getStatus() != MenuItemStatus.AVAILABLE) {
+            throw new BusinessException("Mon hien khong kha dung");
+        }
+        return toPublicResponse(item);
     }
 
     // 3. CREATE
@@ -125,6 +135,7 @@ public class MenuServiceImpl implements MenuService {
         if (request.getPromoEnd()    != null) item.setPromoEnd(request.getPromoEnd());
         if (request.getTags()        != null) item.setTags(request.getTags());
         if (request.getSortOrder()   != null) item.setSortOrder(request.getSortOrder());
+        if (request.getStatus()      != null) item.setStatus(request.getStatus());
 
         item.setUpdatedBy(updatedBy);
 

@@ -52,12 +52,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
                 ReservationStatus status
         );
 
-        long countByStatusInAndReservedAtBetween(
-                OffsetDateTime start,
-                OffsetDateTime end,
-                ReservationStatus status
-        );
-
         Page<Reservation> findByStatusAndReservedAtBefore(
                 ReservationStatus status,
                 OffsetDateTime cutoff,

@@ -1,39 +1,22 @@
 package com.restaurant.dto.request.table;
 
-// Thêm vào đầu file, sau dòng package
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.Builder;
-import java.util.List;
-import java.util.UUID;
-import java.time.LocalTime;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.math.BigDecimal;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
 
-// THY
-// TODO:
-// String number
-// Integer capacity
-// String area
-// Integer posX, Integer posY
-// dto/request/UpdateTableRequest.java
-// ADMIN sửa thông tin bàn — giống Create, dùng riêng để sau dễ mở rộng
 @Data
-
 public class UpdateTableRequest {
 
-    @NotBlank(message = "Số bàn không được trống")
+    @NotBlank(message = "So ban khong duoc trong")
+    @Size(max = 10, message = "So ban khong qua 10 ky tu")
     private String number;
 
-    @NotNull
-    @Min(value = 1)
+    @NotNull(message = "Suc chua khong duoc trong")
+    @Min(value = 1, message = "Suc chua phai lon hon 0")
     private Integer capacity;
+
+    @Size(max = 50, message = "Khu vuc khong qua 50 ky tu")
+    private String area;
 }
