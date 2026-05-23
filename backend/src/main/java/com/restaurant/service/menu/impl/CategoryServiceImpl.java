@@ -50,13 +50,14 @@ public class CategoryServiceImpl implements CategoryService {
 
         // Chuyển Map -> List<CategoryResponse>
         return grouped.entrySet().stream()
-        .map(entry -> CategoryResponse.builder()
-                .category(entry.getKey())
-                .items(entry.getValue().stream()
-                        .map(this::toResponse)
-                        .toList())
-                .build())
-        .toList();        // <--- THÊM DÒNG NÀY VÀO ĐÂY để gom luồng lớn thành List!
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry -> CategoryResponse.builder()
+                        .category(entry.getKey())
+                        .items(entry.getValue().stream()
+                                .map(this::toResponse)
+                                .toList())
+                        .build())
+                .toList();
     }
 
     // HELPER 

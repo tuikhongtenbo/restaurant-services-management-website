@@ -12,11 +12,13 @@ import com.restaurant.repository.MenuItemRepository;
 import com.restaurant.service.menu.MenuService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,17 +37,20 @@ public class MenuServiceImpl implements MenuService {
     public Page<MenuItemResponse> getItems(
             String category, MenuItemStatus status, String tag, Pageable pageable) {
 
-        // Lấy tất cả rồi filter — đơn giản, phù hợp data nhỏ
-        // Nếu data lớn → dùng Specification hoặc @Query
-        var page = menuItemRepository.findAll(pageable);
-        var content = page.getContent().stream()
+        // Lấy tất cả rồi filter — đơn giản, phù hợp data nhỏ.
+        // Khi dùng pageable với filter ở memory, cần tạo lại PageImpl với tổng chính xác.
+        var filteredItems = menuItemRepository.findAll().stream()
                 .filter(item -> category == null || category.equals(item.getCategory()))
                 .filter(item -> status == null || item.getStatus() == status)
                 .filter(item -> tag == null || (item.getTags() != null && item.getTags().contains(tag)))
                 .map(this::toResponse)
                 .toList();
 
-        return new org.springframework.data.domain.PageImpl<>(content, pageable, content.size());
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), filteredItems.size());
+        var content = start >= filteredItems.size() ? List.<MenuItemResponse>of() : filteredItems.subList(start, end);
+
+        return new PageImpl<>(content, pageable, filteredItems.size());
     }
 
     // 2. GET BY ID
@@ -65,12 +70,12 @@ public class MenuServiceImpl implements MenuService {
             return menuItemRepository
                     .findByCategoryAndStatusOrderBySortOrderAsc(
                         category, MenuItemStatus.AVAILABLE, pageable)
-                    .map(this::toResponse);
+                    .map(this::toPublicResponse);
         }
 
         return menuItemRepository
                 .findByStatusOrderBySortOrderAsc(MenuItemStatus.AVAILABLE, pageable)
-                .map(this::toResponse);
+                .map(this::toPublicResponse);
     }
 
     // 3. CREATE
@@ -227,7 +232,26 @@ public class MenuServiceImpl implements MenuService {
                 .tags(item.getTags())
                 .status(item.getStatus())
                 .sortOrder(item.getSortOrder())
+                .createdAt(item.getCreatedAt() != null ? item.getCreatedAt().toLocalDateTime() : null)
                 .build();
+    }
+
+    private MenuItemResponse toPublicResponse(MenuItem item) {
+        MenuItemResponse response = toResponse(item);
+        if (!isPromoActive(item)) {
+            response.setPromoPrice(null);
+            response.setPromoStart(null);
+            response.setPromoEnd(null);
+        }
+        return response;
+    }
+
+    private boolean isPromoActive(MenuItem item) {
+        if (item.getPromoPrice() == null || item.getPromoStart() == null || item.getPromoEnd() == null) {
+            return false;
+        }
+        LocalTime now = LocalTime.now();
+        return !now.isBefore(item.getPromoStart()) && !now.isAfter(item.getPromoEnd());
     }
 
     @Override
