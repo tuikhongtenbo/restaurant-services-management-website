@@ -1,6 +1,5 @@
 package com.restaurant.service.table.impl;
 
-import com.restaurant.common.enums.OrderStatus;
 import com.restaurant.common.enums.ReservationStatus;
 import com.restaurant.common.enums.TableStatus;
 import com.restaurant.common.exceptions.BusinessException;
@@ -10,7 +9,6 @@ import com.restaurant.dto.request.table.UpdateTableRequest;
 import com.restaurant.dto.response.table.TableLayoutResponse;
 import com.restaurant.dto.response.table.TableResponse;
 import com.restaurant.model.Table;
-import com.restaurant.repository.OrderRepository;
 import com.restaurant.repository.ReservationRepository;
 import com.restaurant.repository.TableRepository;
 import com.restaurant.service.table.TableService;
@@ -36,7 +34,7 @@ public class TableServiceImpl implements TableService {
 
     private final TableRepository tableRepository;
     private final ReservationRepository reservationRepository;
-    private final OrderRepository orderRepository;
+    // private final OrderRepository orderRepository;
 
     private Table findOrThrow(UUID id) {
         return tableRepository.findById(id)
@@ -129,9 +127,10 @@ public class TableServiceImpl implements TableService {
             throw new BusinessException("Ban " + table.getNumber() + " khong trong (dang " + table.getStatus() + ")");
         }
 
-        if (orderRepository.existsByTableIdAndStatus(table.getId(), OrderStatus.OPEN)) {
-            throw new BusinessException("Ban da co order dang mo");
-        }
+        // Temporarily disabled until Order module is implemented.
+        // if (orderRepository.existsByTableIdAndStatus(table.getId(), OrderStatus.OPEN)) {
+        //     throw new BusinessException("Ban da co order dang mo");
+        // }
 
         table.setStatus(TableStatus.SERVING);
         tableRepository.save(table);
@@ -147,9 +146,10 @@ public class TableServiceImpl implements TableService {
             throw new BusinessException("Ban khong trong trang thai SERVING");
         }
 
-        if (orderRepository.existsByTableIdAndStatus(table.getId(), OrderStatus.OPEN)) {
-            throw new BusinessException("Ban van con hoa don chua thanh toan");
-        }
+        // Temporarily disabled until Order module is implemented.
+        // if (orderRepository.existsByTableIdAndStatus(table.getId(), OrderStatus.OPEN)) {
+        //     throw new BusinessException("Ban van con hoa don chua thanh toan");
+        // }
 
         table.setStatus(TableStatus.EMPTY);
         return toResponse(tableRepository.save(table));

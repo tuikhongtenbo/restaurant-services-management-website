@@ -3,9 +3,9 @@
 # ================================================
 spring:
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
+    username: postgres.bxglnufokfhhcmviisvd
+    password: VGT5cpNKqBq7W2Mb
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
@@ -14,7 +14,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
@@ -22,7 +22,7 @@ spring:
 
 # === JWT ===
 jwt:
-  secret: ${JWT_SECRET}
+  secret: dGhpc0lzQVN1cGVyU2VjcmV0S2V5Rm9yRGV2TXVzdEJlQXRMZWFzdDI1NkJpdHM=
   expiration: 86400000 # 24h
   refresh-expiration: 604800000 # 7 days
 
@@ -30,8 +30,8 @@ jwt:
 spring.mail:
   host: smtp.gmail.com
   port: 587
-  username: ${MAIL_USERNAME}
-  password: ${MAIL_PASSWORD}
+  username: 23521431@gm.uit.edu.vn
+  password: ziohnvcahldxjuqn
   properties:
     mail:
       smtp:
