@@ -16,6 +16,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+// @RestController @RequestMapping("/api/auth/customer")
+//
+// POST   /register    → AuthResponse
+// POST   /login        → AuthResponse
+// GET    /me           → CustomerResponse (cần đăng nhập)
 @RestController
 @RequestMapping("/api/auth/customer")
 @RequiredArgsConstructor
@@ -23,6 +28,10 @@ public class CustomerAuthController {
 
     private final CustomerAuthService customerAuthService;
 
+    /**
+     * POST /api/auth/customer/register
+     * Đăng ký tài khoản khách hàng mới.
+     */
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(
             @Valid @RequestBody CustomerRegisterRequest request) {
@@ -31,6 +40,10 @@ public class CustomerAuthController {
                 .body(ApiResponse.created(authResponse));
     }
 
+    /**
+     * POST /api/auth/customer/login
+     * Đăng nhập khách hàng, trả về JWT.
+     */
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(
             @Valid @RequestBody CustomerLoginRequest request) {
@@ -38,6 +51,10 @@ public class CustomerAuthController {
         return ResponseEntity.ok(ApiResponse.success("Login successful", authResponse));
     }
 
+    /**
+     * GET /api/auth/customer/me
+     * Lấy thông tin khách hàng đang đăng nhập.
+     */
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<CustomerResponse>> getCurrentCustomer(
