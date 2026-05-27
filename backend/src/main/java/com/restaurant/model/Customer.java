@@ -60,6 +60,17 @@ public class Customer {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
+    @Column(name = "deleted_at")
+    private OffsetDateTime deletedAt;
+
+    /**
+     * Kiểm tra khách hàng đã bị xoá mềm chưa.
+     * Giữ nguyên lịch sử hóa đơn và điểm tích lũy.
+     */
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
     @PrePersist
     protected void onCreate() {
         createdAt = OffsetDateTime.now();
