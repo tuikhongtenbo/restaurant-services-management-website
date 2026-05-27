@@ -35,11 +35,14 @@ public class SecurityConfig {
             "/swagger-ui.html",
             "/swagger-resources/**",
             "/webjars/**",
+            "/*.html",
             "/api/auth/login",
             "/api/auth/forgot-password",
             "/api/auth/reset-password",
             "/api/auth/customer/register",
-            "/api/auth/customer/login"
+            "/api/auth/customer/login",
+            "/api/payments/vnpay/return",
+            "/api/payments/vnpay/ipn"
     };
 
     @Bean

@@ -12,6 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+// @RestController @RequestMapping("/api/admin/roles")
+// @PreAuthorize ADMIN hoặc MANAGER
+//
+// GET    /    → List<RoleResponse>
 @RestController
 @RequestMapping("/api/admin/roles")
 @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
@@ -20,6 +24,10 @@ public class RoleController {
 
     private final RoleManagementService roleManagementService;
 
+    /**
+     * GET /api/admin/roles
+     * Lấy danh sách tất cả vai trò (role).
+     */
     @GetMapping
     public ResponseEntity<ApiResponse<List<RoleResponse>>> getAllRoles() {
         List<RoleResponse> roles = roleManagementService.getAllRoles();
