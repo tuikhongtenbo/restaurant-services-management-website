@@ -22,7 +22,7 @@ spring:
 
 # === JWT ===
 jwt:
-  secret: dGhpc0lzQVN1cGVyU2VjcmV0S2V5Rm9yRGV2TXVzdEJlQXRMZWFzdDI1NkJpdHM=
+  secret: 
   expiration: 86400000 # 24h
   refresh-expiration: 604800000 # 7 days
 
