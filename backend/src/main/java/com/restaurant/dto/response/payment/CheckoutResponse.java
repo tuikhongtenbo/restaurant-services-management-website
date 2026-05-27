@@ -1,18 +1,20 @@
 package com.restaurant.dto.response.payment;
 
-// MINH - Preview checkout truoc khi thanh toan
-// TODO:
-//   UUID orderId
-//   UUID? invoiceId (neu da tao)
-//   BigDecimal subtotal
-//   String? voucherCode
-//   BigDecimal? voucherDiscount
-//   Integer? pointsUsed
-//   BigDecimal? pointsDeducted
-//   BigDecimal vatRate
-//   BigDecimal vatAmount
-//   BigDecimal totalAmount
-//   CustomerSummary? customer (neu co)
-//   Integer? pointsEarned
+import lombok.*;
+import java.math.BigDecimal;
+import java.util.UUID;
+
+@Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class CheckoutResponse {
+    private UUID orderId;
+    private BigDecimal subtotal;
+    private String voucherCode;
+    private BigDecimal voucherDiscount;
+    private Integer pointsUsed;
+    private BigDecimal pointsDeducted;
+    private BigDecimal vatRate;
+    private BigDecimal vatAmount;
+    private BigDecimal totalAmount;
+    private CustomerSummary customer;
+    private Integer pointsEarned;
 }

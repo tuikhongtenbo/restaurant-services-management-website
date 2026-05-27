@@ -1,0 +1,1784 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Flow Test — Restaurant Management</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-base: #0d0f14;
+      --bg-card: #161a22;
+      --bg-input: #1e2330;
+      --border: #2a3044;
+      --border-focus: #6366f1;
+      --text-primary: #f0f2f8;
+      --text-muted: #6b7694;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-glow: rgba(99,102,241,.25);
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 12px;
+      --empty: #22c55e;
+      --serving: #ef4444;
+      --cleaning: #94a3b8;
+      --reserved: #f59e0b;
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 24px 16px 60px;
+    }
+    .preview-banner {
+      background: rgba(245, 158, 11, .15);
+      border: 1px solid rgba(245, 158, 11, .5);
+      color: #fcd34d;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: .82rem;
+      line-height: 1.5;
+    }
+    .preview-banner a { color: #a5b4fc; }
+    .preview-banner.hidden { display: none; }
+    .wrap { max-width: 1200px; margin: 0 auto; }
+    .page-header { text-align: center; margin-bottom: 24px; }
+    .page-header h1 {
+      font-size: 1.5rem; font-weight: 700;
+      color: var(--text-primary);
+      background: linear-gradient(135deg, #6366f1, #22c55e);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    @supports not (background-clip: text) {
+      .page-header h1 { -webkit-text-fill-color: unset; color: #a5b4fc; }
+    }
+    .page-header p { color: var(--text-muted); font-size: .85rem; margin-top: 6px; }
+    .status-bar {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px 18px; margin-bottom: 20px;
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot.on { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    .dot.off { background: var(--text-muted); }
+    .role-hint {
+      font-size: .75rem; color: var(--text-muted); background: #0a0c10;
+      border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px;
+      margin-bottom: 20px; line-height: 1.6;
+    }
+    .role-hint strong { color: #a5b4fc; }
+    .steps {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px;
+    }
+    .step-pill {
+      padding: 6px 12px; border-radius: 999px; font-size: .72rem; font-weight: 600;
+      border: 1px solid var(--border); color: var(--text-muted); cursor: pointer;
+      transition: all .2s;
+    }
+    .step-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .step-pill.done { border-color: var(--success); color: var(--success); }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .grid-2 {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 22px; margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: .95rem; font-weight: 600; margin-bottom: 4px;
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .card-desc { font-size: .78rem; color: var(--text-muted); margin-bottom: 16px; }
+    .badge {
+      font-size: .62rem; font-weight: 700; padding: 2px 7px; border-radius: 999px;
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+    .badge-admin { background: rgba(168,85,247,.15); color: #c084fc; }
+    .badge-staff { background: rgba(99,102,241,.15); color: #818cf8; }
+    .badge-order { background: rgba(34,197,94,.15); color: #22c55e; }
+    .badge-pay { background: rgba(245,158,11,.15); color: #fbbf24; }
+    .badge-customer { background: rgba(56,189,248,.15); color: #38bdf8; }
+    .login-tabs {
+      display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .login-tab {
+      padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--bg-input); color: var(--text-muted); cursor: pointer;
+      font-size: .78rem; font-weight: 600; font-family: inherit;
+    }
+    .login-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .login-pane { display: none; }
+    .login-pane.active { display: block; }
+    .preview-box {
+      background: #0a0c10; border: 1px solid var(--border); border-radius: 8px;
+      padding: 14px; margin-top: 12px; font-size: .82rem;
+    }
+    .preview-row { display: flex; justify-content: space-between; padding: 4px 0; }
+    .preview-row.total { font-weight: 700; color: var(--success); border-top: 1px solid var(--border); margin-top: 8px; padding-top: 10px; }
+    .vnpay-box {
+      margin-top: 16px; padding: 16px; border: 1px dashed rgba(99,102,241,.5);
+      border-radius: 10px; text-align: center; background: rgba(99,102,241,.06);
+    }
+    .vnpay-box img { max-width: 220px; margin: 12px auto; display: block; border-radius: 8px; background: #fff; padding: 8px; }
+    .pay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    @media (max-width: 768px) { .pay-grid { grid-template-columns: 1fr; } }
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-size: .75rem; font-weight: 500; color: var(--text-muted); margin-bottom: 5px; }
+    input, select, textarea {
+      width: 100%; background: var(--bg-input); border: 1px solid var(--border);
+      border-radius: 8px; padding: 9px 12px; color: var(--text-primary);
+      font-size: .85rem; font-family: inherit; outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .btn {
+      padding: 10px 16px; border: none; border-radius: 8px;
+      font-size: .82rem; font-weight: 600; cursor: pointer; font-family: inherit;
+      transition: background .2s, transform .1s;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-danger { background: rgba(239,68,68,.2); color: #fca5a5; border: 1px solid rgba(239,68,68,.4); }
+    .btn-ghost {
+      background: transparent; color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .slicer-block { margin-top: 14px; }
+    .slicer-label {
+      font-size: .7rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .04em; color: var(--text-muted); margin-bottom: 8px;
+    }
+    .slicer-track {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    }
+    .slicer-pill {
+      padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border);
+      background: var(--bg-input); color: var(--text-muted); font-size: .78rem;
+      font-family: inherit; cursor: pointer; transition: all .15s;
+    }
+    .slicer-pill:hover { border-color: #4a5568; color: var(--text-primary); }
+    .slicer-pill.active {
+      border-color: var(--accent); color: #fff; background: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+    .table-slicer {
+      display: flex; gap: 10px; flex-wrap: wrap; padding: 4px 0;
+    }
+    .slicer-table {
+      flex: 0 0 auto; min-width: 88px; padding: 12px 16px; border-radius: 12px;
+      border: 2px solid rgba(34,197,94,.35); background: rgba(34,197,94,.1);
+      color: var(--empty); cursor: pointer; font-family: inherit;
+      text-align: center; transition: all .15s;
+    }
+    .slicer-table:hover { border-color: var(--empty); transform: translateY(-1px); }
+    .slicer-table.active {
+      border-color: #fff; background: rgba(99,102,241,.25); color: var(--text-primary);
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+    .slicer-table .num { display: block; font-weight: 700; font-size: 1.05rem; }
+    .slicer-table .meta { display: block; font-size: .65rem; margin-top: 4px; opacity: .85; }
+    .slicer-hint, .slicer-empty {
+      font-size: .8rem; color: var(--text-muted); padding: 12px 0;
+    }
+    .slicer-empty { color: #fbbf24; }
+    .table-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;
+    }
+    .table-chip {
+      padding: 12px 8px; border-radius: 10px; text-align: center; cursor: default;
+      border: 2px solid transparent; transition: all .15s; opacity: .85;
+    }
+    .table-chip .num { font-weight: 700; font-size: 1rem; }
+    .table-chip .meta { font-size: .65rem; margin-top: 4px; opacity: .9; }
+    .table-chip.EMPTY { background: rgba(34,197,94,.12); color: var(--empty); }
+    .table-chip.SERVING { background: rgba(239,68,68,.12); color: var(--serving); }
+    .table-chip.CLEANING { background: rgba(148,163,184,.12); color: var(--cleaning); }
+    .table-chip.RESERVED { background: rgba(245,158,11,.12); color: var(--reserved); }
+    details.layout-all { margin-top: 16px; font-size: .8rem; color: var(--text-muted); }
+    details.layout-all summary { cursor: pointer; color: #a5b4fc; margin-bottom: 10px; }
+    .menu-list { max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .menu-item {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      padding: 10px 12px; background: #0a0c10; border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .menu-item .info { flex: 1; min-width: 0; }
+    .menu-item .name { font-weight: 600; font-size: .85rem; }
+    .menu-item .price { font-size: .78rem; color: #a5b4fc; margin-top: 2px; }
+    .menu-item .cat { font-size: .65rem; color: var(--text-muted); }
+    .cart-item {
+      padding: 10px 12px; border-bottom: 1px solid var(--border);
+      font-size: .82rem;
+    }
+    .cart-item:last-child { border-bottom: none; }
+    .cart-total {
+      padding: 14px; font-weight: 700; font-size: 1rem;
+      border-top: 1px solid var(--border); color: var(--success);
+    }
+    .state-box {
+      background: #0a0c10; border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px; font-size: .78rem; font-family: 'Courier New', monospace;
+      color: #a5b4fc; margin-top: 12px; word-break: break-all;
+    }
+    .state-box .label { color: var(--text-muted); font-family: Inter, sans-serif; font-size: .7rem; margin-bottom: 4px; }
+    .log {
+      margin-top: 12px; max-height: 200px; overflow-y: auto;
+      font-size: .72rem; font-family: 'Courier New', monospace;
+      background: #0a0c10; border: 1px solid var(--border); border-radius: 8px; padding: 10px;
+    }
+    .log .ok { color: var(--success); }
+    .log .err { color: var(--danger); }
+    .log .info { color: #818cf8; }
+    .layout-stats {
+      display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+    }
+    .stat {
+      flex: 1; min-width: 80px; text-align: center; padding: 10px;
+      background: #0a0c10; border-radius: 8px; border: 1px solid var(--border);
+    }
+    .stat .n { font-size: 1.2rem; font-weight: 700; }
+    .stat .l { font-size: .65rem; color: var(--text-muted); margin-top: 2px; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-thumb { background: #2a3044; border-radius: 99px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <noscript>
+    <div class="preview-banner">Trình duyệt đang tắt JavaScript. Bật JS để dùng trang test này.</div>
+  </noscript>
+  <div class="preview-banner" id="preview-banner">
+    <strong>Cách mở đúng:</strong> chạy <code>mvn spring-boot:run</code> rồi mở
+    <a href="http://localhost:8080/order-flow-test.html" target="_blank" rel="noopener">http://localhost:8080/order-flow-test.html</a>
+    trong trình duyệt (Chrome/Edge). Preview trong IDE có thể trống hoặc không gọi API được.
+  </div>
+
+  <div class="page-header">
+    <h1>Order Flow Test</h1>
+    <p>Test luồng: Đăng nhập → Đặt bàn (tùy chọn) → Order → Thanh toán (Cash/VNPay) → CLEANING → EMPTY</p>
+  </div>
+
+  <div class="status-bar">
+    <div class="dot off" id="status-dot"></div>
+    <div style="flex:1;font-size:.8rem;color:var(--text-muted)" id="status-text">Chưa đăng nhập</div>
+    <button class="btn btn-ghost" type="button" onclick="clearSession()">Xoá phiên</button>
+  </div>
+
+  <div class="role-hint">
+    <strong>Quyền API:</strong>
+    Đăng nhập <strong>ADMIN / MANAGER / WAITER</strong> (có JWT).
+    <strong>Order</strong> (<code>/api/orders/*</code>) — mọi user đã login.
+  <strong>Menu public</strong> (<code>/api/public/menu</code>) — xem &amp; gọi món.
+    <strong>Tables</strong> — cần role phù hợp (ADMIN/MANAGER tạo bàn; STAFF/WAITER mở bàn).
+    <strong>Payment</strong> (<code>/api/payments/*</code>) — cần role <strong>CASHIER / ADMIN / MANAGER</strong>.
+    <strong>Customer</strong> (<code>/api/auth/customer/*</code>) — đăng ký/đăng nhập để gắn SĐT tích điểm khi checkout.
+    Khuyến nghị staff: <code>admin@restaurant.com</code> · VNPay cần <code>VNPAY_TMN_CODE</code> + <code>VNPAY_HASH_SECRET</code> trong <code>.env</code>.
+  </div>
+
+  <div class="steps" id="steps-nav"></div>
+
+  <!-- STEP 0: Login -->
+  <section class="panel active" id="panel-login">
+    <div class="card">
+      <div class="card-title">Bước 0 — Đăng nhập</div>
+      <p class="card-desc">Staff JWT cho order/payment · Customer login để gắn SĐT tích điểm khi checkout.</p>
+
+      <div class="login-tabs">
+        <button type="button" class="login-tab active" id="tab-staff" onclick="switchLoginTab('staff')">Nhân viên</button>
+        <button type="button" class="login-tab" id="tab-customer" onclick="switchLoginTab('customer')">Khách hàng</button>
+      </div>
+
+      <div id="login-pane-staff" class="login-pane active">
+        <div class="card-title" style="font-size:.85rem;margin-bottom:8px">
+          Staff <span class="badge badge-staff">POST /api/auth/login</span>
+        </div>
+        <form onsubmit="handleLogin(event)">
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Email</label>
+              <input id="login-email" type="email" value="admin@restaurant.com" required />
+            </div>
+            <div class="form-group">
+              <label>Password</label>
+              <input id="login-password" type="password" value="admin123" required />
+            </div>
+          </div>
+          <button class="btn btn-primary" type="submit" id="login-btn">Đăng nhập nhân viên</button>
+        </form>
+      </div>
+
+      <div id="login-pane-customer" class="login-pane">
+        <div class="grid-2">
+          <div>
+            <div class="card-title" style="font-size:.85rem;margin-bottom:8px">
+              Đăng ký <span class="badge badge-customer">POST /api/auth/customer/register</span>
+            </div>
+            <form onsubmit="handleCustomerRegister(event)">
+              <div class="form-group"><label>Họ tên</label><input id="cust-reg-name" value="Nguyen Van A" required /></div>
+              <div class="form-group"><label>SĐT</label><input id="cust-reg-phone" value="0901234567" required /></div>
+              <div class="form-group"><label>Email</label><input id="cust-reg-email" type="email" value="customer@test.com" required /></div>
+              <div class="form-group"><label>Mật khẩu</label><input id="cust-reg-password" type="password" value="customer123" required /></div>
+              <button class="btn btn-success" type="submit" id="cust-reg-btn">Đăng ký</button>
+            </form>
+          </div>
+          <div>
+            <div class="card-title" style="font-size:.85rem;margin-bottom:8px">
+              Đăng nhập <span class="badge badge-customer">POST /api/auth/customer/login</span>
+            </div>
+            <form onsubmit="handleCustomerLogin(event)">
+              <div class="form-group"><label>SĐT hoặc Email</label><input id="cust-login-id" value="0901234567" required /></div>
+              <div class="form-group"><label>Mật khẩu</label><input id="cust-login-password" type="password" value="customer123" required /></div>
+              <button class="btn btn-primary" type="submit" id="cust-login-btn">Đăng nhập khách</button>
+            </form>
+            <div id="customer-info-box" class="state-box" style="display:none;margin-top:12px">
+              <div class="label">Khách đang login</div>
+              <div id="customer-info-text"></div>
+              <button class="btn btn-ghost" type="button" style="margin-top:8px" onclick="clearCustomerSession()">Đăng xuất khách</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="login-log" class="log" style="display:none;margin-top:14px"></div>
+      <div class="btn-row" style="margin-top:14px">
+        <button class="btn btn-ghost" type="button" onclick="goStep(1)" disabled id="btn-after-staff-login">Tiếp Setup → (cần login staff)</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 1: Setup (optional) -->
+  <section class="panel" id="panel-setup">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Bước 1a — Tạo bàn <span class="badge badge-admin">ADMIN/MANAGER</span></div>
+        <p class="card-desc">POST /api/tables</p>
+        <div class="form-group"><label>Số bàn</label><input id="new-table-number" placeholder="T99" /></div>
+        <div class="form-group"><label>Sức chứa</label><input id="new-table-capacity" type="number" value="4" min="1" /></div>
+        <div class="form-group"><label>Khu vực</label><input id="new-table-area" value="Tang_1" /></div>
+        <button class="btn btn-primary" type="button" onclick="createTable()">Tạo bàn</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Bước 1b — Tạo món <span class="badge badge-admin">ADMIN/MANAGER</span></div>
+        <p class="card-desc">POST /api/menu/items</p>
+        <div class="form-group"><label>Tên món</label><input id="new-item-name" placeholder="Phở bò test" /></div>
+        <div class="form-group"><label>Danh mục</label><input id="new-item-category" value="Mon_chinh" /></div>
+        <div class="form-group"><label>Giá (VND)</label><input id="new-item-price" type="number" value="85000" /></div>
+        <div class="form-group"><label>Ảnh URL</label><input id="new-item-image" value="https://placehold.co/400x300" /></div>
+        <button class="btn btn-primary" type="button" onclick="createMenuItem()">Tạo món</button>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" type="button" onclick="goStep(2)">Bỏ qua → Đặt bàn</button>
+    </div>
+  </section>
+
+  <!-- STEP 2: Reservation -->
+  <section class="panel" id="panel-reservation">
+    <div class="card">
+      <div class="card-title">Bước 2 — Đặt bàn (Reservation) <span class="badge badge-customer">POST /api/reservations</span></div>
+      <p class="card-desc">
+        Tạo đặt bàn online hoặc staff · Hệ thống tự gán bàn trong ~30 phút trước giờ hẹn · Sau đó <strong>Check-in (arrived)</strong> → mở order.
+      </p>
+      <div class="grid-2">
+        <div>
+          <div class="card-title" style="font-size:.85rem;margin-bottom:8px">Đặt online (public)</div>
+          <form onsubmit="createPublicReservation(event)">
+            <div class="form-group"><label>Tên khách</label><input id="res-name" value="Nguyen Van A" required /></div>
+            <div class="form-group"><label>SĐT</label><input id="res-phone" value="0901234567" required /></div>
+            <div class="form-group"><label>Số khách</label><input id="res-party" type="number" value="2" min="1" max="50" required /></div>
+            <div class="form-group"><label>Giờ đặt (ISO, ~20 phút nữa)</label><input id="res-datetime" required /></div>
+            <div class="form-group"><label>Ghi chú</label><input id="res-note" value="Test order-flow" /></div>
+            <button class="btn btn-success" type="submit">Tạo đặt bàn online</button>
+          </form>
+        </div>
+        <div>
+          <div class="card-title" style="font-size:.85rem;margin-bottom:8px">Staff: check-in &amp; mở order</div>
+          <div class="state-box" id="reservation-box" style="display:none;margin-bottom:12px">
+            <div class="label">Reservation hiện tại</div>
+            <div id="reservation-text"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" type="button" onclick="pollReservationTable()">Chờ gán bàn (poll)</button>
+            <button class="btn btn-primary" type="button" onclick="markReservationArrived()">Check-in (arrived)</button>
+          </div>
+          <div class="btn-row" style="margin-top:8px">
+            <button class="btn btn-success" type="button" onclick="openOrderAfterReservation()">Mở order trên bàn đã check-in</button>
+            <button class="btn btn-ghost" type="button" onclick="goStep(3)">Bỏ qua → Chọn bàn walk-in</button>
+          </div>
+        </div>
+      </div>
+      <div id="reservation-log" class="log" style="display:none;margin-top:14px"></div>
+    </div>
+  </section>
+
+  <!-- STEP 3: Tables -->
+  <section class="panel" id="panel-tables">
+    <div class="card">
+      <div class="card-title">Bước 3 — Chọn bàn trống <span class="badge badge-staff">GET /api/tables?status=EMPTY</span></div>
+      <p class="card-desc">Chọn bàn đang <strong style="color:var(--empty)">trống (EMPTY)</strong> — không cần gõ số bàn.</p>
+      <div class="layout-stats" id="layout-stats"></div>
+      <div class="slicer-block" id="area-slicer-wrap" style="display:none">
+        <div class="slicer-label">Khu vực</div>
+        <div class="slicer-track" id="area-slicer"></div>
+      </div>
+      <div class="slicer-block">
+        <div class="slicer-label">Bàn đang trống</div>
+        <div class="table-slicer" id="available-table-slicer">
+          <span class="slicer-hint">Vào bước này để tải danh sách bàn…</span>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn btn-ghost" type="button" onclick="loadAvailableTables()">Làm mới danh sách</button>
+      </div>
+      <details class="layout-all">
+        <summary>Xem sơ đồ tất cả bàn (tham khảo)</summary>
+        <div class="table-grid" id="table-grid" style="margin-top:10px"></div>
+      </details>
+      <div class="state-box" id="selected-table-box" style="display:none">
+        <div class="label">Bàn đã chọn</div>
+        <span id="selected-table-text"></span>
+      </div>
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn btn-success" type="button" id="btn-open-order" disabled onclick="goStep(4)">Tiếp: Mở đơn →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 4: Open order -->
+  <section class="panel" id="panel-order">
+    <div class="card">
+      <div class="card-title">Bước 4 — Mở đơn <span class="badge badge-order">POST /api/orders</span></div>
+      <p class="card-desc">Tạo order OPEN, bàn chuyển SERVING. Waiter = user đang login.</p>
+      <div class="state-box" id="order-table-summary" style="display:none;margin-bottom:12px">
+        <div class="label">Bàn</div>
+        <span id="order-table-summary-text"></span>
+      </div>
+      <div class="form-group">
+        <label>Số khách</label>
+        <input id="guest-count" type="number" value="2" min="1" />
+      </div>
+      <button class="btn btn-success" type="button" onclick="createOrder()">Mở đơn cho bàn đã chọn</button>
+      <div class="state-box" id="order-box" style="display:none">
+        <div class="label">Order hiện tại</div>
+        <div id="order-text"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" type="button" id="btn-to-menu" disabled onclick="goStep(5)">Tiếp: Gọi món →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 5: Add items -->
+  <section class="panel" id="panel-menu">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Bước 5 — Thực đơn <span class="badge badge-order">GET /api/public/menu</span></div>
+        <p class="card-desc">POST /api/orders/{id}/items — snapshot giá/tên tại lúc gọi.</p>
+        <button class="btn btn-primary" type="button" onclick="loadMenu()">Tải menu</button>
+        <div class="menu-list" id="menu-list" style="margin-top:12px"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Giỏ món (order items)</div>
+        <p class="card-desc">GET /api/orders/{id}/items</p>
+        <button class="btn btn-ghost" type="button" onclick="refreshCart()">Làm mới giỏ</button>
+        <div id="cart-body" style="margin-top:12px;min-height:120px">
+          <p style="color:var(--text-muted);font-size:.8rem">Chưa có món</p>
+        </div>
+        <div class="cart-total" id="cart-total" style="display:none"></div>
+        <div class="btn-row" style="margin-top:12px">
+          <button class="btn btn-success" type="button" onclick="goStep(6)">Tiếp: Quản lý món →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 6: Manage items -->
+  <section class="panel" id="panel-manage">
+    <div class="card">
+      <div class="card-title">Bước 6 — Sửa / Huỷ món</div>
+      <p class="card-desc">PUT .../items/{itemId} (PENDING) · DELETE .../items/{itemId} (huỷ)</p>
+      <div id="manage-list"></div>
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn btn-success" type="button" onclick="goStep(7)">Tiếp: Thanh toán →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 7: Payment -->
+  <section class="panel" id="panel-close">
+    <div class="card">
+      <div class="card-title">Bước 7 — Thanh toán <span class="badge badge-pay">POST /api/payments/*</span></div>
+      <p class="card-desc">
+        Đánh dấu món <strong>SERVED</strong> → preview → Cash/VNPay. Sau thanh toán bàn → <strong>CLEANING</strong>, bấm “Dọn xong” → <strong>EMPTY</strong>.
+      </p>
+
+      <div class="state-box" id="pay-order-summary" style="display:none;margin-bottom:12px">
+        <div class="label">Order</div>
+        <span id="pay-order-summary-text"></span>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" type="button" onclick="markAllItemsServed()">1. Đánh dấu tất cả món SERVED</button>
+        <button class="btn btn-ghost" type="button" onclick="refreshCart(); renderPayItems()">Làm mới giỏ</button>
+      </div>
+      <div id="pay-items-list" style="margin-top:12px;font-size:.8rem;color:var(--text-muted)"></div>
+
+      <div class="form-group" style="margin-top:16px">
+        <label>SĐT khách (tích điểm) — tự điền nếu customer đã login</label>
+        <input id="pay-customer-phone" placeholder="0901234567 hoặc để trống" />
+      </div>
+      <div class="grid-2" style="margin-top:8px">
+        <div class="form-group">
+          <label>ID Voucher (nếu có)</label>
+          <input id="pay-voucher-id" placeholder="UUID của voucher" />
+        </div>
+        <div class="form-group">
+          <label>Điểm dùng (optional)</label>
+          <input id="pay-points-use" type="number" value="0" min="0" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Tiền mặt khách đưa (Cash)</label>
+        <input id="pay-cash-received" type="number" value="500000" min="0" step="1000" />
+      </div>
+
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn btn-primary" type="button" onclick="previewCheckout()">2. Preview checkout</button>
+      </div>
+      <div id="checkout-preview" class="preview-box" style="display:none"></div>
+
+      <div id="invoice-panel" class="preview-box" style="display:none;margin-top:12px">
+        <div class="card-title" style="font-size:.85rem;margin-bottom:8px">Hóa đơn <span class="badge badge-pay">GET /api/payments/invoices/{id}</span></div>
+        <div id="invoice-panel-body"></div>
+      </div>
+
+      <div id="vnpay-poll-status" class="state-box" style="display:none;margin-top:12px">
+        <div class="label">VNPay — chờ thanh toán</div>
+        <span id="vnpay-poll-text">Đang poll invoice PENDING…</span>
+      </div>
+
+      <div class="pay-grid">
+        <div>
+          <div class="card-title" style="font-size:.85rem">Thanh toán tiền mặt</div>
+          <p class="card-desc">POST /api/payments/cash</p>
+          <button class="btn btn-success" type="button" onclick="payCash()">3a. Thanh toán Cash</button>
+        </div>
+        <div>
+          <div class="card-title" style="font-size:.85rem">Thanh toán VNPay</div>
+          <p class="card-desc">POST /api/payments/vnpay/create · quét QR sandbox</p>
+          <div class="form-group">
+            <label>Bank code (optional, VD: VNPAYQR)</label>
+            <input id="pay-bank-code" placeholder="để trống = trang VNPay mặc định" />
+          </div>
+          <button class="btn btn-primary" type="button" onclick="payVnpay()">3b. Tạo link VNPay + QR</button>
+        </div>
+      </div>
+
+      <div id="vnpay-result" class="vnpay-box" style="display:none">
+        <div class="label" style="font-size:.75rem;color:var(--text-muted);margin-bottom:8px">Quét QR hoặc mở link VNPay</div>
+        <img id="vnpay-qr" alt="VNPay QR" />
+        <p style="font-size:.78rem;margin-top:8px;word-break:break-all">
+          <a id="vnpay-link" href="#" target="_blank" rel="noopener">Mở trang thanh toán VNPay</a>
+        </p>
+        <p style="font-size:.72rem;color:var(--text-muted);margin-top:8px">
+          Sau khi thanh toán sandbox, VNPay redirect về backend rồi frontend. Invoice chuyển PAID qua IPN/return.
+        </p>
+      </div>
+
+      <div id="pay-result" class="log" style="display:none;margin-top:14px"></div>
+      <div class="state-box" id="table-after-pay-box" style="display:none;margin-top:12px">
+        <div class="label">Trạng thái bàn sau thanh toán</div>
+        <span id="table-after-pay-text"></span>
+      </div>
+      <div class="btn-row" style="margin-top:16px">
+        <button class="btn btn-warning" type="button" onclick="finishCleaningTable()" id="btn-close-table" style="background:var(--warning);color:#fff;border:none;display:none">4. Dọn xong → EMPTY (bàn CLEANING)</button>
+        <button class="btn btn-ghost" type="button" onclick="resetFlow()">Test lại từ đầu</button>
+        <a class="btn btn-primary" href="/swagger-ui/index.html" style="text-decoration:none;display:inline-block">Mở Swagger</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="log" id="global-log"></div>
+</div>
+
+<script>
+  const DEFAULT_API_BASE = 'http://localhost:8080';
+  function resolveApiBase() {
+    const override = new URLSearchParams(window.location.search).get('api');
+    if (override) return override.replace(/\/$/, '');
+    const port = window.location.port;
+    const host = window.location.hostname;
+    if (port === '8080' && (host === 'localhost' || host === '127.0.0.1')) {
+      return window.location.origin;
+    }
+    return DEFAULT_API_BASE;
+  }
+  const BASE_URL = resolveApiBase();
+  const STEPS = ['Đăng nhập', 'Setup', 'Đặt bàn', 'Chọn bàn', 'Mở đơn', 'Gọi món', 'Quản lý', 'Thanh toán'];
+
+  const state = {
+    token: null,
+    tokenType: 'Bearer',
+    userId: null,
+    userEmail: null,
+    tables: [],
+    availableTables: [],
+    areaFilter: 'ALL',
+    selectedTable: null,
+    orderId: null,
+    order: null,
+    menu: [],
+    cart: [],
+    step: 0,
+    customerToken: null,
+    customerTokenType: 'Bearer',
+    customerPhone: null,
+    customerName: null,
+    customerEmail: null,
+    checkoutPreview: null,
+    lastInvoiceId: null,
+    reservationId: null,
+    reservation: null,
+    vnpayPollTimer: null,
+  };
+
+  function loadSession() {
+    try {
+      const raw = sessionStorage.getItem('orderFlowSession');
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      state.token = s.token;
+      state.tokenType = s.tokenType || 'Bearer';
+      state.userId = s.userId;
+      state.userEmail = s.userEmail;
+      state.orderId = s.orderId;
+      state.selectedTable = s.selectedTable;
+      state.customerToken = s.customerToken;
+      state.customerTokenType = s.customerTokenType || 'Bearer';
+      state.customerPhone = s.customerPhone;
+      state.customerName = s.customerName;
+      state.customerEmail = s.customerEmail;
+      state.lastInvoiceId = s.lastInvoiceId;
+      state.reservationId = s.reservationId;
+      updateStatusBar();
+      updateCustomerUI();
+    } catch (_) {}
+  }
+
+  function saveSession() {
+    sessionStorage.setItem('orderFlowSession', JSON.stringify({
+      token: state.token,
+      tokenType: state.tokenType,
+      userId: state.userId,
+      userEmail: state.userEmail,
+      orderId: state.orderId,
+      selectedTable: state.selectedTable,
+      customerToken: state.customerToken,
+      customerTokenType: state.customerTokenType,
+      customerPhone: state.customerPhone,
+      customerName: state.customerName,
+      customerEmail: state.customerEmail,
+      lastInvoiceId: state.lastInvoiceId,
+      reservationId: state.reservationId,
+    }));
+  }
+
+  function clearSession() {
+    stopVnpayPoll();
+    state.token = null;
+    state.userId = null;
+    state.orderId = null;
+    state.selectedTable = null;
+    state.customerToken = null;
+    state.customerPhone = null;
+    state.customerName = null;
+    state.customerEmail = null;
+    sessionStorage.removeItem('orderFlowSession');
+    updateStatusBar();
+    updateCustomerUI();
+    log('Đã xoá phiên.', 'info');
+    goStep(0);
+  }
+
+  function updateStatusBar() {
+    const dot = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+    const btnAfter = document.getElementById('btn-after-staff-login');
+    if (btnAfter) btnAfter.disabled = !state.token;
+    if (state.token) {
+      dot.className = 'dot on';
+      let html = `Staff: <strong>${state.userEmail || 'user'}</strong>`;
+      if (state.customerPhone) {
+        html += ` · Khách: <strong>${state.customerName || state.customerPhone}</strong>`;
+      }
+      if (state.orderId) html += ` · Order: <strong>${state.orderId.slice(0, 8)}…</strong>`;
+      if (state.selectedTable) html += ` · Bàn: <strong>${state.selectedTable.number}</strong>`;
+      text.innerHTML = html;
+    } else {
+      dot.className = 'dot off';
+      text.textContent = state.customerPhone
+        ? `Chưa login staff · Khách: ${state.customerName || state.customerPhone}`
+        : 'Chưa đăng nhập';
+    }
+  }
+
+  function switchLoginTab(tab) {
+    document.getElementById('tab-staff')?.classList.toggle('active', tab === 'staff');
+    document.getElementById('tab-customer')?.classList.toggle('active', tab === 'customer');
+    document.getElementById('login-pane-staff')?.classList.toggle('active', tab === 'staff');
+    document.getElementById('login-pane-customer')?.classList.toggle('active', tab === 'customer');
+  }
+
+  function updateCustomerUI() {
+    const box = document.getElementById('customer-info-box');
+    const info = document.getElementById('customer-info-text');
+    const phoneInput = document.getElementById('pay-customer-phone');
+    if (state.customerPhone && box && info) {
+      box.style.display = 'block';
+      info.textContent = `${state.customerName || 'Khách'} · ${state.customerPhone}${state.customerEmail ? ' · ' + state.customerEmail : ''}`;
+    } else if (box) {
+      box.style.display = 'none';
+    }
+    if (phoneInput && state.customerPhone && !phoneInput.value.trim()) {
+      phoneInput.value = state.customerPhone;
+    }
+  }
+
+  function setCustomerFromAuth(data) {
+    const user = data?.user || data?.customer || data;
+    state.customerToken = data.accessToken;
+    state.customerTokenType = data.tokenType || 'Bearer';
+    state.customerPhone = user?.phone || null;
+    state.customerName = user?.fullName || user?.name || null;
+    state.customerEmail = user?.email || null;
+    saveSession();
+    updateStatusBar();
+    updateCustomerUI();
+  }
+
+  function clearCustomerSession() {
+    state.customerToken = null;
+    state.customerPhone = null;
+    state.customerName = null;
+    state.customerEmail = null;
+    saveSession();
+    updateStatusBar();
+    updateCustomerUI();
+    log('Đã đăng xuất khách.', 'info');
+  }
+
+  async function apiPublic(method, path, body) {
+    const headers = { Accept: 'application/json' };
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  async function handleCustomerLogin(e) {
+    e.preventDefault();
+    const loginId = document.getElementById('cust-login-id').value.trim();
+    const password = document.getElementById('cust-login-password').value;
+    const btn = document.getElementById('cust-login-btn');
+    btn.disabled = true;
+    try {
+      const { ok, status, data } = await apiPublic('POST', '/api/auth/customer/login', { loginId, password });
+      const logEl = document.getElementById('login-log');
+      logEl.style.display = 'block';
+      logEl.innerHTML = `<div class="${ok ? 'ok' : 'err'}">${status} — ${JSON.stringify(data, null, 2)}</div>`;
+      if (ok && data?.data?.accessToken) {
+        setCustomerFromAuth(data.data);
+        log(`Customer login OK: ${state.customerPhone}`, 'ok');
+      } else {
+        log(`Customer login thất bại: ${data?.message || status}`, 'err');
+      }
+    } catch (err) {
+      log(`Lỗi kết nối: ${err.message}`, 'err');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function handleCustomerRegister(e) {
+    e.preventDefault();
+    const fullName = document.getElementById('cust-reg-name').value.trim();
+    const phone = document.getElementById('cust-reg-phone').value.trim();
+    const email = document.getElementById('cust-reg-email').value.trim();
+    const password = document.getElementById('cust-reg-password').value;
+    const btn = document.getElementById('cust-reg-btn');
+    btn.disabled = true;
+    try {
+      const { ok, status, data } = await apiPublic('POST', '/api/auth/customer/register', { fullName, phone, email, password });
+      const logEl = document.getElementById('login-log');
+      logEl.style.display = 'block';
+      logEl.innerHTML = `<div class="${ok ? 'ok' : 'err'}">${status} — ${JSON.stringify(data, null, 2)}</div>`;
+      if (ok && data?.data?.accessToken) {
+        setCustomerFromAuth(data.data);
+        log(`Customer đăng ký OK: ${state.customerPhone}`, 'ok');
+      } else {
+        log(`Đăng ký thất bại: ${data?.message || status}`, 'err');
+      }
+    } catch (err) {
+      log(`Lỗi kết nối: ${err.message}`, 'err');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function renderSteps() {
+    const nav = document.getElementById('steps-nav');
+    nav.innerHTML = STEPS.map((label, i) => {
+      let cls = 'step-pill';
+      if (i === state.step) cls += ' active';
+      else if (i < state.step) cls += ' done';
+      return `<span class="${cls}" data-step="${i}">${i}. ${label}</span>`;
+    }).join('');
+    nav.querySelectorAll('.step-pill').forEach(el => {
+      el.onclick = () => {
+        const n = parseInt(el.dataset.step, 10);
+        if (n === 0 || state.token) goStep(n);
+        else log('Đăng nhập trước.', 'err');
+      };
+    });
+  }
+
+  const PANEL_IDS = ['login','setup','reservation','tables','order','menu','manage','close'];
+
+  function futureReservedAt(minutesFromNow) {
+    return new Date(Date.now() + minutesFromNow * 60000).toISOString();
+  }
+
+  function goStep(n) {
+    if (n > 0 && !state.token) {
+      log('Cần đăng nhập trước.', 'err');
+      n = 0;
+    }
+    if (n < 0 || n >= PANEL_IDS.length) n = 0;
+    state.step = n;
+    const targetId = 'panel-' + PANEL_IDS[n];
+    document.querySelectorAll('section.panel').forEach(p => {
+      p.classList.toggle('active', p.id === targetId);
+    });
+    if (!document.querySelector('section.panel.active')) {
+      document.getElementById('panel-login')?.classList.add('active');
+    }
+    renderSteps();
+    if (n === 2) initReservationPanel();
+    if (n === 3) loadAvailableTables();
+    if (n === 4) updateOrderTableSummary();
+    if (n === 6) renderManageList();
+    if (n === 7) initPayPanel();
+    if (n === 5 && state.orderId) refreshCart();
+  }
+
+  function updateOrderTableSummary() {
+    const box = document.getElementById('order-table-summary');
+    const text = document.getElementById('order-table-summary-text');
+    if (!box || !text) return;
+    if (state.selectedTable) {
+      box.style.display = 'block';
+      text.textContent =
+        `${state.selectedTable.number} · ${state.selectedTable.capacity} chỗ · ${state.selectedTable.area || '-'}`;
+    } else {
+      box.style.display = 'none';
+    }
+  }
+
+  function log(msg, type = 'info') {
+    const el = document.getElementById('global-log');
+    const line = document.createElement('div');
+    line.className = type;
+    line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    el.prepend(line);
+  }
+
+  async function api(method, path, body) {
+    const headers = { Accept: 'application/json' };
+    if (state.token) headers['Authorization'] = `${state.tokenType} ${state.token}`;
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true;
+    try {
+      const { ok, status, data } = await api('POST', '/api/auth/login', { email, password });
+      const logEl = document.getElementById('login-log');
+      logEl.style.display = 'block';
+      logEl.innerHTML = `<div class="${ok ? 'ok' : 'err'}">${status} — ${JSON.stringify(data, null, 2)}</div>`;
+      if (ok && data?.data?.accessToken) {
+        state.token = data.data.accessToken;
+        state.tokenType = data.data.tokenType || 'Bearer';
+        const u = data.data.user;
+        state.userId = u?.id;
+        state.userEmail = u?.email || email;
+        saveSession();
+        updateStatusBar();
+        log(`Login OK: ${state.userEmail}`, 'ok');
+        document.getElementById('btn-after-staff-login')?.removeAttribute('disabled');
+        goStep(1);
+      } else {
+        const errMsg = data?.message || data?.error || status;
+        log(`Login thất bại: ${errMsg}`, 'err');
+        if (status === 400 || status === 401) {
+          log('Kiểm tra email/password: admin@restaurant.com / admin123', 'info');
+        }
+      }
+    } catch (err) {
+      log(`Lỗi kết nối: ${err.message}`, 'err');
+      log('Backend có đang chạy? Mở http://localhost:8080/order-flow-test.html sau mvn spring-boot:run', 'err');
+      const logEl = document.getElementById('login-log');
+      if (logEl) {
+        logEl.style.display = 'block';
+        logEl.innerHTML = `<div class="err">Không gọi được ${BASE_URL} — ${err.message}. Xem hướng dẫn banner phía trên.</div>`;
+      }
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function createTable() {
+    const body = {
+      number: document.getElementById('new-table-number').value.trim(),
+      capacity: parseInt(document.getElementById('new-table-capacity').value, 10),
+      area: document.getElementById('new-table-area').value.trim(),
+    };
+    if (!body.number) { log('Nhập số bàn', 'err'); return; }
+    const { ok, status, data } = await api('POST', '/api/tables', body);
+    log(ok ? `Tạo bàn OK: ${body.number}` : `Tạo bàn lỗi ${status}: ${data?.message}`, ok ? 'ok' : 'err');
+    if (ok) {
+      goStep(3);
+      loadAvailableTables();
+    }
+  }
+
+  async function createMenuItem() {
+    const body = {
+      name: document.getElementById('new-item-name').value.trim(),
+      category: document.getElementById('new-item-category').value.trim(),
+      price: parseInt(document.getElementById('new-item-price').value, 10),
+      imageUrl: document.getElementById('new-item-image').value.trim(),
+    };
+    if (!body.name) { log('Nhập tên món', 'err'); return; }
+    const { ok, status, data } = await api('POST', '/api/menu/items', body);
+    log(ok ? `Tạo món OK: ${body.name}` : `Tạo món lỗi ${status}`, ok ? 'ok' : 'err');
+  }
+
+  function parseTablePage(data) {
+    const page = data?.data;
+    if (!page) return [];
+    if (Array.isArray(page.content)) return page.content;
+    if (Array.isArray(page)) return page;
+    return [];
+  }
+
+  function renderLayoutStats(layout) {
+    if (!layout) return;
+    document.getElementById('layout-stats').innerHTML = `
+      <div class="stat"><div class="n">${layout.total ?? 0}</div><div class="l">Tổng</div></div>
+      <div class="stat"><div class="n" style="color:var(--empty)">${layout.available ?? 0}</div><div class="l">Trống</div></div>
+      <div class="stat"><div class="n" style="color:var(--serving)">${layout.occupied ?? 0}</div><div class="l">Đang phục vụ</div></div>
+      <div class="stat"><div class="n" style="color:var(--cleaning)">${layout.cleaning ?? 0}</div><div class="l">Dọn</div></div>
+    `;
+  }
+
+  function renderAllTablesGrid() {
+    const grid = document.getElementById('table-grid');
+    if (!grid) return;
+    grid.innerHTML = state.tables.map(t => `
+    grid.innerHTML = state.tables.map(t => `
+      <div class="table-chip ${t.status}" style="cursor:pointer" title="Nhấn để thao tác (Mở đơn/Xem hóa đơn)" onclick="selectAnyTable('${t.id}')">
+        <div class="num">${t.number}</div>
+        <div class="meta">${t.status} · ${t.capacity} chỗ</div>
+      </div>
+    `).join('');
+  }
+
+  function renderAreaSlicer() {
+    const areas = [...new Set(state.availableTables.map(t => t.area).filter(Boolean))].sort();
+    const wrap = document.getElementById('area-slicer-wrap');
+    const track = document.getElementById('area-slicer');
+    if (!wrap || !track) return;
+    if (areas.length <= 1) {
+      wrap.style.display = 'none';
+      state.areaFilter = 'ALL';
+      return;
+    }
+    wrap.style.display = 'block';
+    const pills = ['ALL', ...areas];
+    track.innerHTML = pills.map(a => `
+      <button type="button" class="slicer-pill ${state.areaFilter === a ? 'active' : ''}"
+              data-area="${a}" onclick="setAreaFilter(this.dataset.area)">${a === 'ALL' ? 'Tất cả' : a}</button>
+    `).join('');
+  }
+
+  function setAreaFilter(area) {
+    state.areaFilter = area;
+    renderAreaSlicer();
+    renderAvailableTableSlicer();
+  }
+
+  function renderAvailableTableSlicer() {
+    const el = document.getElementById('available-table-slicer');
+    if (!el) return;
+    let list = state.availableTables;
+    if (state.areaFilter && state.areaFilter !== 'ALL') {
+      list = list.filter(t => (t.area || '') === state.areaFilter);
+    }
+    list = [...list].sort((a, b) => String(a.number).localeCompare(String(b.number), undefined, { numeric: true }));
+    if (!list.length) {
+      el.innerHTML = '<span class="slicer-empty">Không có bàn trống' +
+        (state.areaFilter !== 'ALL' ? ` ở khu ${state.areaFilter}` : '') +
+        '. Tạo bàn ở Setup hoặc đợi bàn dọn xong.</span>';
+      return;
+    }
+    el.innerHTML = list.map(t => `
+      <button type="button" class="slicer-table ${state.selectedTable?.id === t.id ? 'active' : ''}"
+              onclick="selectTable('${t.id}')">
+        <span class="num">${t.number}</span>
+        <span class="meta">${t.capacity} chỗ · ${t.area || '—'}</span>
+      </button>
+    `).join('');
+  }
+
+  async function loadAvailableTables() {
+    const slicer = document.getElementById('available-table-slicer');
+    if (slicer) slicer.innerHTML = '<span class="slicer-hint">Đang tải bàn trống…</span>';
+
+    const [emptyRes, layoutRes] = await Promise.all([
+      api('GET', '/api/tables?status=EMPTY&size=100&sort=number,asc'),
+      api('GET', '/api/tables/layout'),
+    ]);
+
+    if (!emptyRes.ok) {
+      if (slicer) slicer.innerHTML = '<span class="slicer-empty">Không tải được bàn trống (' + emptyRes.status + ')</span>';
+      log(`Danh sách bàn trống lỗi ${emptyRes.status}`, 'err');
+      return;
+    }
+
+    state.availableTables = parseTablePage(emptyRes.data);
+    if (layoutRes.ok) {
+      const layout = layoutRes.data.data;
+      state.tables = layout.tables || [];
+      renderLayoutStats(layout);
+      renderAllTablesGrid();
+    }
+
+    if (state.selectedTable && !state.availableTables.some(t => t.id === state.selectedTable.id)) {
+      state.selectedTable = null;
+      document.getElementById('selected-table-box').style.display = 'none';
+      document.getElementById('btn-open-order').disabled = true;
+    }
+
+    renderAreaSlicer();
+    renderAvailableTableSlicer();
+    log(`Có ${state.availableTables.length} bàn trống`, 'ok');
+  }
+
+  function selectTable(id) {
+    const t = state.availableTables.find(x => x.id === id) || state.tables.find(x => x.id === id);
+    if (!t) return;
+    if (t.status !== 'EMPTY') {
+      log(`Bàn ${t.number} đang ${t.status} — chỉ chọn bàn trống`, 'err');
+      return;
+    }
+    state.selectedTable = t;
+    saveSession();
+    renderAvailableTableSlicer();
+    document.getElementById('selected-table-box').style.display = 'block';
+    document.getElementById('selected-table-text').textContent =
+      `${t.number} · ${t.capacity} chỗ · ${t.area || '-'}`;
+    document.getElementById('btn-open-order').disabled = false;
+    updateOrderTableSummary();
+    log(`Chọn bàn ${t.number}`, 'ok');
+  }
+
+  async function selectAnyTable(id) {
+    const t = state.tables.find(x => x.id === id);
+    if (!t) return;
+    if (t.status === 'EMPTY') {
+      selectTable(id);
+      document.getElementById('panel-tables').scrollIntoView();
+    } else if (t.status === 'SERVING') {
+      const { ok, data } = await api('GET', `/api/orders/table/${id}`);
+      if (ok && data.data) {
+        state.selectedTable = t;
+        state.order = data.data;
+        state.orderId = state.order.id;
+        saveSession();
+        log(`Đã tải order ${state.orderId} của bàn ${t.number}`, 'ok');
+        updateOrderTableSummary();
+        goStep(5);
+      } else {
+        log(`Không tìm thấy hóa đơn mở cho bàn ${t.number}`, 'err');
+      }
+    } else {
+      log(`Bàn đang ${t.status}, không có hóa đơn mở`, 'info');
+    }
+  }
+
+  async function createOrder() {
+    if (!state.selectedTable) {
+      log('Chọn bàn EMPTY trước', 'err');
+      return;
+    }
+    const guestCount = parseInt(document.getElementById('guest-count').value, 10) || 2;
+    const { ok, status, data } = await api('POST', '/api/orders', {
+      tableId: state.selectedTable.id,
+      guestCount,
+    });
+    if (!ok) {
+      log(`Mở đơn lỗi ${status}: ${data?.message || JSON.stringify(data)}`, 'err');
+      return;
+    }
+    state.order = data.data;
+    state.orderId = state.order.id;
+    saveSession();
+    document.getElementById('order-box').style.display = 'block';
+    document.getElementById('order-text').textContent =
+      `ID: ${state.orderId}\nBàn: ${state.order.tableNumber || state.selectedTable.number}\nStatus: ${state.order.status}\nGuest: ${state.order.guestCount}`;
+    document.getElementById('btn-to-menu').disabled = false;
+    log(`Mở đơn OK: ${state.orderId}`, 'ok');
+    updateOrderTableSummary();
+    await loadAvailableTables();
+  }
+
+  async function loadMenu() {
+    const { ok, status, data } = await api('GET', '/api/public/menu');
+    if (!ok) {
+      log(`Menu lỗi ${status}`, 'err');
+      return;
+    }
+    state.menu = data.data || [];
+    const list = document.getElementById('menu-list');
+    const items = [];
+    state.menu.forEach(cat => {
+      (cat.items || []).forEach(item => {
+        if (item.status === 'AVAILABLE' || !item.status) items.push({ ...item, category: cat.category });
+      });
+    });
+    if (!items.length) {
+      list.innerHTML = '<p style="color:var(--text-muted);font-size:.8rem">Không có món AVAILABLE. Tạo món ở bước Setup.</p>';
+      return;
+    }
+    list.innerHTML = items.map(item => `
+      <div class="menu-item">
+        <div class="info">
+          <div class="name">${item.name}</div>
+          <div class="price">${formatMoney(item.price)} ₫${item.promoPrice ? ' · KM ' + formatMoney(item.promoPrice) : ''}</div>
+          <div class="cat">${item.category || ''} · ${item.status || 'AVAILABLE'}</div>
+        </div>
+        <button class="btn btn-success" type="button" onclick="addToOrder('${item.id}')">+ Gọi</button>
+      </div>
+    `).join('');
+    log(`Menu: ${items.length} món`, 'ok');
+  }
+
+  function formatMoney(n) {
+    return Number(n || 0).toLocaleString('vi-VN');
+  }
+
+  async function addToOrder(itemId) {
+    if (!state.orderId) {
+      log('Mở đơn trước (bước 3)', 'err');
+      return;
+    }
+    const { ok, status, data } = await api('POST', `/api/orders/${state.orderId}/items`, {
+      itemId,
+      quantity: 1,
+      note: '',
+    });
+    if (ok) {
+      log(`Đã thêm món: ${data.data?.itemName}`, 'ok');
+      await refreshCart();
+    } else {
+      log(`Thêm món lỗi ${status}: ${data?.message}`, 'err');
+    }
+  }
+
+  async function refreshCart() {
+    if (!state.orderId) return;
+    const { ok, data } = await api('GET', `/api/orders/${state.orderId}/items`);
+    if (!ok) return;
+    state.cart = data.data || [];
+    const body = document.getElementById('cart-body');
+    if (!state.cart.length) {
+      body.innerHTML = '<p style="color:var(--text-muted);font-size:.8rem">Chưa có món</p>';
+      document.getElementById('cart-total').style.display = 'none';
+      return;
+    }
+    let total = 0;
+    body.innerHTML = state.cart.map(item => {
+      const line = Number(item.totalPrice || 0);
+      total += line;
+      return `<div class="cart-item">
+        <strong>${item.itemName}</strong> × ${item.quantity}
+        <span style="float:right;color:#a5b4fc">${formatMoney(line)} ₫</span>
+        <div style="font-size:.7rem;color:var(--text-muted);margin-top:4px">${item.status} · ${item.id}</div>
+      </div>`;
+    }).join('');
+    const totalEl = document.getElementById('cart-total');
+    totalEl.style.display = 'block';
+    totalEl.textContent = `Tạm tính: ${formatMoney(total)} ₫`;
+    const orderRes = await api('GET', `/api/orders/${state.orderId}`);
+    if (orderRes.ok && orderRes.data?.data?.subtotal != null) {
+      totalEl.textContent += ` (API subtotal: ${formatMoney(orderRes.data.data.subtotal)} ₫)`;
+    }
+  }
+
+  function renderManageList() {
+    const el = document.getElementById('manage-list');
+    if (!state.cart.length) {
+      el.innerHTML = '<p style="color:var(--text-muted)">Chưa có món — quay bước 4.</p>';
+      return;
+    }
+    el.innerHTML = state.cart.map(item => `
+      <div class="card" style="padding:14px;margin-bottom:10px">
+        <strong>${item.itemName}</strong> — ${item.status}
+        <div style="font-size:.75rem;color:var(--text-muted);margin:8px 0">ID: ${item.id}</div>
+        ${item.status === 'PENDING' ? `
+          <div class="form-group">
+            <label>Số lượng mới</label>
+            <input type="number" id="qty-${item.id}" value="${item.quantity}" min="0" />
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" type="button" onclick="updateItem('${item.id}')">Cập nhật SL</button>
+            <button class="btn btn-danger" type="button" onclick="cancelItem('${item.id}')">Huỷ món</button>
+          </div>
+        ` : '<p style="font-size:.78rem;color:var(--text-muted)">Chỉ sửa/huỷ khi PENDING</p>'}
+      </div>
+    `).join('');
+  }
+
+  async function updateItem(itemId) {
+    const qty = parseInt(document.getElementById(`qty-${itemId}`).value, 10);
+    const { ok, status, data } = await api('PUT', `/api/orders/${state.orderId}/items/${itemId}`, { quantity: qty });
+    log(ok ? `Cập nhật OK` : `Lỗi ${status}`, ok ? 'ok' : 'err');
+    await refreshCart();
+    renderManageList();
+  }
+
+  async function cancelItem(itemId) {
+    const reason = prompt('Lý do huỷ món:') || 'Khách đổi ý';
+    const { ok, status } = await api('DELETE', `/api/orders/${state.orderId}/items/${itemId}`, { reason });
+    log(ok ? 'Đã huỷ món' : `Huỷ lỗi ${status}`, ok ? 'ok' : 'err');
+    await refreshCart();
+    renderManageList();
+  }
+
+  async function markAllItemsServed() {
+    if (!state.orderId) {
+      log('Chưa có order', 'err');
+      return;
+    }
+    await refreshCart();
+    const flow = ['PREPARING', 'READY', 'SERVED'];
+    for (const item of state.cart) {
+      if (item.status === 'CANCELLED') continue;
+      let current = item.status;
+      for (const next of flow) {
+        if (current === next) continue;
+        if (next === 'PREPARING' && current !== 'PENDING') continue;
+        if (next === 'READY' && current !== 'PREPARING') continue;
+        if (next === 'SERVED' && current !== 'READY') continue;
+        const { ok, status, data } = await api('PUT', `/api/orders/items/${item.id}/status?status=${next}`);
+        if (!ok) {
+          log(`Chuyển ${item.itemName} → ${next} lỗi ${status}: ${data?.message}`, 'err');
+          break;
+        }
+        current = next;
+      }
+    }
+    await refreshCart();
+    renderPayItems();
+    log('Đã cập nhật trạng thái món (PENDING→…→SERVED)', 'ok');
+  }
+
+  function renderPayItems() {
+    const el = document.getElementById('pay-items-list');
+    if (!el) return;
+    if (!state.cart.length) {
+      el.textContent = 'Chưa có món trong order.';
+      return;
+    }
+    el.innerHTML = state.cart.map(i =>
+      `<div>${i.itemName} × ${i.quantity} — <strong>${i.status}</strong></div>`
+    ).join('');
+  }
+
+  function initPayPanel() {
+    const box = document.getElementById('pay-order-summary');
+    const text = document.getElementById('pay-order-summary-text');
+    if (state.orderId && box && text) {
+      box.style.display = 'block';
+      text.textContent = state.orderId;
+    }
+    updateCustomerUI();
+    refreshCart().then(() => renderPayItems());
+    const vnpayResult = document.getElementById('vnpay-result');
+    const payResult = document.getElementById('pay-result');
+    const checkoutPreview = document.getElementById('checkout-preview');
+    if (vnpayResult) vnpayResult.style.display = 'none';
+    if (payResult) payResult.style.display = 'none';
+    if (checkoutPreview) checkoutPreview.style.display = 'none';
+  }
+
+  function buildCheckoutBody(paymentMethod) {
+    const phone = document.getElementById('pay-customer-phone')?.value.trim()
+      || state.customerPhone
+      || null;
+    const voucherId = document.getElementById('pay-voucher-id')?.value.trim() || undefined;
+    const pointsToUse = parseInt(document.getElementById('pay-points-use')?.value || '0', 10) || 0;
+    const body = {
+      orderId: state.orderId,
+      customerPhone: phone || undefined,
+      voucherId,
+      pointsToUse: pointsToUse > 0 ? pointsToUse : undefined,
+      paymentMethod,
+    };
+    if (paymentMethod === 'CASH') {
+      body.cashReceived = Number(document.getElementById('pay-cash-received')?.value || 0);
+    }
+    return body;
+  }
+
+  function renderCheckoutPreview(preview) {
+    const el = document.getElementById('checkout-preview');
+    if (!el || !preview) return;
+    el.style.display = 'block';
+    el.innerHTML = `
+      <div class="preview-row"><span>Tạm tính</span><span>${formatMoney(preview.subtotal)} ₫</span></div>
+      <div class="preview-row"><span>Giảm voucher</span><span>-${formatMoney(preview.voucherDiscount)} ₫</span></div>
+      <div class="preview-row"><span>Điểm dùng</span><span>-${formatMoney(preview.pointsDeducted)} ₫ (${preview.pointsUsed || 0} điểm)</span></div>
+      <div class="preview-row"><span>VAT (${preview.vatRate || 0}%)</span><span>${formatMoney(preview.vatAmount)} ₫</span></div>
+      <div class="preview-row total"><span>Tổng thanh toán</span><span>${formatMoney(preview.totalAmount)} ₫</span></div>
+      ${preview.pointsEarned ? `<div class="preview-row"><span>Điểm tích</span><span>+${preview.pointsEarned}</span></div>` : ''}
+    `;
+    const cashInput = document.getElementById('pay-cash-received');
+    if (cashInput && preview.totalAmount != null && Number(cashInput.value) < Number(preview.totalAmount)) {
+      cashInput.value = Math.ceil(Number(preview.totalAmount) / 1000) * 1000;
+    }
+  }
+
+  async function previewCheckout() {
+    if (!state.orderId) {
+      log('Chưa có order', 'err');
+      return;
+    }
+    const { ok, status, data } = await api('POST', '/api/payments/checkout', buildCheckoutBody('CASH'));
+    const el = document.getElementById('pay-result');
+    el.style.display = 'block';
+    if (!ok) {
+      el.innerHTML = `<div class="err">${status} — ${JSON.stringify(data, null, 2)}</div>`;
+      log(`Preview lỗi ${status}: ${data?.message}`, 'err');
+      return;
+    }
+    state.checkoutPreview = data.data;
+    renderCheckoutPreview(state.checkoutPreview);
+    el.innerHTML = `<div class="ok">Preview OK — tổng ${formatMoney(state.checkoutPreview.totalAmount)} ₫</div>`;
+    log('Preview checkout OK', 'ok');
+  }
+
+  async function payCash() {
+    if (!state.orderId) return;
+    if (!confirm('Thanh toán tiền mặt và đóng đơn?')) return;
+    const { ok, status, data } = await api('POST', '/api/payments/cash', buildCheckoutBody('CASH'));
+    const el = document.getElementById('pay-result');
+    el.style.display = 'block';
+    el.innerHTML = `<div class="${ok ? 'ok' : 'err'}">${status}\n${JSON.stringify(data, null, 2)}</div>`;
+    if (ok) {
+      const invoice = data.data;
+      state.lastInvoiceId = invoice?.id;
+      saveSession();
+      renderInvoicePanel(invoice);
+      log('Thanh toán Cash OK — invoice PAID, bàn → CLEANING', 'ok');
+      state.orderId = null;
+      state.order = null;
+      state.cart = [];
+      saveSession();
+      updateStatusBar();
+      await refreshTableAfterPayment();
+    } else {
+      log(`Cash lỗi ${status}: ${data?.message}`, 'err');
+    }
+  }
+
+  async function findInvoiceForOrder(orderId) {
+    const { ok, data } = await api('GET', '/api/payments/invoices?page=0&size=50&sort=createdAt,desc');
+    if (!ok || !data?.data?.content) return null;
+    const oid = String(orderId);
+    return data.data.content.find(i => String(i.orderId) === oid) || null;
+  }
+
+  async function payVnpay() {
+    if (!state.orderId) return;
+    stopVnpayPoll();
+    const phone = document.getElementById('pay-customer-phone')?.value.trim() || state.customerPhone || null;
+    const voucherId = document.getElementById('pay-voucher-id')?.value.trim() || undefined;
+    const pointsToUse = parseInt(document.getElementById('pay-points-use')?.value || '0', 10) || 0;
+    const bankCode = document.getElementById('pay-bank-code')?.value.trim() || undefined;
+    const body = {
+      orderId: state.orderId,
+      customerPhone: phone || undefined,
+      voucherId,
+      pointsToUse: pointsToUse > 0 ? pointsToUse : undefined,
+      bankCode,
+    };
+    const { ok, status, data } = await api('POST', '/api/payments/vnpay/create', body);
+    const el = document.getElementById('pay-result');
+    el.style.display = 'block';
+    if (!ok) {
+      el.innerHTML = `<div class="err">${status} — ${JSON.stringify(data, null, 2)}</div>`;
+      log(`VNPay create lỗi ${status}: ${data?.message}`, 'err');
+      return;
+    }
+    const paymentUrl = data.data?.paymentUrl;
+    if (!paymentUrl) {
+      log('Không nhận được paymentUrl', 'err');
+      return;
+    }
+    const qrBox = document.getElementById('vnpay-result');
+    const qrImg = document.getElementById('vnpay-qr');
+    const qrLink = document.getElementById('vnpay-link');
+    qrBox.style.display = 'block';
+    qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(paymentUrl);
+    qrLink.href = paymentUrl;
+    qrLink.textContent = paymentUrl;
+    el.innerHTML = `<div class="ok">VNPay URL tạo OK — quét QR. Amount: ${formatMoney(data.data?.amount)} ₫</div>`;
+    log('VNPay URL tạo OK — đang poll invoice…', 'ok');
+    const invoiceId = data.data?.invoiceId;
+    if (invoiceId) {
+      const inv = await loadInvoiceById(invoiceId);
+      if (inv) renderInvoicePanel(inv);
+      startVnpayPoll(invoiceId);
+    } else {
+      const pending = await findInvoiceForOrder(state.orderId);
+      if (pending?.id) {
+        renderInvoicePanel(pending);
+        startVnpayPoll(pending.id);
+      }
+    }
+  }
+
+  function initReservationPanel() {
+    const dt = document.getElementById('res-datetime');
+    if (dt && !dt.value) dt.value = futureReservedAt(20);
+    updateReservationUI();
+  }
+
+  function updateReservationUI() {
+    const box = document.getElementById('reservation-box');
+    const text = document.getElementById('reservation-text');
+    if (!state.reservation || !box || !text) return;
+    const r = state.reservation;
+    box.style.display = 'block';
+    text.textContent =
+      `ID: ${r.id}\nStatus: ${r.status}\nBàn: ${r.tableId || '(chưa gán)'}\nGiờ: ${r.reservedAt}\n${r.customerName} · ${r.customerPhone} · ${r.partySize} khách`;
+  }
+
+  async function apiReservation(method, path, body) {
+    const headers = { Accept: 'application/json', 'Content-Type': 'application/json' };
+    if (state.token) headers['Authorization'] = `${state.tokenType} ${state.token}`;
+    const res = await fetch(`${BASE_URL}${path}`, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  async function createPublicReservation(e) {
+    e.preventDefault();
+    const body = {
+      customerName: document.getElementById('res-name').value.trim(),
+      customerPhone: document.getElementById('res-phone').value.trim(),
+      partySize: parseInt(document.getElementById('res-party').value, 10),
+      reservedAt: document.getElementById('res-datetime').value,
+      note: document.getElementById('res-note').value.trim() || undefined,
+    };
+    const { ok, status, data } = await apiPublic('POST', '/api/public/reservations', body);
+    const logEl = document.getElementById('reservation-log');
+    logEl.style.display = 'block';
+    logEl.innerHTML = `<div class="${ok ? 'ok' : 'err'}">${status}\n${JSON.stringify(data, null, 2)}</div>`;
+    if (ok && data?.id) {
+      state.reservationId = data.id;
+      state.reservation = data;
+      saveSession();
+      updateReservationUI();
+      log(`Đặt bàn OK: ${data.id}`, 'ok');
+    } else {
+      log(`Đặt bàn lỗi: ${data?.message || status}`, 'err');
+    }
+  }
+
+  async function pollReservationTable() {
+    if (!state.reservationId) {
+      log('Tạo reservation trước', 'err');
+      return;
+    }
+    log('Đang poll gán bàn (tối đa 90s)…', 'info');
+    for (let i = 0; i < 18; i++) {
+      const { ok, data } = await apiReservation('GET', `/api/reservations/${state.reservationId}`);
+      if (ok && data?.tableId) {
+        state.reservation = data;
+        saveSession();
+        updateReservationUI();
+        const tRes = await api('GET', `/api/tables/${data.tableId}`);
+        if (tRes.ok && tRes.data?.data) {
+          state.selectedTable = tRes.data.data;
+          saveSession();
+          log(`Đã gán bàn ${state.selectedTable.number}`, 'ok');
+        }
+        return;
+      }
+      await new Promise(r => setTimeout(r, 5000));
+    }
+    log('Chưa có tableId — đặt giờ hẹn trong 30 phút tới để scheduler gán bàn.', 'err');
+  }
+
+  async function markReservationArrived() {
+    if (!state.reservationId) {
+      log('Chưa có reservation', 'err');
+      return;
+    }
+    const { ok, status, data } = await apiReservation('PUT', `/api/reservations/${state.reservationId}/arrived`);
+    if (!ok) {
+      log(`Arrived lỗi ${status}: ${data?.message || JSON.stringify(data)}`, 'err');
+      return;
+    }
+    state.reservation = data;
+    saveSession();
+    updateReservationUI();
+    if (data.tableId) {
+      const tRes = await api('GET', `/api/tables/${data.tableId}`);
+      if (tRes.ok && tRes.data?.data) {
+        state.selectedTable = tRes.data.data;
+        saveSession();
+        updateOrderTableSummary();
+      }
+    }
+    log('Check-in OK — bàn SERVING', 'ok');
+  }
+
+  async function openOrderAfterReservation() {
+    if (!state.selectedTable) {
+      log('Check-in và có bàn trước', 'err');
+      return;
+    }
+    goStep(4);
+    await createOrder();
+  }
+
+  async function loadInvoiceById(invoiceId) {
+    if (!invoiceId) return null;
+    const { ok, data } = await api('GET', `/api/payments/invoices/${invoiceId}`);
+    if (!ok || !data?.data) return null;
+    return data.data;
+  }
+
+  function renderInvoicePanel(invoice) {
+    const panel = document.getElementById('invoice-panel');
+    const body = document.getElementById('invoice-panel-body');
+    if (!panel || !body || !invoice) return;
+    panel.style.display = 'block';
+    const tableInfo = state.selectedTable
+      ? `Bàn ${state.selectedTable.number} (${state.selectedTable.status})`
+      : '—';
+    body.innerHTML = `
+      <div class="preview-row"><span>Mã HĐ</span><span>${invoice.id}</span></div>
+      <div class="preview-row"><span>Order</span><span>${invoice.orderId}</span></div>
+      <div class="preview-row"><span>Bàn</span><span>${tableInfo}</span></div>
+      <div class="preview-row"><span>Trạng thái</span><span><strong>${invoice.status}</strong></span></div>
+      <div class="preview-row"><span>PTTT</span><span>${invoice.paymentMethod || '—'}</span></div>
+      <div class="preview-row"><span>Tổng</span><span>${formatMoney(invoice.totalAmount)} ₫</span></div>
+      ${invoice.changeAmount != null ? `<div class="preview-row"><span>Tiền thối</span><span>${formatMoney(invoice.changeAmount)} ₫</span></div>` : ''}
+      ${invoice.pointsEarned ? `<div class="preview-row"><span>Điểm tích</span><span>+${invoice.pointsEarned}</span></div>` : ''}
+      ${invoice.customerPhone ? `<div class="preview-row"><span>SĐT KH</span><span>${invoice.customerPhone}</span></div>` : ''}
+    `;
+  }
+
+  async function refreshTableAfterPayment() {
+    if (!state.selectedTable?.id) return;
+    const { ok, data } = await api('GET', `/api/tables/${state.selectedTable.id}`);
+    if (!ok || !data?.data) return;
+    state.selectedTable = data.data;
+    saveSession();
+    const box = document.getElementById('table-after-pay-box');
+    const text = document.getElementById('table-after-pay-text');
+    const btn = document.getElementById('btn-close-table');
+    if (box && text) {
+      box.style.display = 'block';
+      text.textContent = `Bàn ${state.selectedTable.number}: ${state.selectedTable.status}`;
+    }
+    if (btn) {
+      btn.style.display = state.selectedTable.status === 'CLEANING' ? 'inline-block' : 'none';
+    }
+    await loadAvailableTables();
+  }
+
+  function stopVnpayPoll() {
+    if (state.vnpayPollTimer) {
+      clearInterval(state.vnpayPollTimer);
+      state.vnpayPollTimer = null;
+    }
+    const pollBox = document.getElementById('vnpay-poll-status');
+    if (pollBox) pollBox.style.display = 'none';
+  }
+
+  function startVnpayPoll(invoiceId) {
+    stopVnpayPoll();
+    if (!invoiceId) return;
+    state.lastInvoiceId = invoiceId;
+    saveSession();
+    const pollBox = document.getElementById('vnpay-poll-status');
+    const pollText = document.getElementById('vnpay-poll-text');
+    if (pollBox) pollBox.style.display = 'block';
+    state.vnpayPollTimer = setInterval(async () => {
+      const inv = await loadInvoiceById(invoiceId);
+      if (!inv) return;
+      if (pollText) pollText.textContent = `Invoice ${invoiceId.slice(0, 8)}… — ${inv.status}`;
+      renderInvoicePanel(inv);
+      if (inv.status === 'PAID') {
+        stopVnpayPoll();
+        log('VNPay PAID — bàn CLEANING', 'ok');
+        state.orderId = null;
+        state.order = null;
+        state.cart = [];
+        saveSession();
+        updateStatusBar();
+        await refreshTableAfterPayment();
+      } else if (inv.status === 'VOIDED') {
+        stopVnpayPoll();
+        log('VNPay thất bại / VOIDED', 'err');
+      }
+    }, 3000);
+  }
+
+  async function finishCleaningTable() {
+    if (!state.selectedTable) {
+      log('Chưa có thông tin bàn', 'err');
+      return;
+    }
+    const { ok, status, data } = await api('POST', `/api/tables/${state.selectedTable.id}/close`);
+    if (ok) {
+      log(`Bàn ${state.selectedTable.number} → EMPTY`, 'ok');
+      state.selectedTable = data.data || { ...state.selectedTable, status: 'EMPTY' };
+      saveSession();
+      document.getElementById('btn-close-table').style.display = 'none';
+      await refreshTableAfterPayment();
+      goStep(3);
+    } else {
+      log(`Đóng bàn lỗi ${status}: ${data?.message}`, 'err');
+    }
+  }
+
+  function resetFlow() {
+    stopVnpayPoll();
+    state.selectedTable = null;
+    state.orderId = null;
+    state.order = null;
+    state.cart = [];
+    saveSession();
+    goStep(3);
+    log('Reset luồng — chọn bàn mới', 'info');
+  }
+
+  async function checkBackendConnection() {
+    const banner = document.getElementById('preview-banner');
+    if (!banner) return;
+    try {
+      const res = await fetch(`${BASE_URL}/api/public/menu`, { method: 'GET', headers: { Accept: 'application/json' } });
+      if (res.ok) {
+        const onBackend = window.location.port === '8080' &&
+          (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+        if (onBackend) {
+          banner.classList.add('hidden');
+        } else {
+          banner.innerHTML =
+            '<strong>Backend OK</strong> tại <code>' + BASE_URL + '</code>. ' +
+            'Khuyến nghị mở <a href="http://localhost:8080/order-flow-test.html">http://localhost:8080/order-flow-test.html</a> để tránh lỗi CORS.';
+          banner.classList.remove('hidden');
+        }
+        return true;
+      }
+      banner.classList.remove('hidden');
+      banner.innerHTML =
+        '<strong>Backend trả lỗi ' + res.status + '</strong> tại <code>' + BASE_URL + '</code>. Kiểm tra log Spring Boot.';
+      return false;
+    } catch (e) {
+      banner.classList.remove('hidden');
+      banner.innerHTML =
+        '<strong>Không kết nối được backend</strong> tại <code>' + BASE_URL + '</code>.<br>' +
+        '1. Chạy <code>cd backend</code> rồi <code>mvn spring-boot:run</code><br>' +
+        '2. Nếu log báo <strong>Port 8080 was already in use</strong> — process cũ vẫn chạy (OK) hoặc tắt process đó: <code>netstat -ano | findstr :8080</code> rồi <code>taskkill /PID &lt;pid&gt; /F</code><br>' +
+        '3. Mở trang: <a href="http://localhost:8080/order-flow-test.html">http://localhost:8080/order-flow-test.html</a><br>' +
+        '4. Staff login: <code>admin@restaurant.com</code> / <code>admin123</code>';
+      log('Backend offline: ' + e.message, 'err');
+      return false;
+    }
+  }
+
+  function initPage() {
+    try {
+      const banner = document.getElementById('preview-banner');
+      const onBackend = window.location.port === '8080' &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      if (!onBackend && banner) {
+        banner.innerHTML =
+          '<strong>API backend:</strong> <code>' + BASE_URL + '</code> — ' +
+          'Trang đang mở từ <code>' + (window.location.origin || 'file://') + '</code>. ' +
+          'Đang kiểm tra kết nối…';
+      }
+      checkBackendConnection();
+      loadSession();
+      renderSteps();
+      updateStatusBar();
+      updateCustomerUI();
+      goStep(0);
+      if (state.token) {
+        log('Đã có token từ phiên trước — đăng nhập lại hoặc chuyển bước 1.', 'info');
+      }
+    } catch (err) {
+      console.error(err);
+      document.getElementById('panel-login')?.classList.add('active');
+      document.getElementById('status-text').textContent = 'Lỗi khởi tạo: ' + err.message;
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPage);
+  } else {
+    initPage();
+  }
+</script>
+</body>
+</html>
