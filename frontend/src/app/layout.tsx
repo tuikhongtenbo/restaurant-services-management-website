@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AntdRegistry } from "@ant-design/nextjs-registry";
+import { ConfigProvider } from "antd";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,7 +29,33 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <AntdRegistry>
+          <ConfigProvider
+            theme={{
+              token: {
+                fontFamily: "var(--font-geist-sans)",
+                colorPrimary: "#2563EB",
+                borderRadius: 8,
+                colorText: "#27272a", // zinc-800
+                colorTextSecondary: "#71717a", // zinc-500
+                colorBorder: "#e4e4e7", // zinc-200
+                colorBgContainer: "#ffffff",
+              },
+              components: {
+                Table: {
+                  headerBg: "#fafafa", // zinc-50
+                  headerColor: "#71717a", // zinc-500
+                  headerBorderRadius: 8,
+                  borderColor: "#f4f4f5", // zinc-100
+                },
+              },
+            }}
+          >
+            {children}
+          </ConfigProvider>
+        </AntdRegistry>
+      </body>
     </html>
   );
 }
