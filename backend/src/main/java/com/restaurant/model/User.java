@@ -61,6 +61,17 @@ public class User {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
+    @Column(name = "deleted_at")
+    private OffsetDateTime deletedAt;
+
+    /**
+     * Kiểm tra user đã bị xoá mềm chưa.
+     * User bị xoá mềm không được phép đăng nhập.
+     */
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
     @PrePersist
     protected void onCreate() {
         createdAt = OffsetDateTime.now();
