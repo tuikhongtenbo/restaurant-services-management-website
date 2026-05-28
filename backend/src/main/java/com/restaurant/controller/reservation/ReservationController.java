@@ -6,7 +6,6 @@ import com.restaurant.dto.request.reservation.CreateReservationRequest;
 import com.restaurant.dto.request.reservation.UpdateReservationRequest;
 import com.restaurant.dto.response.reservation.ReservationCalendarResponse;
 import com.restaurant.dto.response.reservation.ReservationResponse;
-import com.restaurant.dto.response.table.TableResponse;
 import com.restaurant.service.reservation.ReservationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -59,7 +58,14 @@ public class ReservationController {
     public ReservationResponse createReservation(
             @Valid @RequestBody CreateReservationRequest request,
             @RequestHeader(value = "X-Staff-ID", required = false) UUID staffId) {
-        return reservationService.createAndConfirm(request, staffId);
+        return reservationService.createReservation(request, staffId);
+    }
+
+    @PutMapping("/{id}/confirm")
+    public ReservationResponse confirmReservation(
+            @PathVariable UUID id,
+            @RequestHeader("X-Staff-ID") UUID staffId) {
+        return reservationService.confirmReservation(id, staffId);
     }
 
     @PutMapping("/{id}")
@@ -87,16 +93,19 @@ public class ReservationController {
         return reservationService.cancel(id, staffId, request.getReason());
     }
 
+    /**
+     * Trả về danh sách giờ còn trống trong ngày cho partySize cho trước.
+     * Wrapper của suggestBookingSlots — chỉ lấy availableSlots của ngày đó.
+     */
     @GetMapping("/available-slots")
     public List<LocalTime> getAvailableSlots(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam Integer partySize) {
-        return reservationService.getAvailableSlots(date, partySize);
-    }
-
-    @GetMapping("/suggest-table")
-    public TableResponse suggestTable(@RequestParam Integer partySize) {
-        return reservationService.suggestTable(partySize);
+        return reservationService.suggestBookingSlots(List.of(date), partySize)
+                .stream()
+                .findFirst()
+                .map(s -> s.getAvailableSlots())
+                .orElse(List.of());
     }
 
     @DeleteMapping("/{id}")

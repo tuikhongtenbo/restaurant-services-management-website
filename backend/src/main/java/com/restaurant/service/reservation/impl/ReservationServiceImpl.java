@@ -6,9 +6,9 @@ import com.restaurant.common.enums.TableStatus;
 import com.restaurant.common.exceptions.BusinessException;
 import com.restaurant.dto.request.reservation.CreateReservationRequest;
 import com.restaurant.dto.request.reservation.UpdateReservationRequest;
+import com.restaurant.dto.response.reservation.BookingSuggestionResponse;
 import com.restaurant.dto.response.reservation.ReservationCalendarResponse;
 import com.restaurant.dto.response.reservation.ReservationResponse;
-import com.restaurant.dto.response.table.TableResponse;
 import com.restaurant.model.Reservation;
 import com.restaurant.model.Table;
 import com.restaurant.repository.ReservationRepository;
@@ -25,6 +25,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -36,20 +37,114 @@ import java.util.stream.Stream;
 @Transactional
 public class ReservationServiceImpl implements ReservationService {
 
-    private static final int RESERVATION_DURATION_HOURS = 2;
-    private static final int ASSIGN_BEFORE_MINUTES = 30;
-    private static final int AUTO_CANCEL_MINUTES = 30;
-    private static final ZoneId RESTAURANT_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
-    private static final Set<ReservationStatus> ACTIVE_STATUSES =
+    // ------------------------------------------------------------------ constants
+
+    private static final int       RESERVATION_DURATION_HOURS = 3;
+    private static final int       ASSIGN_BEFORE_MINUTES      = 30;
+    private static final int       AUTO_CANCEL_MINUTES        = 30;
+    private static final int       SLOT_INTERVAL_MINUTES      = 30;
+    private static final int       BOOKING_HORIZON_DAYS       = 30;
+    private static final LocalTime OPEN_TIME                  = LocalTime.of(10, 0);
+    private static final LocalTime CLOSE_TIME                 = LocalTime.of(21, 0);
+    private static final ZoneId    RESTAURANT_ZONE            = ZoneId.of("Asia/Ho_Chi_Minh");
+
+    /**
+     * Trạng thái "đang chiếm slot" — dùng thống nhất ở mọi chỗ.
+     * PENDING không block vì chưa confirmed.
+     */
+    private static final Set<ReservationStatus> BLOCKING_STATUSES =
             Set.of(ReservationStatus.CONFIRMED, ReservationStatus.ARRIVED);
 
+    // ------------------------------------------------------------------ dependencies
+
     private final ReservationRepository reservationRepository;
-    private final TableRepository tableRepository;
+    private final TableRepository       tableRepository;
+
+    // ================================================================== private helpers
+
+    /**
+     * Kiểm tra nhà hàng còn đủ capacity cho partySize vào wantedTime không.
+     *
+     * Logic:
+     *   - Lấy tất cả bàn active có capacity >= partySize → capableTables
+     *   - Đếm số reservation BLOCKING trong cửa sổ ±RESERVATION_DURATION_HOURS:
+     *       + Đã gán bàn: chỉ tính nếu bàn đó thuộc capableTables
+     *       + Chưa gán bàn: vẫn tính là chiếm 1 bàn (đã CONFIRMED, chắc chắn sẽ được gán)
+     *   - Nếu số reservation blocking < số bàn capable → còn chỗ
+     */
+    /**
+     * Kiểm tra còn bàn phù hợp cho partySize vào wantedTime không.
+     *
+     * Thuật toán simulate gán bàn:
+     *   1. Pool = tất cả bàn active.
+     *   2. Reservation BLOCKING đã có tableId → xoá bàn đó khỏi pool.
+     *   3. Reservation BLOCKING chưa có tableId → greedy assign bàn nhỏ nhất vừa đủ
+     *      trong pool (sắp xếp partySize tăng dần để bàn nhỏ fill trước, tránh lãng phí bàn lớn).
+     *   4. Pool còn bàn nào capacity >= partySize mới → còn chỗ.
+     */
+    private boolean hasCapacity(Integer partySize, OffsetDateTime wantedTime, UUID excludeReservationId) {
+        List<Table> allTables = tableRepository.findByIsActiveTrue();
+        if (allTables.isEmpty()) return false;
+
+        List<Reservation> blocking = reservationRepository
+                .findByReservedAtBetween(
+                        wantedTime.minusHours(RESERVATION_DURATION_HOURS),
+                        wantedTime.plusHours(RESERVATION_DURATION_HOURS)
+                )
+                .stream()
+                .filter(r -> excludeReservationId == null || !excludeReservationId.equals(r.getId()))
+                .filter(r -> BLOCKING_STATUSES.contains(r.getStatus()))
+                .toList();
+
+        // Step 1: xoá bàn đã được gán cụ thể
+        Set<UUID> assignedTableIds = blocking.stream()
+                .filter(r -> r.getTableId() != null)
+                .map(Reservation::getTableId)
+                .collect(Collectors.toSet());
+
+        List<Table> availablePool = allTables.stream()
+                .filter(t -> !assignedTableIds.contains(t.getId()))
+                .collect(Collectors.toCollection(java.util.ArrayList::new));
+
+        // Step 2: simulate gán bàn cho reservation chưa có tableId
+        // Sắp xếp partySize tăng dần → bàn nhỏ được fill trước, tránh lãng phí bàn lớn
+        blocking.stream()
+                .filter(r -> r.getTableId() == null)
+                .sorted(Comparator.comparingInt(Reservation::getPartySize))
+                .forEach(r ->
+                    availablePool.stream()
+                            .filter(t -> t.getCapacity() >= r.getPartySize())
+                            .min(Comparator.comparingInt(Table::getCapacity))
+                            .ifPresent(availablePool::remove)
+                );
+
+        // Step 3: còn bàn nào chứa được partySize mới không
+        return availablePool.stream().anyMatch(t -> t.getCapacity() >= partySize);
+    }
+
+    /**
+     * Validate thời gian đặt bàn:
+     *   1. Không được trong quá khứ.
+     *   2. Phải nằm trong giờ mở cửa (OPEN_TIME → CLOSE_TIME).
+     */
+    private void validateReservationTime(OffsetDateTime reservedAt) {
+        OffsetDateTime now = OffsetDateTime.now(RESTAURANT_ZONE);
+
+        if (!reservedAt.isAfter(now)) {
+            throw new BusinessException("Thoi gian dat ban khong duoc la qua khu.");
+        }
+
+        LocalTime time = reservedAt.atZoneSameInstant(RESTAURANT_ZONE).toLocalTime();
+        if (time.isBefore(OPEN_TIME) || time.isAfter(CLOSE_TIME)) {
+            throw new BusinessException(
+                    "Thoi gian dat ban phai trong gio hoat dong ("
+                    + OPEN_TIME + " - " + CLOSE_TIME + ")."
+            );
+        }
+    }
 
     private void releaseTable(Reservation reservation) {
-        if (reservation.getTableId() == null) {
-            return;
-        }
+        if (reservation.getTableId() == null) return;
 
         tableRepository.findById(reservation.getTableId())
                 .ifPresent(table -> {
@@ -87,49 +182,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .build();
     }
 
-    private TableResponse toTableResponse(Table table) {
-        return TableResponse.builder()
-                .id(table.getId())
-                .number(table.getNumber())
-                .capacity(table.getCapacity())
-                .status(table.getStatus().name())
-                .area(table.getArea())
-                .isActive(table.getIsActive())
-                .updatedAt(table.getUpdatedAt())
-                .build();
-    }
-
-    private boolean hasCapacity(Integer partySize, OffsetDateTime wantedTime, UUID excludeReservationId) {
-        List<Table> capableTables = tableRepository.findByIsActiveTrue()
-                .stream()
-                .filter(t -> t.getCapacity() >= partySize)
-                .toList();
-
-        if (capableTables.isEmpty()) {
-            return false;
-        }
-
-        Set<UUID> capableTableIds = capableTables.stream()
-                .map(Table::getId)
-                .collect(Collectors.toSet());
-
-        OffsetDateTime rangeStart = wantedTime.minusHours(RESERVATION_DURATION_HOURS);
-        OffsetDateTime rangeEnd = wantedTime.plusHours(RESERVATION_DURATION_HOURS);
-
-        long blockingReservations = reservationRepository.findByReservedAtBetween(rangeStart, rangeEnd)
-                .stream()
-                .filter(r -> excludeReservationId == null || !excludeReservationId.equals(r.getId()))
-                .filter(r -> ACTIVE_STATUSES.contains(r.getStatus()))
-                .filter(r -> {
-                    if (r.getTableId() != null) {
-                        return capableTableIds.contains(r.getTableId());
-                    }
-                    return r.getPartySize() >= partySize;
-                })
-                .count();
-
-        return blockingReservations < capableTables.size();
-    }
+    // ================================================================== public API
 
     @Override
     @Transactional(readOnly = true)
@@ -158,10 +211,14 @@ public class ReservationServiceImpl implements ReservationService {
         return toResponse(findOrThrow(id));
     }
 
+    // ------------------------------------------------------------------ create / confirm
+
+    /** Tạo reservation ở trạng thái PENDING. Chỉ validate thời gian; capacity check ở bước confirm. */
     @Override
-    @Transactional(noRollbackFor = BusinessException.class)
-    public ReservationResponse createAndConfirm(CreateReservationRequest request, UUID staffId) {
-        Reservation r = Reservation.builder()
+    public ReservationResponse createReservation(CreateReservationRequest request, UUID staffId) {
+        validateReservationTime(request.getReservedAt());
+
+        Reservation reservation = Reservation.builder()
                 .customerName(request.getCustomerName())
                 .customerPhone(request.getCustomerPhone())
                 .partySize(request.getPartySize())
@@ -172,38 +229,73 @@ public class ReservationServiceImpl implements ReservationService {
                 .tableId(null)
                 .build();
 
-        if (!hasCapacity(request.getPartySize(), request.getReservedAt(), null)) {
-            r.setStatus(ReservationStatus.CANCELLED);
-            r.setCancelReason("Nha hang het ban phu hop trong khung gio nay");
-            reservationRepository.save(r);
-            throw new BusinessException("Nha hang da het ban phu hop cho " + request.getPartySize() + " nguoi vao khung gio nay.");
+        return toResponse(reservationRepository.save(reservation));
+    }
+
+    /**
+     * Confirm một reservation PENDING.
+     *
+     * Kiểm tra theo thứ tự:
+     *   1. Trạng thái phải là PENDING.
+     *   2. Giờ đặt không được là quá khứ / ngoài giờ mở cửa.
+     *   3. Nhà hàng còn đủ capacity cho partySize trong khung giờ đó.
+     *
+     * Nếu không đủ capacity → tự động CANCELLED và ném BusinessException.
+     */
+    @Override
+    public ReservationResponse confirmReservation(UUID id, UUID staffId) {
+        Reservation reservation = findOrThrow(id);
+
+        if (reservation.getStatus() != ReservationStatus.PENDING) {
+            throw new BusinessException("Chi cho phep confirm reservation dang PENDING.");
         }
 
-        r.setStatus(ReservationStatus.CONFIRMED);
-        r.setConfirmedBy(staffId);
-        return toResponse(reservationRepository.save(r));
+        validateReservationTime(reservation.getReservedAt());
+
+        if (!hasCapacity(reservation.getPartySize(), reservation.getReservedAt(), reservation.getId())) {
+            reservation.setStatus(ReservationStatus.CANCELLED);
+            reservation.setCancelReason("Nha hang het ban phu hop trong khung gio nay.");
+            reservationRepository.save(reservation);
+            throw new BusinessException(
+                    "Nha hang da het ban phu hop cho "
+                    + reservation.getPartySize()
+                    + " nguoi vao luc "
+                    + reservation.getReservedAt().atZoneSameInstant(RESTAURANT_ZONE).toLocalTime()
+                    + " ngay "
+                    + reservation.getReservedAt().atZoneSameInstant(RESTAURANT_ZONE).toLocalDate()
+                    + "."
+            );
+        }
+
+        reservation.setStatus(ReservationStatus.CONFIRMED);
+        reservation.setConfirmedBy(staffId);
+        return toResponse(reservationRepository.save(reservation));
     }
+
+    // ------------------------------------------------------------------ update / lifecycle
 
     @Override
     public ReservationResponse update(UUID id, UpdateReservationRequest request) {
         Reservation r = findOrThrow(id);
 
         if (r.getStatus() != ReservationStatus.PENDING && r.getStatus() != ReservationStatus.CONFIRMED) {
-            throw new BusinessException("Chi cho phep sua dat ban o trang thai PENDING hoac CONFIRMED");
+            throw new BusinessException("Chi cho phep sua dat ban o trang thai PENDING hoac CONFIRMED.");
         }
 
-        Integer newPartySize = request.getPartySize() != null ? request.getPartySize() : r.getPartySize();
+        Integer        newPartySize  = request.getPartySize()  != null ? request.getPartySize()  : r.getPartySize();
         OffsetDateTime newReservedAt = request.getReservedAt() != null ? request.getReservedAt() : r.getReservedAt();
 
+        validateReservationTime(newReservedAt);
+
         if (!hasCapacity(newPartySize, newReservedAt, r.getId())) {
-            throw new BusinessException("Khung gio moi khong con ban phu hop cho " + newPartySize + " nguoi.");
+            throw new BusinessException("Khung gio moi khong con du cho " + newPartySize + " nguoi.");
         }
 
-        if (request.getCustomerName() != null) r.setCustomerName(request.getCustomerName());
+        if (request.getCustomerName()  != null) r.setCustomerName(request.getCustomerName());
         if (request.getCustomerPhone() != null) r.setCustomerPhone(request.getCustomerPhone());
-        if (request.getPartySize() != null) r.setPartySize(request.getPartySize());
-        if (request.getReservedAt() != null) r.setReservedAt(request.getReservedAt());
-        if (request.getNote() != null) r.setNote(request.getNote());
+        if (request.getPartySize()     != null) r.setPartySize(request.getPartySize());
+        if (request.getReservedAt()    != null) r.setReservedAt(request.getReservedAt());
+        if (request.getNote()          != null) r.setNote(request.getNote());
 
         return toResponse(reservationRepository.save(r));
     }
@@ -213,7 +305,7 @@ public class ReservationServiceImpl implements ReservationService {
         Reservation r = findOrThrow(id);
 
         if (r.getStatus() != ReservationStatus.CONFIRMED) {
-            throw new BusinessException("Chi cho phep check-in voi dat ban da CONFIRMED");
+            throw new BusinessException("Chi cho phep check-in voi dat ban da CONFIRMED.");
         }
         if (r.getTableId() == null) {
             throw new BusinessException("Dat ban nay chua duoc gan ban cu the.");
@@ -234,7 +326,7 @@ public class ReservationServiceImpl implements ReservationService {
         Reservation r = findOrThrow(id);
 
         if (r.getStatus() != ReservationStatus.CONFIRMED) {
-            throw new BusinessException("Chi danh dau NO_SHOW voi dat ban CONFIRMED");
+            throw new BusinessException("Chi danh dau NO_SHOW voi dat ban CONFIRMED.");
         }
 
         releaseTable(r);
@@ -254,52 +346,57 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         releaseTable(r);
-
         r.setStatus(ReservationStatus.CANCELLED);
         r.setCancelledBy(cancelledBy);
         r.setCancelReason(reason);
         return toResponse(reservationRepository.save(r));
     }
 
-    @Scheduled(fixedRate = 60000)
     @Override
-    public void autoAssignTables() {
-        OffsetDateTime now = OffsetDateTime.now(RESTAURANT_ZONE);
-        OffsetDateTime soon = now.plusMinutes(ASSIGN_BEFORE_MINUTES);
-
-        List<Reservation> upcoming = reservationRepository.findUnassignedUpcoming(now, soon);
-
-        upcoming.forEach(reservation -> tableRepository.findByIsActiveTrueAndStatus(TableStatus.EMPTY)
-                .stream()
-                .filter(table -> table.getCapacity() >= reservation.getPartySize())
-                .min((a, b) -> Integer.compare(
-                        a.getCapacity() - reservation.getPartySize(),
-                        b.getCapacity() - reservation.getPartySize()
-                ))
-                .ifPresent(table -> {
-                    table.setStatus(TableStatus.RESERVED);
-                    reservation.setTableId(table.getId());
-
-                    reservationRepository.save(reservation);
-                    tableRepository.save(table);
-                }));
+    public void delete(UUID id) {
+        Reservation reservation = findOrThrow(id);
+        releaseTable(reservation);
+        reservationRepository.delete(reservation);
     }
 
-    @Scheduled(fixedRate = 60000)
+    // ------------------------------------------------------------------ scheduled jobs
+
+    @Scheduled(fixedRate = 60_000)
+    @Override
+    public void autoAssignTables() {
+        OffsetDateTime now  = OffsetDateTime.now(RESTAURANT_ZONE);
+        OffsetDateTime soon = now.plusMinutes(ASSIGN_BEFORE_MINUTES);
+
+        reservationRepository.findUnassignedUpcoming(now, soon).forEach(reservation ->
+            tableRepository.findByIsActiveTrueAndStatus(TableStatus.EMPTY)
+                    .stream()
+                    .filter(t -> t.getCapacity() >= reservation.getPartySize())
+                    .min(Comparator.comparingInt(t -> t.getCapacity() - reservation.getPartySize()))
+                    .ifPresent(table -> {
+                        table.setStatus(TableStatus.RESERVED);
+                        reservation.setTableId(table.getId());
+                        reservationRepository.save(reservation);
+                        tableRepository.save(table);
+                    })
+        );
+    }
+
+    @Scheduled(fixedRate = 60_000)
     @Override
     public void autoCancelExpired() {
         OffsetDateTime cutoff = OffsetDateTime.now(RESTAURANT_ZONE).minusMinutes(AUTO_CANCEL_MINUTES);
 
-        List<Reservation> expired = reservationRepository
-                .findByStatusAndReservedAtBefore(ReservationStatus.CONFIRMED, cutoff);
-
-        expired.forEach(r -> {
-            releaseTable(r);
-            r.setStatus(ReservationStatus.CANCELLED);
-            r.setCancelReason("He thong tu dong huy: qua " + AUTO_CANCEL_MINUTES + " phut so voi lich hen.");
-            reservationRepository.save(r);
-        });
+        reservationRepository
+                .findByStatusAndReservedAtBefore(ReservationStatus.CONFIRMED, cutoff)
+                .forEach(r -> {
+                    releaseTable(r);
+                    r.setStatus(ReservationStatus.CANCELLED);
+                    r.setCancelReason("He thong tu dong huy: qua " + AUTO_CANCEL_MINUTES + " phut so voi lich hen.");
+                    reservationRepository.save(r);
+                });
     }
+
+    // ------------------------------------------------------------------ calendar
 
     @Override
     @Transactional(readOnly = true)
@@ -312,58 +409,60 @@ public class ReservationServiceImpl implements ReservationService {
                 .date(date)
                 .reservations(all.stream().map(this::toResponse).toList())
                 .totalReservations(all.size())
-                .pending((int) all.stream().filter(r -> r.getStatus() == ReservationStatus.PENDING).count())
+                .pending  ((int) all.stream().filter(r -> r.getStatus() == ReservationStatus.PENDING  ).count())
                 .confirmed((int) all.stream().filter(r -> r.getStatus() == ReservationStatus.CONFIRMED).count())
-                .arrived((int) all.stream().filter(r -> r.getStatus() == ReservationStatus.ARRIVED).count())
+                .arrived  ((int) all.stream().filter(r -> r.getStatus() == ReservationStatus.ARRIVED  ).count())
                 .cancelled((int) all.stream().filter(r -> r.getStatus() == ReservationStatus.CANCELLED).count())
                 .build();
     }
 
+    // ------------------------------------------------------------------ booking suggestion
+
+    /**
+     * Gợi ý lịch đặt bàn dựa theo các ngày khách rảnh.
+     *
+     * Khách cung cấp:
+     *   - preferredDates : danh sách ngày khách có thể đến
+     *   - partySize      : số người
+     *
+     * Kết quả: mỗi ngày còn slot trống được trả về kèm danh sách giờ có thể đặt.
+     * Ngày nào không còn slot nào phù hợp sẽ bị loại khỏi kết quả.
+     *
+     * Slot được tính bằng hasCapacity() — chỉ kiểm tra capacity tổng,
+     * không gắn bàn cụ thể ở bước này.
+     */
     @Override
     @Transactional(readOnly = true)
-    public List<LocalDate> getAvailableDates() {
-        LocalDate today = LocalDate.now(RESTAURANT_ZONE);
-        return today.datesUntil(today.plusDays(30))
-                .filter(date -> !getAvailableTimes(date, 1).isEmpty())
-                .toList();
-    }
+    public List<BookingSuggestionResponse> suggestBookingSlots(List<LocalDate> preferredDates,
+                                                               Integer partySize) {
+        LocalDate      today   = LocalDate.now(RESTAURANT_ZONE);
+        LocalDate      horizon = today.plusDays(BOOKING_HORIZON_DAYS);
+        OffsetDateTime now     = OffsetDateTime.now(RESTAURANT_ZONE);
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<LocalTime> getAvailableTimes(LocalDate date, Integer partySize) {
-        LocalTime open = LocalTime.of(10, 0);
-        LocalTime close = LocalTime.of(21, 0);
-        OffsetDateTime now = OffsetDateTime.now(RESTAURANT_ZONE);
+        return preferredDates.stream()
+                .filter(date -> !date.isBefore(today) && date.isBefore(horizon))
+                .sorted()
+                .map(date -> {
+                    // Slot cuối phải kết thúc trước CLOSE_TIME → start tối đa CLOSE_TIME - duration
+                    LocalTime lastSlot = CLOSE_TIME.minusHours(RESERVATION_DURATION_HOURS);
 
-        return Stream.iterate(open, time -> time.isBefore(close), time -> time.plusMinutes(30))
-                .filter(time -> {
-                    OffsetDateTime wantedTime = date.atTime(time).atZone(RESTAURANT_ZONE).toOffsetDateTime();
-                    return wantedTime.isAfter(now) && hasCapacity(partySize, wantedTime, null);
+                    List<LocalTime> slots = Stream
+                            .iterate(OPEN_TIME,
+                                     time -> !time.isAfter(lastSlot),
+                                     time -> time.plusMinutes(SLOT_INTERVAL_MINUTES))
+                            .map(time -> date.atTime(time).atZone(RESTAURANT_ZONE).toOffsetDateTime())
+                            .filter(wantedTime -> wantedTime.isAfter(now))
+                            .filter(wantedTime -> hasCapacity(partySize, wantedTime, null))
+                            .map(wantedTime -> wantedTime.atZoneSameInstant(RESTAURANT_ZONE).toLocalTime())
+                            .toList();
+
+                    return BookingSuggestionResponse.builder()
+                            .date(date)
+                            .partySize(partySize)
+                            .availableSlots(slots)
+                            .build();
                 })
+                .filter(r -> !r.getAvailableSlots().isEmpty())
                 .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<LocalTime> getAvailableSlots(LocalDate date, Integer partySize) {
-        return getAvailableTimes(date, partySize);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public TableResponse suggestTable(Integer partySize) {
-        return tableRepository.findByIsActiveTrueAndStatus(TableStatus.EMPTY)
-                .stream()
-                .filter(table -> table.getCapacity() >= partySize)
-                .min((a, b) -> Integer.compare(a.getCapacity() - partySize, b.getCapacity() - partySize))
-                .map(this::toTableResponse)
-                .orElseThrow(() -> new BusinessException("Khong co ban trong phu hop"));
-    }
-
-    @Override
-    public void delete(UUID id) {
-        Reservation reservation = findOrThrow(id);
-        releaseTable(reservation);
-        reservationRepository.delete(reservation);
     }
 }

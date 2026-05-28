@@ -3,64 +3,53 @@ package com.restaurant.service.reservation;
 import com.restaurant.common.enums.ReservationStatus;
 import com.restaurant.dto.request.reservation.CreateReservationRequest;
 import com.restaurant.dto.request.reservation.UpdateReservationRequest;
+import com.restaurant.dto.response.reservation.BookingSuggestionResponse;
 import com.restaurant.dto.response.reservation.ReservationCalendarResponse;
 import com.restaurant.dto.response.reservation.ReservationResponse;
-import com.restaurant.dto.response.table.TableResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
 public interface ReservationService {
 
-    //Lấy danh sách lịch đặt bàn phân trang (Hỗ trợ lọc linh hoạt theo ngày và/hoặc trạng thái)
+    // Lấy danh sách lịch đặt bàn phân trang (hỗ trợ lọc linh hoạt theo ngày và/hoặc trạng thái)
     Page<ReservationResponse> getReservations(LocalDate date, ReservationStatus status, Pageable pageable);
 
-    //Lấy thông tin chi tiết một lượt đặt bàn theo ID chủ thể
-
+    // Lấy thông tin chi tiết một lượt đặt bàn theo ID
     ReservationResponse getById(UUID id);
 
-    //Tiếp nhận thông tin đặt bàn mới, tự động kiểm tra công suất/dung lượng bàn khả dụngđể tự động chuyển tiếp sang trạng thái xác nhận CONFIRMED (hoặc CANCELLED nếu hết chỗ)
+    // Tiếp nhận thông tin đặt bàn mới, lưu ở trạng thái PENDING; capacity check được thực hiện ở bước confirmReservation
+    ReservationResponse createReservation(CreateReservationRequest request, UUID staffId);
 
-    ReservationResponse createAndConfirm(CreateReservationRequest request, UUID staffId);
+    // Xác nhận đơn PENDING: kiểm tra capacity → CONFIRMED nếu còn chỗ, tự động CANCELLED nếu hết chỗ
+    ReservationResponse confirmReservation(UUID id, UUID staffId);
 
-    //Cập nhật thông tin khách hàng hoặc thời gian của một đơn đặt bàn (Cho phép sửa ở trạng thái PENDING/CONFIRMED)
-
+    // Cập nhật thông tin khách hàng hoặc thời gian của một đơn đặt bàn (cho phép sửa ở trạng thái PENDING/CONFIRMED)
     ReservationResponse update(UUID id, UpdateReservationRequest request);
 
-    //Đánh dấu khách đã đến nhận bàn ăn (Hệ thống đồng thời chuyển trạng thái bàn được gán sang SERVING)
-
+    // Đánh dấu khách đã đến nhận bàn; đồng thời chuyển trạng thái bàn được gán sang SERVING
     ReservationResponse arrived(UUID id);
 
-    //Đánh dấu khách không đến (No-Show) để giải phóng vị trí bàn đã được giữ chỗ ngầm về lại EMPTY
-
+    // Đánh dấu khách không đến (No-Show); giải phóng bàn đã giữ chỗ về lại EMPTY
     ReservationResponse noShow(UUID id);
 
-    //Hủy đơn đặt bàn theo yêu cầu, giải phóng bàn ăn (nếu có) và lưu vết người hủy cùng lý do hủy
-   
+    // Huỷ đơn đặt bàn; giải phóng bàn (nếu có) và lưu vết người huỷ cùng lý do
     ReservationResponse cancel(UUID id, UUID cancelledBy, String reason);
 
-    //Tác vụ tự động quét ngầm tìm kiếm bàn trống tối ưu phù hợp nhất để gán (Assign) cho các đơn CONFIRMED sắp đến giờ
+    // Tác vụ tự động: quét và gán bàn trống tối ưu cho các đơn CONFIRMED sắp đến giờ
     void autoAssignTables();
 
-    //Tác vụ tự động quét ngầm hủy bỏ các đơn đặt bàn CONFIRMED quá giờ hẹn mà khách không đến làm thủ tục check-in
-
+    // Tác vụ tự động: huỷ các đơn CONFIRMED quá giờ hẹn mà khách không check-in
     void autoCancelExpired();
 
-    //Lấy thông tin tổng hợp số lượng đặt bàn bóc tách theo từng trạng thái phục vụ cho màn hình Dashboard/Calendar
-     
+    // Lấy thông tin tổng hợp đặt bàn trong ngày, bóc tách theo từng trạng thái (dùng cho Dashboard/Calendar)
     ReservationCalendarResponse getCalendar(LocalDate date);
 
-    List<LocalDate> getAvailableDates();
-
-    List<LocalTime> getAvailableTimes(LocalDate date, Integer partySize);
-
-    List<LocalTime> getAvailableSlots(LocalDate date, Integer partySize);
-
-    TableResponse suggestTable(Integer partySize);
+    // Gợi ý các khung giờ còn trống theo danh sách ngày và số người khách cung cấp
+    List<BookingSuggestionResponse> suggestBookingSlots(List<LocalDate> preferredDates, Integer partySize);
 
     void delete(UUID id);
 }
