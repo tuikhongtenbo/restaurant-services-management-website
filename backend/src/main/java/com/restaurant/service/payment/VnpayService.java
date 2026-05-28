@@ -1,10 +1,11 @@
 package com.restaurant.service.payment;
 
-// MINH
-// TODO: @Service
-// Methods:
-//   String createPaymentUrl(UUID invoiceId, BigDecimal amount, String ipAddress)
-//   VnpayReturnResult handleReturn(Map<String, String> params)
-//   String queryTransaction(String txnRef, String ipAddress)
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.UUID;
+
 public interface VnpayService {
+    String createPaymentUrl(UUID invoiceId, BigDecimal amount, String ipAddress, String bankCode);
+
+    boolean verifySignature(Map<String, String> params);
 }
