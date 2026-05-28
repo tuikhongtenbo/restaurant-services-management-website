@@ -12,6 +12,7 @@ import com.restaurant.model.Table;
 import com.restaurant.repository.ReservationRepository;
 import com.restaurant.repository.TableRepository;
 import com.restaurant.service.table.TableService;
+//import com.restaurant.repository.OrderRepository;;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,7 +35,7 @@ public class TableServiceImpl implements TableService {
 
     private final TableRepository tableRepository;
     private final ReservationRepository reservationRepository;
-    // private final OrderRepository orderRepository;
+    //private final OrderRepository orderRepository;
 
     private Table findOrThrow(UUID id) {
         return tableRepository.findById(id)
