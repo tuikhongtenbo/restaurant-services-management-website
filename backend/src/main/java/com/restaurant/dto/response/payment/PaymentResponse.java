@@ -1,11 +1,14 @@
 package com.restaurant.dto.response.payment;
 
-// MINH - Response thanh toan QR / payment gateway
-// TODO:
-//   String paymentUrl (VNPay/Momo/ZaloPay URL)
-//   String qrData (noi dung QR neu can)
-//   BigDecimal amount
-//   String orderInfo
-//   String transactionId
+import lombok.*;
+import java.math.BigDecimal;
+import java.util.UUID;
+
+@Data @Builder @NoArgsConstructor @AllArgsConstructor
 public class PaymentResponse {
+    private UUID invoiceId;
+    private String paymentUrl;
+    private BigDecimal amount;
+    private String orderInfo;
+    private String transactionId;
 }

@@ -1,15 +1,19 @@
 package com.restaurant.dto.response.table;
 
-// THY - Response thong tin ban
-// TODO:
-//   UUID id
-//   String number
-//   Integer capacity
-//   TableStatus status
-//   String area
-//   Integer posX
-//   Integer posY
-//   Boolean isActive
-//   LocalDateTime updatedAt
+import lombok.Builder;
+import lombok.Data;
+
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+@Data
+@Builder
 public class TableResponse {
+    private UUID id;
+    private String number;
+    private Integer capacity;
+    private String status;
+    private String area;
+    private Boolean isActive;
+    private OffsetDateTime updatedAt;
 }
