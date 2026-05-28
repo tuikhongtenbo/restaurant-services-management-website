@@ -1,14 +1,17 @@
 package com.restaurant.service.payment;
 
-// MINH
-// TODO: @Service
-// Methods:
-//   CheckoutResponse previewCheckout(CheckoutRequest request, UUID cashierId)
-//   InvoiceResponse checkout(CheckoutRequest request, BigDecimal cashReceived, UUID cashierId)
-//   InvoiceResponse processCashPayment(CashPaymentRequest request, UUID cashierId)
-//   PaymentResponse createQrPayment(CheckoutRequest request, UUID cashierId)
-//   PaymentResponse createVnpayPayment(CheckoutRequest request, UUID cashierId)
-//   PaymentResponse createMomoPayment(CheckoutRequest request, UUID cashierId)
-//   PaymentResponse createZaloPayPayment(CheckoutRequest request, UUID cashierId)
+import com.restaurant.dto.request.payment.CheckoutRequest;
+import com.restaurant.dto.response.payment.CheckoutResponse;
+import com.restaurant.dto.response.payment.InvoiceResponse;
+import com.restaurant.dto.response.payment.PaymentResponse;
+import com.restaurant.dto.response.payment.VnpayCallbackResponse;
+
+import java.util.Map;
+import java.util.UUID;
+
 public interface CheckoutService {
+    CheckoutResponse previewCheckout(CheckoutRequest request);
+    InvoiceResponse processCashPayment(CheckoutRequest request, UUID cashierId);
+    PaymentResponse createVnpayPayment(CheckoutRequest request, UUID cashierId, String ipAddress, String bankCode);
+    VnpayCallbackResponse confirmVnpayPayment(Map<String, String> params);
 }
