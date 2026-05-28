@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import java.math.BigDecimal;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -14,7 +14,7 @@ public class PriceHistoryResponse {
     private String itemName;
     private BigDecimal currentPrice;
     private BigDecimal promoPrice;
-    private LocalTime promoStart;
-    private LocalTime promoEnd;
+    private LocalDateTime promoStart;
+    private LocalDateTime promoEnd;
     private OffsetDateTime updatedAt;
 }

@@ -1,13 +1,13 @@
 package com.restaurant.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.restaurant.model.MenuItem;
 import com.restaurant.common.enums.MenuItemStatus;
 import java.util.UUID;
+import java.time.LocalDateTime;
 import java.util.List;
 
 // THY
@@ -26,7 +26,11 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, UUID> {
     List<MenuItem> findByCategory(String category);
     List<MenuItem> findByCategoryAndStatus(String category, MenuItemStatus status);
 
-    @Query("SELECT m FROM MenuItem m WHERE m.promoPrice IS NOT NULL AND m.promoStart <= CURRENT_TIME AND m.promoEnd >= CURRENT_TIME")
+    List<MenuItem> findByPromoPriceIsNotNullAndPromoStartLessThanEqualAndPromoEndGreaterThanEqual(
+        LocalDateTime start,
+        LocalDateTime end
+    );
+
     List<MenuItem> findActivePromotionalItems();
 
     Page<MenuItem> findByStatusOrderBySortOrderAsc(MenuItemStatus status, Pageable pageable);

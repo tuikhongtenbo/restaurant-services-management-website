@@ -2,7 +2,6 @@ package com.restaurant.dto.response.menu;
 
 import com.restaurant.common.enums.MenuItemStatus;
 import lombok.Data;
-import java.time.LocalTime;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -19,8 +18,8 @@ public class MenuItemResponse {
     private String imageUrl;
     private BigDecimal price;
     private BigDecimal promoPrice;
-    private LocalTime promoStart;
-    private LocalTime promoEnd;
+    private LocalDateTime promoStart;
+    private LocalDateTime promoEnd;
     private String tags;
     private MenuItemStatus status;
     private Integer sortOrder;

@@ -9,7 +9,8 @@ import com.restaurant.service.menu.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.LocalTime;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -90,7 +91,7 @@ public class CategoryServiceImpl implements CategoryService {
         if (item.getPromoPrice() == null || item.getPromoStart() == null || item.getPromoEnd() == null) {
             return false;
         }
-        LocalTime now = LocalTime.now();
+        LocalDateTime now = LocalDateTime.now();
         return !now.isBefore(item.getPromoStart()) && !now.isAfter(item.getPromoEnd());
     }
 }

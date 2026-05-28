@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -258,11 +258,16 @@ public class MenuServiceImpl implements MenuService {
     }
 
     private boolean isPromoActive(MenuItem item) {
-        if (item.getPromoPrice() == null || item.getPromoStart() == null || item.getPromoEnd() == null) {
-            return false;
-        }
-        LocalTime now = LocalTime.now();
-        return !now.isBefore(item.getPromoStart()) && !now.isAfter(item.getPromoEnd());
+    if (item.getPromoPrice() == null
+            || item.getPromoStart() == null
+            || item.getPromoEnd() == null) {
+        return false;
+    }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        return !now.isBefore(item.getPromoStart())
+                && !now.isAfter(item.getPromoEnd());
     }
 
     @Override
