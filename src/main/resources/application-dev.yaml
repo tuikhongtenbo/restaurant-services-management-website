@@ -1,0 +1,73 @@
+# ================================================
+# DEV Profile
+# ================================================
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/restaurant_dev
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update    # Dev: tu dong tao/update bang (thuan tien)
+
+# === JWT ===
+jwt:
+  secret: YOUR_SUPER_SECRET_KEY_FOR_DEV_MUST_BE_AT_LEAST_256_BITS_LONG_HERE
+  expiration: 86400000       # 24h
+  refresh-expiration: 604800000  # 7 days
+
+# === EMAIL (Gmail SMTP - DEV) ===
+spring.mail:
+  host: smtp.gmail.com
+  port: 587
+  username: your-email@gmail.com
+  password: your-app-password
+  properties:
+    mail:
+      smtp:
+        auth: true
+        starttls:
+          enable: true
+
+# === VNPay (SANDBOX) ===
+vnpay:
+  version: 2.1.0
+  tmn-code: YOUR_TMNCODE
+  hash-secret: YOUR_HASH_SECRET
+  base-url: https://sandbox.vnpayment.vn
+  return-url: http://localhost:5173/payment/vnpay/return
+
+# === MoMo (SANDBOX) ===
+momo:
+  endpoint: https://test-payment.momo.vn
+  partner-code: PARTNER_CODE
+  access-key: ACCESS_KEY
+  secret-key: SECRET_KEY
+  return-url: http://localhost:5173/payment/momo/return
+
+# === ZaloPay (SANDBOX) ===
+zalopay:
+  app-id: APP_ID
+  key1: KEY1
+  key2: KEY2
+  endpoint: https://sb Openapi.zalopay.vn
+  callback-url: http://localhost:5173/payment/zalopay/callback
+
+# === Server ===
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+
+logging:
+  level:
+    com.restaurant: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
