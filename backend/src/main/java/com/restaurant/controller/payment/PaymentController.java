@@ -13,7 +13,7 @@ import com.restaurant.dto.response.payment.PaymentResponse;
 import com.restaurant.dto.response.payment.VnpayCallbackResponse;
 import com.restaurant.security.CustomUserDetails;
 import com.restaurant.service.payment.CheckoutService;
-import com.restaurant.service.payment.InvoiceService;
+import com.restaurant.service.order.InvoiceService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -30,7 +30,9 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -127,11 +129,11 @@ public class PaymentController {
      */
     @PostMapping("/{id}/void")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
-    public ResponseEntity<ApiResponse<InvoiceResponse>> voidInvoice(
+    public ResponseEntity<ApiResponse<com.restaurant.dto.response.order.InvoiceResponse>> voidInvoice(
             @PathVariable UUID id,
             @Valid @RequestBody VoidInvoiceRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
-        InvoiceResponse response = invoiceService.voidInvoice(id, request.getVoidReason(), principal.getId());
+        com.restaurant.dto.response.order.InvoiceResponse response = invoiceService.voidInvoice(id, request.getVoidReason(), principal.getId());
         return ResponseEntity.ok(ApiResponse.success("Hủy hóa đơn thành công", response));
     }
 
@@ -141,16 +143,12 @@ public class PaymentController {
      */
     @GetMapping("/invoices")
     @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER')")
-    public ResponseEntity<ApiResponse<Page<InvoiceResponse>>> getInvoices(
+    public ResponseEntity<ApiResponse<com.restaurant.common.utils.PageResponse<List<com.restaurant.dto.response.order.InvoiceResponse>>>> getInvoices(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime to,
+            @RequestParam(required = false) UUID cashierId,
             Pageable pageable) {
-        Page<InvoiceResponse> invoices;
-        if (from != null && to != null) {
-            invoices = invoiceService.getInvoicesByDateRange(from, to, pageable);
-        } else {
-            invoices = invoiceService.getInvoices(pageable);
-        }
+        LocalDate date = from != null ? from.toLocalDate() : null;
+        com.restaurant.common.utils.PageResponse<List<com.restaurant.dto.response.order.InvoiceResponse>> invoices = invoiceService.getInvoices(date, cashierId, pageable);
         return ResponseEntity.ok(ApiResponse.success("Danh sách hóa đơn", invoices));
     }
 
@@ -160,8 +158,8 @@ public class PaymentController {
      */
     @GetMapping("/invoices/{id}")
     @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER')")
-    public ResponseEntity<ApiResponse<InvoiceResponse>> getInvoiceById(@PathVariable UUID id) {
-        InvoiceResponse response = invoiceService.getById(id);
+    public ResponseEntity<ApiResponse<com.restaurant.dto.response.order.InvoiceResponse>> getInvoiceById(@PathVariable UUID id) {
+        com.restaurant.dto.response.order.InvoiceResponse response = invoiceService.getById(id);
         return ResponseEntity.ok(ApiResponse.success("Chi tiết hóa đơn", response));
     }
 
