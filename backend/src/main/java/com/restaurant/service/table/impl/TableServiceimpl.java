@@ -13,7 +13,7 @@ import com.restaurant.model.Reservation;
 import com.restaurant.repository.ReservationRepository;
 import com.restaurant.repository.TableRepository;
 import com.restaurant.service.table.TableService;
-//import com.restaurant.repository.OrderRepository;
+import com.restaurant.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -46,7 +46,7 @@ public class TableServiceImpl implements TableService {
 
     private final TableRepository       tableRepository;
     private final ReservationRepository reservationRepository;
-    //private final OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
 
     // ------------------------------------------------------------------ helpers
 
@@ -208,9 +208,9 @@ public class TableServiceImpl implements TableService {
         }
 
         // Temporarily disabled until Order module is implemented.
-        // if (orderRepository.existsByTableIdAndStatus(table.getId(), OrderStatus.OPEN)) {
-        //     throw new BusinessException("Ban da co order dang mo");
-        // }
+        if (orderRepository.existsByTableIdAndStatus(table.getId(), OrderStatus.OPEN)) {
+            throw new BusinessException("Ban da co order dang mo");
+        }
 
         table.setStatus(TableStatus.SERVING);
         tableRepository.save(table);
@@ -227,9 +227,9 @@ public class TableServiceImpl implements TableService {
         }
 
         // Temporarily disabled until Order module is implemented.
-        // if (orderRepository.existsByTableIdAndStatus(table.getId(), OrderStatus.OPEN)) {
-        //     throw new BusinessException("Ban van con hoa don chua thanh toan");
-        // }
+        if (orderRepository.existsByTableIdAndStatus(table.getId(), OrderStatus.OPEN)) {
+            throw new BusinessException("Ban van con hoa don chua thanh toan");
+        }
 
         table.setStatus(TableStatus.EMPTY);
         return toResponse(tableRepository.save(table));
