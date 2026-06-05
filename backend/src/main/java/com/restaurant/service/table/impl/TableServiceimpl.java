@@ -1,5 +1,6 @@
 package com.restaurant.service.table.impl;
 
+import com.restaurant.common.enums.OrderStatus;
 import com.restaurant.common.enums.ReservationStatus;
 import com.restaurant.common.enums.TableStatus;
 import com.restaurant.common.exceptions.BusinessException;

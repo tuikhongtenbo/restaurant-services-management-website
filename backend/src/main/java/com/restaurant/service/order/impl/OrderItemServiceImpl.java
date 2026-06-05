@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -200,7 +200,7 @@ public class OrderItemServiceImpl implements OrderItemService {
         if (menuItem.getPromoPrice() != null
                 && menuItem.getPromoStart() != null
                 && menuItem.getPromoEnd() != null) {
-            LocalTime now = LocalTime.now();
+            LocalDateTime now = LocalDateTime.now();
             if (!now.isBefore(menuItem.getPromoStart()) && !now.isAfter(menuItem.getPromoEnd())) {
                 return menuItem.getPromoPrice();
             }
