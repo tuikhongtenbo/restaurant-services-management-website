@@ -80,7 +80,7 @@ Tài liệu này mô tả chi tiết các phân quyền cho từng thao tác ch�
 | **Thêm món vào đơn** | `POST` | `/api/orders/{id}/items` | Đã đăng nhập (Nhân viên) |
 | **Cập nhật sl/ghi chú món** | `PUT` | `/api/orders/{orderId}/items/{itemId}` | Đã đăng nhập (Nhân viên) |
 | **Hủy món trong đơn** | `DELETE` | `/api/orders/{orderId}/items/{itemId}` | Đã đăng nhập (Nhân viên) |
-| **Cập nhật trạng thái món** | `PUT` | `/api/orders/items/{itemId}/status` | `KITCHEN_STAFF`, Đã đăng nhập |
+| **Cập nhật trạng thái món** | `PUT` | `/api/orders/items/{itemId}/status` | Đã đăng nhập (Nhân viên) — chưa phân quyền role cụ thể |
 
 ---
 
@@ -95,9 +95,9 @@ Tài liệu này mô tả chi tiết các phân quyền cho từng thao tác ch�
 | **VNPay IPN (Webhook)** | `GET/POST`| `/api/payments/vnpay/ipn` | Công khai (Server-to-Server) |
 | **Danh sách hóa đơn** | `GET` | `/api/payments/invoices`<br>`/api/invoices` | `CASHIER`, `ADMIN`, `MANAGER` |
 | **Chi tiết hóa đơn** | `GET` | `/api/payments/invoices/{id}`<br>`/api/invoices/{id}` | `CASHIER`, `ADMIN`, `MANAGER` |
-| **Hóa đơn theo Order** | `GET` | `/api/invoices/order/{orderId}`| Đã đăng nhập (Nhân viên) |
+| **Hóa đơn theo Order** | `GET` | `/api/invoices/order/{orderId}`| `CASHIER`, `ADMIN`, `MANAGER` |
 | **Hủy hóa đơn** | `POST/PUT`| `/api/payments/{id}/void`<br>`/api/invoices/{id}/void` | `ADMIN`, `MANAGER` |
-| **Lấy HTML để in hóa đơn** | `GET` | `/api/invoices/{id}/print` | Đã đăng nhập (Nhân viên) |
+| **Lấy HTML để in hóa đơn** | `GET` | `/api/invoices/{id}/print` | `CASHIER`, `ADMIN`, `MANAGER` |
 
 ---
 
@@ -131,6 +131,7 @@ Tài liệu này mô tả chi tiết các phân quyền cho từng thao tác ch�
 | **Chi tiết khách hàng** | `GET` | `/api/customers/{id}` | `CASHIER`, `ADMIN`, `MANAGER` |
 | **Hạng khách hàng** | `GET` | `/api/customers/{id}/tier` | `CASHIER`, `ADMIN`, `MANAGER` |
 | **Cập nhật khách hàng** | `PUT` | `/api/customers/{id}` | `CASHIER`, `ADMIN`, `MANAGER` |
+| **Điều chỉnh điểm (KH)** | `PUT` | `/api/customers/{id}/adjust-points` | `ADMIN` |
 | **Lịch sử giao dịch điểm** | `GET` | `/api/customers/{id}/transactions`| `CASHIER`, `ADMIN`, `MANAGER` |
 
 ---
