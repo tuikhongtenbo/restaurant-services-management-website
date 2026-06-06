@@ -1,21 +1,29 @@
 package com.restaurant.dto.response.order;
 
-// MINH - Response hoa don
-// TODO:
-//   UUID id
-//   String invoiceNumber
-//   UUID orderId
-//   String cashierName
-//   BigDecimal subtotal
-//   String? voucherCode, BigDecimal? discountAmount
-//   Integer? pointsUsed, BigDecimal? pointsDeducted
-//   BigDecimal vatRate, BigDecimal vatAmount
-//   BigDecimal totalAmount
-//   PaymentMethod paymentMethod
-//   CustomerSummary? customer
-//   Integer pointsEarned
-//   List<OrderItemResponse> items
-//   InvoiceStatus status
-//   LocalDateTime createdAt
+import com.restaurant.common.enums.InvoiceStatus;
+import com.restaurant.common.enums.PaymentMethod;
+import lombok.Builder;
+import lombok.Data;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+// Response hoa don
+@Data
+@Builder
 public class InvoiceResponse {
+    private UUID id;
+    private UUID orderId;
+    private String cashierName;
+    private BigDecimal subtotal;
+    private BigDecimal discountAmount;
+    private BigDecimal vatAmount;
+    private BigDecimal totalAmount;
+    private String voucherCode;
+    private PaymentMethod paymentMethod;
+    private Integer pointsUsed;
+    private Integer pointsEarned;
+    private InvoiceStatus status;
+    private String voidReason;
+    private OffsetDateTime createdAt;
 }

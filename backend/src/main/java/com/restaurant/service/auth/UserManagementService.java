@@ -14,5 +14,6 @@ public interface UserManagementService {
     UserResponse updateUser(UUID id, RegisterRequest request);
     void lockUser(UUID id);
     void unlockUser(UUID id);
+    void deleteUser(UUID id);
     void resetUserPassword(UUID id);
 }
