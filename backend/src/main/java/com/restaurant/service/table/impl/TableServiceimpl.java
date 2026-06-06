@@ -164,7 +164,7 @@ public class TableServiceImpl implements TableService {
         Table table = findOrThrow(id);
 
         if (!table.getNumber().equals(request.getNumber())
-                && tableRepository.existsByNumberAndDeletedAtIsNull(request.getNumber())) {
+            && tableRepository.existsByNumberAndDeletedAtIsNull(request.getNumber())) {
             throw new BusinessException("So ban '" + request.getNumber() + "' da ton tai");
         }
 
