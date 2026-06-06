@@ -3,6 +3,7 @@ package com.restaurant.service.table.impl;
 import com.restaurant.common.enums.OrderStatus;
 import com.restaurant.common.enums.ReservationStatus;
 import com.restaurant.common.enums.TableStatus;
+import com.restaurant.common.enums.OrderStatus;
 import com.restaurant.common.exceptions.BusinessException;
 import com.restaurant.dto.request.table.CreateTableRequest;
 import com.restaurant.dto.request.table.OpenTableRequest;
@@ -52,8 +53,12 @@ public class TableServiceImpl implements TableService {
     // ------------------------------------------------------------------ helpers
 
     private Table findOrThrow(UUID id) {
-        return tableRepository.findById(id)
+        Table table = tableRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Khong tim thay ban: " + id));
+        if (table.getDeletedAt() != null) {
+            throw new BusinessException("Ban da duoc xoa: " + id);
+        }
+        return table;
     }
 
     private TableResponse toResponse(Table table) {
@@ -65,6 +70,7 @@ public class TableServiceImpl implements TableService {
                 .area(table.getArea())
                 .isActive(table.getIsActive())
                 .updatedAt(table.getUpdatedAt())
+                .deletedAt(table.getDeletedAt())
                 .build();
     }
 
@@ -88,8 +94,8 @@ public class TableServiceImpl implements TableService {
                 .filter(r -> BLOCKING_STATUSES.contains(r.getStatus()))
                 .toList();
 
-        // Step 1: pool ban đầu = tất cả bàn EMPTY active
-        List<Table> pool = tableRepository.findByIsActiveTrueAndStatus(TableStatus.EMPTY)
+        // Step 1: pool ban đầu = tất cả bàn EMPTY active và chưa bị xóa
+        List<Table> pool = tableRepository.findByIsActiveTrueAndStatusAndDeletedAtIsNull(TableStatus.EMPTY)
                 .stream()
                 .collect(Collectors.toCollection(java.util.ArrayList::new));
 
@@ -120,15 +126,15 @@ public class TableServiceImpl implements TableService {
     @Transactional(readOnly = true)
     public Page<TableResponse> getTables(String area, TableStatus status, Pageable pageable) {
         if (area != null && !area.isBlank() && status != null) {
-            return tableRepository.findByIsActiveTrueAndAreaAndStatus(area, status, pageable).map(this::toResponse);
+            return tableRepository.findByIsActiveTrueAndAreaAndStatusAndDeletedAtIsNull(area, status, pageable).map(this::toResponse);
         }
         if (area != null && !area.isBlank()) {
-            return tableRepository.findByIsActiveTrueAndArea(area, pageable).map(this::toResponse);
+            return tableRepository.findByIsActiveTrueAndAreaAndDeletedAtIsNull(area, pageable).map(this::toResponse);
         }
         if (status != null) {
-            return tableRepository.findByIsActiveTrueAndStatus(status, pageable).map(this::toResponse);
+            return tableRepository.findByIsActiveTrueAndStatusAndDeletedAtIsNull(status, pageable).map(this::toResponse);
         }
-        return tableRepository.findByIsActiveTrue(pageable).map(this::toResponse);
+        return tableRepository.findByIsActiveTrueAndDeletedAtIsNull(pageable).map(this::toResponse);
     }
 
     @Override
@@ -139,7 +145,7 @@ public class TableServiceImpl implements TableService {
 
     @Override
     public TableResponse createTable(CreateTableRequest request) {
-        if (tableRepository.existsByNumber(request.getNumber())) {
+        if (tableRepository.existsByNumberAndDeletedAtIsNull(request.getNumber())) {
             throw new BusinessException("So ban '" + request.getNumber() + "' da ton tai");
         }
 
@@ -159,7 +165,7 @@ public class TableServiceImpl implements TableService {
         Table table = findOrThrow(id);
 
         if (!table.getNumber().equals(request.getNumber())
-                && tableRepository.existsByNumber(request.getNumber())) {
+            && tableRepository.existsByNumberAndDeletedAtIsNull(request.getNumber())) {
             throw new BusinessException("So ban '" + request.getNumber() + "' da ton tai");
         }
 
@@ -179,6 +185,7 @@ public class TableServiceImpl implements TableService {
         }
 
         table.setIsActive(false);
+        table.setDeletedAt(OffsetDateTime.now());
         tableRepository.save(table);
     }
 
@@ -239,7 +246,7 @@ public class TableServiceImpl implements TableService {
     @Override
     @Transactional(readOnly = true)
     public TableLayoutResponse getLayout() {
-        List<Table> all = tableRepository.findByIsActiveTrue();
+        List<Table> all = tableRepository.findByIsActiveTrueAndDeletedAtIsNull();
 
         long available = all.stream().filter(t -> t.getStatus() == TableStatus.EMPTY).count();
         long occupied  = all.stream().filter(t -> t.getStatus() == TableStatus.SERVING).count();

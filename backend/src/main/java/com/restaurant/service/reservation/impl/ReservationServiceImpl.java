@@ -83,7 +83,7 @@ public class ReservationServiceImpl implements ReservationService {
      *   4. Pool còn bàn nào capacity >= partySize mới → còn chỗ.
      */
     private boolean hasCapacity(Integer partySize, OffsetDateTime wantedTime, UUID excludeReservationId) {
-        List<Table> allTables = tableRepository.findByIsActiveTrue();
+        List<Table> allTables = tableRepository.findByIsActiveTrueAndDeleteAtIsNull();
         if (allTables.isEmpty()) return false;
 
         List<Reservation> blocking = reservationRepository
@@ -368,7 +368,7 @@ public class ReservationServiceImpl implements ReservationService {
         OffsetDateTime soon = now.plusMinutes(ASSIGN_BEFORE_MINUTES);
 
         reservationRepository.findUnassignedUpcoming(now, soon).forEach(reservation ->
-            tableRepository.findByIsActiveTrueAndStatus(TableStatus.EMPTY)
+            tableRepository.findByIsActiveTrueAndStatusAndDeleteAtIsNull(TableStatus.EMPTY)
                     .stream()
                     .filter(t -> t.getCapacity() >= reservation.getPartySize())
                     .min(Comparator.comparingInt(t -> t.getCapacity() - reservation.getPartySize()))

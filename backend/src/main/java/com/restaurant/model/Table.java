@@ -49,6 +49,9 @@ public class Table {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;  // Thời gian cập nhật lần cuối
 
+    @Column(name = "deleted_at")
+    private OffsetDateTime deletedAt;
+    
     // Tự động chạy trước khi INSERT hoặc UPDATE
     @PrePersist   // Chạy lần đầu khi lưu vào DB
     @PreUpdate    // Chạy mỗi khi cập nhật
