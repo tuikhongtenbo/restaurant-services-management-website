@@ -24,20 +24,20 @@ import java.util.UUID;
 public interface TableRepository extends JpaRepository<Table, UUID> {
 
     // Kiểm tra trùng số bàn ăn khi thêm mới hoặc cập nhật (không xóa mềm)
-    boolean existsByNumberAndDeleteAtIsNull(String number);
+    boolean existsByNumberAndDeletedAtIsNull(String number);
 
     // Lấy danh sách bàn đang hoạt động phục vụ cho sơ đồ mặt bằng Layout (không xóa mềm)
-    List<Table> findByIsActiveTrueAndDeleteAtIsNull();
+    List<Table> findByIsActiveTrueAndDeletedAtIsNull();
 
-    Page<Table> findByIsActiveTrueAndDeleteAtIsNull(Pageable pageable);
+    Page<Table> findByIsActiveTrueAndDeletedAtIsNull(Pageable pageable);
 
     // HỖ TRỢ FILTER THEO TRẠNG THÁI: Tìm kiếm phân trang bàn theo trạng thái (status) - không xóa mềm
-    Page<Table> findByIsActiveTrueAndStatusAndDeleteAtIsNull(TableStatus status, Pageable pageable);
+    Page<Table> findByIsActiveTrueAndStatusAndDeletedAtIsNull(TableStatus status, Pageable pageable);
 
-    Page<Table> findByIsActiveTrueAndAreaAndStatusAndDeleteAtIsNull(String area, TableStatus status, Pageable pageable);
+    Page<Table> findByIsActiveTrueAndAreaAndStatusAndDeletedAtIsNull(String area, TableStatus status, Pageable pageable);
 
-    Page<Table> findByIsActiveTrueAndAreaAndDeleteAtIsNull(String area, Pageable pageable);
+    Page<Table> findByIsActiveTrueAndAreaAndDeletedAtIsNull(String area, Pageable pageable);
 
     // Lấy danh sách bàn trống để tìm kiếm bàn phù hợp với sức chứa - không xóa mềm
-    List<Table> findByIsActiveTrueAndStatusAndDeleteAtIsNull(TableStatus status);
+    List<Table> findByIsActiveTrueAndStatusAndDeletedAtIsNull(TableStatus status);
 }

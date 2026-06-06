@@ -16,5 +16,5 @@ public class TableResponse {
     private String area;
     private Boolean isActive;
     private OffsetDateTime updatedAt;
-    private OffsetDateTime deleteAt;
+    private OffsetDateTime deletedAt;
 }
