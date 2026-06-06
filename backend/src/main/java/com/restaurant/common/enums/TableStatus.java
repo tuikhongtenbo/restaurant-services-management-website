@@ -1,8 +1,8 @@
 package com.restaurant.common.enums;
 
 public enum TableStatus {
-    EMPTY,      // Xanh lá - Sẵn sàng nhận khách
+    OPEN,       // Xanh lá - Sẵn sàng nhận khách (Bàn trống)
     SERVING,    // Đỏ - Đang có khách
-    RESERVED,   // Vàng - Có lịch hẹn trong 1 giờ
-    CLEANING    // Xám - Chờ dọn dẹp
+    PAID,       // Xám - Chờ dọn dẹp
+    RESERVED    // Vàng - Có lịch hẹn trong 1 giờ
 }

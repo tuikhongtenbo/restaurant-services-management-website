@@ -1,0 +1,341 @@
+/* --- Khung cảnh & Môi trường 3D --- */
+.scene {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #1a1714; /* Nền tối để làm nổi bật menu */
+  perspective: 2000px;
+  overflow: hidden;
+  font-family: "Playfair Display", "Cormorant Garamond", serif;
+}
+
+/* --- Khối Sách Tổng Thể --- */
+.book {
+  position: relative;
+  width: 900px; /* Tổng chiều rộng khi mở 2 trang */
+  height: 600px;
+  transition: transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+  transform-style: preserve-3d;
+}
+
+/* Logic Căn giữa Dynamic */
+.closedFront {
+  transform: translateX(-25%); /* Đưa bìa trước vào giữa */
+}
+
+.closedBack {
+  transform: translateX(25%); /* Đưa bìa sau vào giữa */
+}
+
+.opened {
+  transform: translateX(0); /* Mở rộng 2 bên */
+}
+
+/* --- Các Lá (Leaf) của Sách --- */
+.init .leaf {
+  animation: none !important;
+}
+.leaf {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  cursor: pointer;
+
+  /* XÓA transition cũ, thay bằng animation lật về (flipBack) */
+  transform: rotateY(0deg);
+  animation: flipBack 1.2s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
+}
+
+.flipped {
+  animation: flipForward 1.2s cubic-bezier(0.645, 0.045, 0.355, 1) forwards;
+}
+@keyframes flipForward {
+  0% {
+    transform: rotateY(0deg) skewY(0deg) scale(1);
+  }
+  50% {
+    /* GÓC 90 ĐỘ: Trang dựng đứng nhất.
+       - scale(1.03): Kéo trang về phía người dùng tạo độ "nổi".
+       - skewY(-3deg): Làm méo nhẹ viền giấy tạo cảm giác cong võng. */
+    transform: rotateY(-90deg) skewY(-3deg) scale(1.03);
+  }
+  100% {
+    transform: rotateY(-180deg) skewY(0deg) scale(1);
+  }
+}
+
+@keyframes flipBack {
+  0% {
+    transform: rotateY(-180deg) skewY(0deg) scale(1);
+  }
+  50% {
+    /* Đảo ngược chiều skewY khi lật về */
+    transform: rotateY(-90deg) skewY(3deg) scale(1.03);
+  }
+  100% {
+    transform: rotateY(0deg) skewY(0deg) scale(1);
+  }
+}
+/* --- Các Mặt Trang (Page) --- */
+.page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 45px;
+  background: #fdfaf0; /* Màu giấy ngà */
+  border: 1px solid #d4c5a9;
+  box-sizing: border-box;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.05);
+}
+
+/* Hiệu ứng gáy sách (Shadow đổ nhẹ ở giữa) */
+.page::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 40px;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.front::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.1), transparent);
+}
+
+.back::before {
+  right: 0;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.1), transparent);
+}
+
+/* Mặt sau phải lật ngược lại */
+.back {
+  transform: rotateY(180deg);
+}
+
+/* --- Thiết Kế Nội Dung Trang Menu --- */
+.menuContent {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border: 1px solid #e0d5ba; /* Viền mỏng bên trong trang */
+  padding: 20px;
+}
+
+.categoryTitle {
+  font-size: 1.8rem;
+  color: #5d4037;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-top: 0;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 2px double #8b0000;
+}
+
+.continueTitle {
+  text-align: center;
+  font-style: italic;
+  color: #a1887f;
+  margin-bottom: 25px;
+  font-size: 0.95rem;
+}
+
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+}
+
+.itemTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.name {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: #2e1a1a;
+}
+
+.dots {
+  flex: 1;
+  border-bottom: 1px dotted #c9b48e;
+  margin: 0 10px;
+}
+
+.price {
+  font-weight: bold;
+  color: #8b0000;
+}
+
+.desc {
+  margin: 5px 0 0 0;
+  font-size: 0.9rem;
+  color: #6d5d5d;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.pageNum {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #9e8d8d;
+  letter-spacing: 2px;
+}
+
+/* --- Thiết Kế Trang Bìa (Cover) --- */
+.cover {
+  background-color: #fdfaf0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.borderInner {
+  border: 4px double #5d4037;
+  width: 90%;
+  height: 90%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  text-align: center;
+}
+
+.cover h1 {
+  font-size: 3.5rem;
+  color: #5d4037;
+  margin: 0;
+  letter-spacing: 5px;
+}
+
+.divider {
+  font-size: 2rem;
+  color: #8b0000;
+  margin: 15px 0;
+}
+
+/* Trang giới thiệu trống sau bìa */
+.emptyPage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f9f5eb;
+}
+
+.introText {
+  font-size: 1.4rem;
+  font-style: italic;
+  color: #8d6e63;
+  text-align: center;
+}
+
+/* --- Trang Cuối (Footer Cover) --- */
+.coverBack {
+  background-color: #fdfaf0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.footerContent {
+  text-align: center;
+  color: #5d4037;
+}
+
+.logoMark {
+  font-size: 3.5rem;
+  color: #8b0000;
+  margin-bottom: 10px;
+}
+.logoMark img {
+  width: 100px;
+  height: 100px;
+}
+
+.dividerSmall {
+  width: 60px;
+  height: 1px;
+  background: #5d4037;
+  margin: 20px auto;
+}
+
+.address,
+.phone {
+  margin: 5px 0;
+  font-size: 1rem;
+}
+
+.clickBack {
+  margin-top: 50px;
+  font-size: 0.85rem;
+  color: #a1887f;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  animation: bounceLeft 2s infinite;
+}
+
+/* --- Loading & Error --- */
+.loader {
+  color: #fdfaf0;
+  font-size: 1.2rem;
+  font-style: italic;
+}
+
+.error {
+  color: #ff4d4d;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.clickToView {
+  position: absolute;
+  bottom: 0;
+  opacity: 0.5;
+}
+
+/* --- Animation --- */
+@keyframes bounceLeft {
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateX(-15px);
+    opacity: 1;
+  }
+}
+
+/* Responsive cơ bản */
+@media (max-width: 950px) {
+  .book {
+    width: 90%;
+    height: 500px;
+  }
+}

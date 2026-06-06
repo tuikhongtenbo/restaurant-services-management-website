@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -143,8 +144,10 @@ public class CheckoutServiceImpl implements CheckoutService {
         assertNoPendingInvoice(request.getOrderId());
         CheckoutResponse preview = previewCheckout(request);
 
-        // Bước 2: Kiểm tra tiền khách đưa
-        if (request.getCashReceived() == null || request.getCashReceived().compareTo(preview.getTotalAmount()) < 0) {
+        // Bước 2: Kiểm tra tiền khách đưa (nếu null thì tự động lấy bằng totalAmount)
+        if (request.getCashReceived() == null) {
+            request.setCashReceived(preview.getTotalAmount());
+        } else if (request.getCashReceived().compareTo(preview.getTotalAmount()) < 0) {
             throw new BusinessException("Số tiền nhận không đủ. Cần: " + preview.getTotalAmount());
         }
 
@@ -339,13 +342,15 @@ public class CheckoutServiceImpl implements CheckoutService {
         });
     }
 
-    /** Chỉ tính tiền món đã SERVED */
+    /** Tính tiền cho tất cả các món không bị huỷ (CANCELLED) */
     private List<OrderItem> getServedItems(UUID orderId) {
-        List<OrderItem> servedItems = orderItemRepository.findByOrder_IdAndStatus(orderId, OrderItemStatus.SERVED);
-        if (servedItems.isEmpty()) {
-            throw new BusinessException("Không có món nào đã phục vụ để thanh toán");
+        List<OrderItem> items = orderItemRepository.findByOrder_Id(orderId).stream()
+                .filter(item -> item.getStatus() != OrderItemStatus.CANCELLED)
+                .collect(Collectors.toList());
+        if (items.isEmpty()) {
+            throw new BusinessException("Không có món nào hợp lệ để thanh toán");
         }
-        return servedItems;
+        return items;
     }
 
     private BigDecimal calculateSubtotal(List<OrderItem> servedItems) {
@@ -430,7 +435,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         orderRepository.save(order);
 
         tableRepository.findById(order.getTableId()).ifPresent(table -> {
-            table.setStatus(TableStatus.CLEANING);
+            // table is already inactive, computeStatus will return CLEANING
             tableRepository.save(table);
         });
     }

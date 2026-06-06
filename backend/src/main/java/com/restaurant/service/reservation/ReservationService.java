@@ -25,7 +25,7 @@ public interface ReservationService {
     ReservationResponse createReservation(CreateReservationRequest request, UUID staffId);
 
     // Xác nhận đơn PENDING: kiểm tra capacity → CONFIRMED nếu còn chỗ, tự động CANCELLED nếu hết chỗ
-    ReservationResponse confirmReservation(UUID id, UUID staffId);
+    ReservationResponse confirmReservation(UUID id, UUID tableId, UUID staffId);
 
     // Cập nhật thông tin khách hàng hoặc thời gian của một đơn đặt bàn (cho phép sửa ở trạng thái PENDING/CONFIRMED)
     ReservationResponse update(UUID id, UpdateReservationRequest request);

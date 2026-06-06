@@ -1,0 +1,19 @@
+# ================================================
+# Environment Variables
+# ================================================
+
+# === DATABASE ===
+DB_URL=jdbc:postgresql://aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres
+DB_USERNAME=postgres.bxglnufokfhhcmviisvd
+DB_PASSWORD=VGT5cpNKqBq7W2Mb
+
+# === JWT ===
+JWT_SECRET=dGhpc0lzQVN1cGVyU2VjcmV0S2V5Rm9yRGV2TXVzdEJlQXRMZWFzdDI1NkJpdHM=
+
+# === EMAIL (SMTP) ===
+MAIL_USERNAME=23521431@gm.uit.edu.vn
+MAIL_PASSWORD=ziohnvcahldxjuqn
+
+# === VNPay ===
+VNPAY_TMN_CODE=87OYXVYM
+VNPAY_HASH_SECRET=N3XPOQ6Y6EJNR1UJ848COCOIBMBZ808O

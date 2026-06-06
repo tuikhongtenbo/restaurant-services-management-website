@@ -148,7 +148,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         tableRepository.findById(reservation.getTableId())
                 .ifPresent(table -> {
-                    table.setStatus(TableStatus.EMPTY);
+                    table.setIsActive(true);
                     tableRepository.save(table);
                 });
         reservation.setTableId(null);
@@ -243,7 +243,7 @@ public class ReservationServiceImpl implements ReservationService {
      * Nếu không đủ capacity → tự động CANCELLED và ném BusinessException.
      */
     @Override
-    public ReservationResponse confirmReservation(UUID id, UUID staffId) {
+    public ReservationResponse confirmReservation(UUID id, UUID tableId, UUID staffId) {
         Reservation reservation = findOrThrow(id);
 
         if (reservation.getStatus() != ReservationStatus.PENDING) {
@@ -252,23 +252,24 @@ public class ReservationServiceImpl implements ReservationService {
 
         validateReservationTime(reservation.getReservedAt());
 
-        if (!hasCapacity(reservation.getPartySize(), reservation.getReservedAt(), reservation.getId())) {
-            reservation.setStatus(ReservationStatus.CANCELLED);
-            reservation.setCancelReason("Nha hang het ban phu hop trong khung gio nay.");
-            reservationRepository.save(reservation);
-            throw new BusinessException(
-                    "Nha hang da het ban phu hop cho "
-                    + reservation.getPartySize()
-                    + " nguoi vao luc "
-                    + reservation.getReservedAt().atZoneSameInstant(RESTAURANT_ZONE).toLocalTime()
-                    + " ngay "
-                    + reservation.getReservedAt().atZoneSameInstant(RESTAURANT_ZONE).toLocalDate()
-                    + "."
-            );
+        Table table = tableRepository.findById(tableId)
+                .orElseThrow(() -> new BusinessException("Ban khong ton tai."));
+
+        if (!table.getIsActive()) {
+            throw new BusinessException("Ban nay khong con trong hoac khong hoat dong.");
         }
 
+        if (table.getCapacity() < reservation.getPartySize()) {
+            throw new BusinessException("Suc chua cua ban khong du cho so luong khach.");
+        }
+
+        reservation.setTableId(tableId);
         reservation.setStatus(ReservationStatus.CONFIRMED);
         reservation.setConfirmedBy(staffId);
+        
+        table.setIsActive(false);
+        tableRepository.save(table);
+
         return toResponse(reservationRepository.save(reservation));
     }
 
@@ -314,8 +315,9 @@ public class ReservationServiceImpl implements ReservationService {
         Table table = tableRepository.findById(r.getTableId())
                 .orElseThrow(() -> new BusinessException("Khong tim thay ban da gan cho dat ban."));
 
-        table.setStatus(TableStatus.SERVING);
-        tableRepository.save(table);
+        // Không cần set status vì đã compute dựa vào order và reservation
+        // Bàn vẫn đang có isActive = false từ lúc confirm
+        // Khi tạo order mới, backend sẽ tự động nhận diện SERVING
 
         r.setStatus(ReservationStatus.ARRIVED);
         return toResponse(reservationRepository.save(r));
@@ -368,12 +370,12 @@ public class ReservationServiceImpl implements ReservationService {
         OffsetDateTime soon = now.plusMinutes(ASSIGN_BEFORE_MINUTES);
 
         reservationRepository.findUnassignedUpcoming(now, soon).forEach(reservation ->
-            tableRepository.findByIsActiveTrueAndStatus(TableStatus.EMPTY)
-                    .stream()
+            tableRepository.findAll().stream()
+                    .filter(Table::getIsActive)
                     .filter(t -> t.getCapacity() >= reservation.getPartySize())
                     .min(Comparator.comparingInt(t -> t.getCapacity() - reservation.getPartySize()))
                     .ifPresent(table -> {
-                        table.setStatus(TableStatus.RESERVED);
+                        table.setIsActive(false);
                         reservation.setTableId(table.getId());
                         reservationRepository.save(reservation);
                         tableRepository.save(table);

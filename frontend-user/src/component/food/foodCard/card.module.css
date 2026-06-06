@@ -1,0 +1,129 @@
+.card {
+  width: 320px;
+  height: 450px;
+  background: transparent;
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+
+  /* Thêm hiệu ứng bay lơ lửng liên tục */
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Định nghĩa chuyển động bay lơ lửng */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    transform: translateY(-12px); /* Điểm cao nhất khi bay lên */
+    box-shadow: 0 25px 35px rgba(0, 0, 0, 0.4); /* Bóng đổ dài ra tạo cảm giác xa mặt đất */
+  }
+  100% {
+    transform: translateY(0px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.card:hover {
+  /* Tạm dừng hiệu ứng bay lơ lửng khi chuột đưa vào để người dùng dễ thao tác */
+  /* animation-play-state: paused; */
+
+  /* Phóng to nhẹ thay vì translateY để tránh xung đột với animation */
+  transform: scale(1.03);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* --- Các class còn lại giữ nguyên như cũ --- */
+
+.imageWrapper {
+  position: relative;
+  padding: 12px 12px 0;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.imageWrapper {
+  position: relative;
+  padding: 12px 12px 0;
+}
+
+.image {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.badge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #f5c518, #e6a800);
+  color: #1a1a2e;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.content {
+  padding: 16px 16px 20px;
+}
+
+.name {
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.description {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  font-style: italic;
+  margin: 0 0 16px;
+  line-height: 1.4;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.price {
+  color: #f5c518;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.orderButton {
+  background: #ffffff;
+  color: #1a1a2e;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
+}
+
+.orderButton:hover {
+  background: #f0f0f0;
+  transform: scale(1.05);
+}

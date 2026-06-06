@@ -64,8 +64,9 @@ public class ReservationController {
     @PutMapping("/{id}/confirm")
     public ReservationResponse confirmReservation(
             @PathVariable UUID id,
+            @RequestBody @Valid com.restaurant.dto.request.reservation.ConfirmReservationRequest request,
             @RequestHeader("X-Staff-ID") UUID staffId) {
-        return reservationService.confirmReservation(id, staffId);
+        return reservationService.confirmReservation(id, request.getTableId(), staffId);
     }
 
     @PutMapping("/{id}")

@@ -95,4 +95,5 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
                 @Param("end") OffsetDateTime end
         );
 
+        boolean existsByTableIdAndStatus(UUID tableId, ReservationStatus status);
 }

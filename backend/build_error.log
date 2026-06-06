@@ -1,0 +1,687 @@
+[INFO] Error stacktraces are turned on.
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------< com.restaurant:restaurant-management >----------------
+[INFO] Building Restaurant Management 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-cli) @ restaurant-management ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 181 source files with javac [debug release 17] to target/classes
+[INFO] Some messages have been simplified; recompile with -Xdiags:verbose to get full output
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/table/impl/TableServiceimpl.java:[35,8] class TableServiceImpl is public, should be declared in a file named TableServiceImpl.java
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[65,51] invalid method reference
+  cannot find symbol
+    symbol:   method getTableId()
+    location: class com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[67,43] invalid method reference
+  cannot find symbol
+    symbol:   method getId()
+    location: class com.restaurant.model.Table
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[67,57] invalid method reference
+  cannot find symbol
+    symbol:   method getNumber()
+    location: class com.restaurant.model.Table
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[70,76] cannot find symbol
+  symbol:   method getTableId()
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[71,25] incompatible types: inference variable T has incompatible bounds
+    equality constraints: com.restaurant.dto.response.order.OrderResponse
+    lower bounds: java.lang.Object
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[110,55] cannot find symbol
+  symbol:   method getTableId()
+  location: variable request of type com.restaurant.dto.request.order.CreateOrderRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[111,88] cannot find symbol
+  symbol:   method getTableId()
+  location: variable request of type com.restaurant.dto.request.order.CreateOrderRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[114,18] cannot find symbol
+  symbol:   method getStatus()
+  location: variable table of type com.restaurant.model.Table
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[116,25] cannot find symbol
+  symbol:   method getStatus()
+  location: variable table of type com.restaurant.model.Table
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[117,67] cannot find symbol
+  symbol:   method getId()
+  location: variable table of type com.restaurant.model.Table
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[124,28] cannot find symbol
+  symbol:   method builder()
+  location: class com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[125,33] cannot find symbol
+  symbol:   method getTableId()
+  location: variable request of type com.restaurant.dto.request.order.CreateOrderRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[126,36] cannot find symbol
+  symbol:   method getGuestCount()
+  location: variable request of type com.restaurant.dto.request.order.CreateOrderRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[132,14] cannot find symbol
+  symbol:   method setStatus(com.restaurant.common.enums.TableStatus)
+  location: variable table of type com.restaurant.model.Table
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[147,14] cannot find symbol
+  symbol:   method setStatus(com.restaurant.common.enums.OrderStatus)
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[152,43] cannot find symbol
+  symbol:   method getTableId()
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[157,43] cannot find symbol
+  symbol:   method getTableId()
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[178,14] cannot find symbol
+  symbol:   method setStatus(com.restaurant.common.enums.OrderStatus)
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[179,14] cannot find symbol
+  symbol:   method setClosedAt(java.time.OffsetDateTime)
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[183,39] cannot find symbol
+  symbol:   method getTableId()
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[197,60] cannot find symbol
+  symbol:   method getTableId()
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[198,22] invalid method reference
+  cannot find symbol
+    symbol:   method getNumber()
+    location: class com.restaurant.model.Table
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[206,36] cannot find symbol
+  symbol:   method getItems()
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[207,22] cannot find symbol
+  symbol:   method getItems()
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[213,54] cannot find symbol
+  symbol:   method getItems()
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[214,22] cannot find symbol
+  symbol:   method getItems()
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[215,55] cannot find symbol
+  symbol:   method builder()
+  location: class com.restaurant.dto.response.order.OrderItemResponse
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[230,29] cannot find symbol
+  symbol:   method builder()
+  location: class com.restaurant.dto.response.order.OrderResponse
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[231,26] cannot find symbol
+  symbol:   method getId()
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[232,31] cannot find symbol
+  symbol:   method getTableId()
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[234,30] cannot find symbol
+  symbol:   method getStatus()
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[235,34] cannot find symbol
+  symbol:   method getGuestCount()
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[238,32] cannot find symbol
+  symbol:   method getOpenedAt()
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[239,32] cannot find symbol
+  symbol:   method getClosedAt()
+  location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[33,22] invalid method reference
+  cannot find symbol
+    symbol:   method getCategory()
+    location: class com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[51,48] invalid method reference
+  cannot find symbol
+    symbol:   method getCategory()
+    location: class com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[56,47] cannot find symbol
+  symbol:   method builder()
+  location: class com.restaurant.dto.response.menu.CategoryResponse
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[62,24] incompatible types: java.util.List<java.lang.Object> cannot be converted to java.util.List<com.restaurant.dto.response.menu.CategoryResponse>
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[67,53] cannot find symbol
+  symbol:   method builder()
+  location: class com.restaurant.dto.response.menu.MenuItemResponse
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[68,25] cannot find symbol
+  symbol:   method getId()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[69,31] cannot find symbol
+  symbol:   method getCategory()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[70,27] cannot find symbol
+  symbol:   method getName()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[71,34] cannot find symbol
+  symbol:   method getDescription()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[72,31] cannot find symbol
+  symbol:   method getImageUrl()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[73,28] cannot find symbol
+  symbol:   method getPrice()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[74,33] cannot find symbol
+  symbol:   method getPromoPrice()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[75,33] cannot find symbol
+  symbol:   method getPromoStart()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[76,31] cannot find symbol
+  symbol:   method getPromoEnd()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[77,27] cannot find symbol
+  symbol:   method getTags()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[78,29] cannot find symbol
+  symbol:   method getStatus()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[79,32] cannot find symbol
+  symbol:   method getSortOrder()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[83,21] cannot find symbol
+  symbol:   method setPromoPrice(<nulltype>)
+  location: variable response of type com.restaurant.dto.response.menu.MenuItemResponse
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[84,21] cannot find symbol
+  symbol:   method setPromoStart(<nulltype>)
+  location: variable response of type com.restaurant.dto.response.menu.MenuItemResponse
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[85,21] cannot find symbol
+  symbol:   method setPromoEnd(<nulltype>)
+  location: variable response of type com.restaurant.dto.response.menu.MenuItemResponse
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[91,17] cannot find symbol
+  symbol:   method getPromoPrice()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[91,49] cannot find symbol
+  symbol:   method getPromoStart()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[91,81] cannot find symbol
+  symbol:   method getPromoEnd()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[95,34] cannot find symbol
+  symbol:   method getPromoStart()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[95,72] cannot find symbol
+  symbol:   method getPromoEnd()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[43,95] cannot find symbol
+  symbol:   method getCategory()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[44,55] cannot find symbol
+  symbol:   method getStatus()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[45,70] cannot find symbol
+  symbol:   method getTags()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[45,96] cannot find symbol
+  symbol:   method getTags()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[85,17] cannot find symbol
+  symbol:   method getStatus()
+  location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[97,24] cannot find symbol
+  symbol:   method getCategory()
+  location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[97,47] cannot find symbol
+  symbol:   method getName()
+  location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[99,34] cannot find symbol
+  symbol:   method getName()
+  location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[100,59] cannot find symbol
+  symbol:   method getCategory()
+  location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[104,33] cannot find symbol
+  symbol:   method builder()
+  location: class com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[105,30] cannot find symbol
+  symbol:   method getName()
+  location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[106,34] cannot find symbol
+  symbol:   method getCategory()
+  location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[107,37] cannot find symbol
+  symbol:   method getDescription()
+  location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[108,34] cannot find symbol
+  symbol:   method getImageUrl()
+  location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[109,31] cannot find symbol
+  symbol:   method getPrice()
+  location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[110,36] cannot find symbol
+  symbol:   method getPromoPrice()
+  location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[111,36] cannot find symbol
+  symbol:   method getPromoStart()
+  location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[112,34] cannot find symbol
+  symbol:   method getPromoEnd()
+  location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[113,30] cannot find symbol
+  symbol:   method getTags()
+  location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[114,35] cannot find symbol
+  symbol:   method getSortOrder()
+  location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[128,20] cannot find symbol
+  symbol:   method getName()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[128,67] cannot find symbol
+  symbol:   method getName()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[129,20] cannot find symbol
+  symbol:   method getCategory()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[129,71] cannot find symbol
+  symbol:   method getCategory()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[130,20] cannot find symbol
+  symbol:   method getDescription()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[130,74] cannot find symbol
+  symbol:   method getDescription()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[131,20] cannot find symbol
+  symbol:   method getImageUrl()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[131,71] cannot find symbol
+  symbol:   method getImageUrl()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[132,20] cannot find symbol
+  symbol:   method getPrice()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[132,68] cannot find symbol
+  symbol:   method getPrice()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[133,20] cannot find symbol
+  symbol:   method getPromoPrice()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[133,73] cannot find symbol
+  symbol:   method getPromoPrice()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[134,20] cannot find symbol
+  symbol:   method getPromoStart()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[134,73] cannot find symbol
+  symbol:   method getPromoStart()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[135,20] cannot find symbol
+  symbol:   method getPromoEnd()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[135,71] cannot find symbol
+  symbol:   method getPromoEnd()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[136,20] cannot find symbol
+  symbol:   method getTags()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[136,67] cannot find symbol
+  symbol:   method getTags()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[137,20] cannot find symbol
+  symbol:   method getSortOrder()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[137,72] cannot find symbol
+  symbol:   method getSortOrder()
+  location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[INFO] 100 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.405 s
+[INFO] Finished at: 2026-06-06T12:48:17+07:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile (default-cli) on project restaurant-management: Compilation failure: Compilation failure: 
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/table/impl/TableServiceimpl.java:[35,8] class TableServiceImpl is public, should be declared in a file named TableServiceImpl.java
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[65,51] invalid method reference
+[ERROR]   cannot find symbol
+[ERROR]     symbol:   method getTableId()
+[ERROR]     location: class com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[67,43] invalid method reference
+[ERROR]   cannot find symbol
+[ERROR]     symbol:   method getId()
+[ERROR]     location: class com.restaurant.model.Table
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[67,57] invalid method reference
+[ERROR]   cannot find symbol
+[ERROR]     symbol:   method getNumber()
+[ERROR]     location: class com.restaurant.model.Table
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[70,76] cannot find symbol
+[ERROR]   symbol:   method getTableId()
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[71,25] incompatible types: inference variable T has incompatible bounds
+[ERROR]     equality constraints: com.restaurant.dto.response.order.OrderResponse
+[ERROR]     lower bounds: java.lang.Object
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[110,55] cannot find symbol
+[ERROR]   symbol:   method getTableId()
+[ERROR]   location: variable request of type com.restaurant.dto.request.order.CreateOrderRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[111,88] cannot find symbol
+[ERROR]   symbol:   method getTableId()
+[ERROR]   location: variable request of type com.restaurant.dto.request.order.CreateOrderRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[114,18] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable table of type com.restaurant.model.Table
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[116,25] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable table of type com.restaurant.model.Table
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[117,67] cannot find symbol
+[ERROR]   symbol:   method getId()
+[ERROR]   location: variable table of type com.restaurant.model.Table
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[124,28] cannot find symbol
+[ERROR]   symbol:   method builder()
+[ERROR]   location: class com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[125,33] cannot find symbol
+[ERROR]   symbol:   method getTableId()
+[ERROR]   location: variable request of type com.restaurant.dto.request.order.CreateOrderRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[126,36] cannot find symbol
+[ERROR]   symbol:   method getGuestCount()
+[ERROR]   location: variable request of type com.restaurant.dto.request.order.CreateOrderRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[132,14] cannot find symbol
+[ERROR]   symbol:   method setStatus(com.restaurant.common.enums.TableStatus)
+[ERROR]   location: variable table of type com.restaurant.model.Table
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[147,14] cannot find symbol
+[ERROR]   symbol:   method setStatus(com.restaurant.common.enums.OrderStatus)
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[152,43] cannot find symbol
+[ERROR]   symbol:   method getTableId()
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[157,43] cannot find symbol
+[ERROR]   symbol:   method getTableId()
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[178,14] cannot find symbol
+[ERROR]   symbol:   method setStatus(com.restaurant.common.enums.OrderStatus)
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[179,14] cannot find symbol
+[ERROR]   symbol:   method setClosedAt(java.time.OffsetDateTime)
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[183,39] cannot find symbol
+[ERROR]   symbol:   method getTableId()
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[197,60] cannot find symbol
+[ERROR]   symbol:   method getTableId()
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[198,22] invalid method reference
+[ERROR]   cannot find symbol
+[ERROR]     symbol:   method getNumber()
+[ERROR]     location: class com.restaurant.model.Table
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[206,36] cannot find symbol
+[ERROR]   symbol:   method getItems()
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[207,22] cannot find symbol
+[ERROR]   symbol:   method getItems()
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[213,54] cannot find symbol
+[ERROR]   symbol:   method getItems()
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[214,22] cannot find symbol
+[ERROR]   symbol:   method getItems()
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[215,55] cannot find symbol
+[ERROR]   symbol:   method builder()
+[ERROR]   location: class com.restaurant.dto.response.order.OrderItemResponse
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[230,29] cannot find symbol
+[ERROR]   symbol:   method builder()
+[ERROR]   location: class com.restaurant.dto.response.order.OrderResponse
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[231,26] cannot find symbol
+[ERROR]   symbol:   method getId()
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[232,31] cannot find symbol
+[ERROR]   symbol:   method getTableId()
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[234,30] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[235,34] cannot find symbol
+[ERROR]   symbol:   method getGuestCount()
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[238,32] cannot find symbol
+[ERROR]   symbol:   method getOpenedAt()
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/order/impl/OrderServiceImpl.java:[239,32] cannot find symbol
+[ERROR]   symbol:   method getClosedAt()
+[ERROR]   location: variable order of type com.restaurant.model.Order
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[33,22] invalid method reference
+[ERROR]   cannot find symbol
+[ERROR]     symbol:   method getCategory()
+[ERROR]     location: class com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[51,48] invalid method reference
+[ERROR]   cannot find symbol
+[ERROR]     symbol:   method getCategory()
+[ERROR]     location: class com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[56,47] cannot find symbol
+[ERROR]   symbol:   method builder()
+[ERROR]   location: class com.restaurant.dto.response.menu.CategoryResponse
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[62,24] incompatible types: java.util.List<java.lang.Object> cannot be converted to java.util.List<com.restaurant.dto.response.menu.CategoryResponse>
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[67,53] cannot find symbol
+[ERROR]   symbol:   method builder()
+[ERROR]   location: class com.restaurant.dto.response.menu.MenuItemResponse
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[68,25] cannot find symbol
+[ERROR]   symbol:   method getId()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[69,31] cannot find symbol
+[ERROR]   symbol:   method getCategory()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[70,27] cannot find symbol
+[ERROR]   symbol:   method getName()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[71,34] cannot find symbol
+[ERROR]   symbol:   method getDescription()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[72,31] cannot find symbol
+[ERROR]   symbol:   method getImageUrl()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[73,28] cannot find symbol
+[ERROR]   symbol:   method getPrice()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[74,33] cannot find symbol
+[ERROR]   symbol:   method getPromoPrice()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[75,33] cannot find symbol
+[ERROR]   symbol:   method getPromoStart()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[76,31] cannot find symbol
+[ERROR]   symbol:   method getPromoEnd()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[77,27] cannot find symbol
+[ERROR]   symbol:   method getTags()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[78,29] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[79,32] cannot find symbol
+[ERROR]   symbol:   method getSortOrder()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[83,21] cannot find symbol
+[ERROR]   symbol:   method setPromoPrice(<nulltype>)
+[ERROR]   location: variable response of type com.restaurant.dto.response.menu.MenuItemResponse
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[84,21] cannot find symbol
+[ERROR]   symbol:   method setPromoStart(<nulltype>)
+[ERROR]   location: variable response of type com.restaurant.dto.response.menu.MenuItemResponse
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[85,21] cannot find symbol
+[ERROR]   symbol:   method setPromoEnd(<nulltype>)
+[ERROR]   location: variable response of type com.restaurant.dto.response.menu.MenuItemResponse
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[91,17] cannot find symbol
+[ERROR]   symbol:   method getPromoPrice()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[91,49] cannot find symbol
+[ERROR]   symbol:   method getPromoStart()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[91,81] cannot find symbol
+[ERROR]   symbol:   method getPromoEnd()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[95,34] cannot find symbol
+[ERROR]   symbol:   method getPromoStart()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/CategoryServiceImpl.java:[95,72] cannot find symbol
+[ERROR]   symbol:   method getPromoEnd()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[43,95] cannot find symbol
+[ERROR]   symbol:   method getCategory()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[44,55] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[45,70] cannot find symbol
+[ERROR]   symbol:   method getTags()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[45,96] cannot find symbol
+[ERROR]   symbol:   method getTags()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[85,17] cannot find symbol
+[ERROR]   symbol:   method getStatus()
+[ERROR]   location: variable item of type com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[97,24] cannot find symbol
+[ERROR]   symbol:   method getCategory()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[97,47] cannot find symbol
+[ERROR]   symbol:   method getName()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[99,34] cannot find symbol
+[ERROR]   symbol:   method getName()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[100,59] cannot find symbol
+[ERROR]   symbol:   method getCategory()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[104,33] cannot find symbol
+[ERROR]   symbol:   method builder()
+[ERROR]   location: class com.restaurant.model.MenuItem
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[105,30] cannot find symbol
+[ERROR]   symbol:   method getName()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[106,34] cannot find symbol
+[ERROR]   symbol:   method getCategory()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[107,37] cannot find symbol
+[ERROR]   symbol:   method getDescription()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[108,34] cannot find symbol
+[ERROR]   symbol:   method getImageUrl()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[109,31] cannot find symbol
+[ERROR]   symbol:   method getPrice()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[110,36] cannot find symbol
+[ERROR]   symbol:   method getPromoPrice()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[111,36] cannot find symbol
+[ERROR]   symbol:   method getPromoStart()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[112,34] cannot find symbol
+[ERROR]   symbol:   method getPromoEnd()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[113,30] cannot find symbol
+[ERROR]   symbol:   method getTags()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[114,35] cannot find symbol
+[ERROR]   symbol:   method getSortOrder()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.CreateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[128,20] cannot find symbol
+[ERROR]   symbol:   method getName()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[128,67] cannot find symbol
+[ERROR]   symbol:   method getName()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[129,20] cannot find symbol
+[ERROR]   symbol:   method getCategory()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[129,71] cannot find symbol
+[ERROR]   symbol:   method getCategory()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[130,20] cannot find symbol
+[ERROR]   symbol:   method getDescription()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[130,74] cannot find symbol
+[ERROR]   symbol:   method getDescription()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[131,20] cannot find symbol
+[ERROR]   symbol:   method getImageUrl()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[131,71] cannot find symbol
+[ERROR]   symbol:   method getImageUrl()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[132,20] cannot find symbol
+[ERROR]   symbol:   method getPrice()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[132,68] cannot find symbol
+[ERROR]   symbol:   method getPrice()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[133,20] cannot find symbol
+[ERROR]   symbol:   method getPromoPrice()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[133,73] cannot find symbol
+[ERROR]   symbol:   method getPromoPrice()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[134,20] cannot find symbol
+[ERROR]   symbol:   method getPromoStart()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[134,73] cannot find symbol
+[ERROR]   symbol:   method getPromoStart()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[135,20] cannot find symbol
+[ERROR]   symbol:   method getPromoEnd()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[135,71] cannot find symbol
+[ERROR]   symbol:   method getPromoEnd()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[136,20] cannot find symbol
+[ERROR]   symbol:   method getTags()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[136,67] cannot find symbol
+[ERROR]   symbol:   method getTags()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[137,20] cannot find symbol
+[ERROR]   symbol:   method getSortOrder()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] /Users/minh/Documents/Ky_2_nam_3/Se330/SE330/backend/src/main/java/com/restaurant/service/menu/impl/MenuServiceImpl.java:[137,72] cannot find symbol
+[ERROR]   symbol:   method getSortOrder()
+[ERROR]   location: variable request of type com.restaurant.dto.request.menu.UpdateMenuItemRequest
+[ERROR] -> [Help 1]
+org.apache.maven.lifecycle.LifecycleExecutionException: Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile (default-cli) on project restaurant-management: Compilation failure
+    at org.apache.maven.lifecycle.internal.MojoExecutor.doExecute2 (MojoExecutor.java:333)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.doExecute (MojoExecutor.java:316)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:212)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:174)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.access$000 (MojoExecutor.java:75)
+    at org.apache.maven.lifecycle.internal.MojoExecutor$1.run (MojoExecutor.java:162)
+    at org.apache.maven.plugin.DefaultMojosExecutionStrategy.execute (DefaultMojosExecutionStrategy.java:39)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:159)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:105)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:73)
+    at org.apache.maven.lifecycle.internal.builder.singlethreaded.SingleThreadedBuilder.build (SingleThreadedBuilder.java:53)
+    at org.apache.maven.lifecycle.internal.LifecycleStarter.execute (LifecycleStarter.java:118)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:261)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:173)
+    at org.apache.maven.DefaultMaven.execute (DefaultMaven.java:101)
+    at org.apache.maven.cli.MavenCli.execute (MavenCli.java:919)
+    at org.apache.maven.cli.MavenCli.doMain (MavenCli.java:285)
+    at org.apache.maven.cli.MavenCli.main (MavenCli.java:207)
+    at jdk.internal.reflect.DirectMethodHandleAccessor.invoke (DirectMethodHandleAccessor.java:103)
+    at java.lang.reflect.Method.invoke (Method.java:580)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced (Launcher.java:255)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launch (Launcher.java:201)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode (Launcher.java:361)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.main (Launcher.java:314)
+Caused by: org.apache.maven.plugin.compiler.CompilationFailureException: Compilation failure
+    at org.apache.maven.plugin.compiler.AbstractCompilerMojo.execute (AbstractCompilerMojo.java:1212)
+    at org.apache.maven.plugin.compiler.CompilerMojo.execute (CompilerMojo.java:193)
+    at org.apache.maven.plugin.DefaultBuildPluginManager.executeMojo (DefaultBuildPluginManager.java:126)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.doExecute2 (MojoExecutor.java:328)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.doExecute (MojoExecutor.java:316)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:212)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:174)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.access$000 (MojoExecutor.java:75)
+    at org.apache.maven.lifecycle.internal.MojoExecutor$1.run (MojoExecutor.java:162)
+    at org.apache.maven.plugin.DefaultMojosExecutionStrategy.execute (DefaultMojosExecutionStrategy.java:39)
+    at org.apache.maven.lifecycle.internal.MojoExecutor.execute (MojoExecutor.java:159)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:105)
+    at org.apache.maven.lifecycle.internal.LifecycleModuleBuilder.buildProject (LifecycleModuleBuilder.java:73)
+    at org.apache.maven.lifecycle.internal.builder.singlethreaded.SingleThreadedBuilder.build (SingleThreadedBuilder.java:53)
+    at org.apache.maven.lifecycle.internal.LifecycleStarter.execute (LifecycleStarter.java:118)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:261)
+    at org.apache.maven.DefaultMaven.doExecute (DefaultMaven.java:173)
+    at org.apache.maven.DefaultMaven.execute (DefaultMaven.java:101)
+    at org.apache.maven.cli.MavenCli.execute (MavenCli.java:919)
+    at org.apache.maven.cli.MavenCli.doMain (MavenCli.java:285)
+    at org.apache.maven.cli.MavenCli.main (MavenCli.java:207)
+    at jdk.internal.reflect.DirectMethodHandleAccessor.invoke (DirectMethodHandleAccessor.java:103)
+    at java.lang.reflect.Method.invoke (Method.java:580)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launchEnhanced (Launcher.java:255)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.launch (Launcher.java:201)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.mainWithExitCode (Launcher.java:361)
+    at org.codehaus.plexus.classworlds.launcher.Launcher.main (Launcher.java:314)
+[ERROR] 
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

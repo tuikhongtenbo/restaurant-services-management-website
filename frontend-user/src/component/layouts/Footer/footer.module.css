@@ -1,0 +1,41 @@
+.container {
+  display: flex;
+  width: 100%;
+  min-height: 300px;
+  margin-top: 50px;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  box-sizing: border-box;
+}
+
+.leftContent {
+  width: 20%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* border: 1px solid red; */
+}
+
+.leftContent img {
+  width: 80%;
+  height: auto;
+  object-fit: contain;
+}
+
+.rightContent {
+  width: 80%;
+  display: flex;
+}
+
+.content {
+  width: 25%;
+  height: 100%;
+  /* border: 1px solid blue; */
+  box-sizing: border-box;
+  padding: 20px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+}
+.content p {
+  cursor: pointer;
+}

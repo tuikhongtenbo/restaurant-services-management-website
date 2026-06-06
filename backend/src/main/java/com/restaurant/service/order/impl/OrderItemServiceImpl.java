@@ -200,7 +200,7 @@ public class OrderItemServiceImpl implements OrderItemService {
         if (menuItem.getPromoPrice() != null
                 && menuItem.getPromoStart() != null
                 && menuItem.getPromoEnd() != null) {
-            LocalTime now = LocalTime.now();
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
             if (!now.isBefore(menuItem.getPromoStart()) && !now.isAfter(menuItem.getPromoEnd())) {
                 return menuItem.getPromoPrice();
             }

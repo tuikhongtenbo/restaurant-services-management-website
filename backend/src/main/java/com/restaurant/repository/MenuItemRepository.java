@@ -31,6 +31,7 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, UUID> {
         LocalDateTime end
     );
 
+    @org.springframework.data.jpa.repository.Query("SELECT m FROM MenuItem m WHERE m.promoPrice IS NOT NULL AND m.promoStart <= CURRENT_TIMESTAMP AND m.promoEnd >= CURRENT_TIMESTAMP AND m.status = 'AVAILABLE'")
     List<MenuItem> findActivePromotionalItems();
 
     Page<MenuItem> findByStatusOrderBySortOrderAsc(MenuItemStatus status, Pageable pageable);

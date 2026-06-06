@@ -1,0 +1,199 @@
+/* Container chính: Chỉ cần căn giữa nội dung, không cần background nữa */
+.container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Inter", sans-serif; /* Bạn có thể đổi font tùy ý */
+  overflow: hidden;
+}
+
+/* Wrapper chứa nội dung 2 cột */
+.wrapper {
+  position: relative;
+  z-index: 2; /* Đảm bảo nội dung nổi lên trên HeroBackground */
+  display: flex;
+  width: 100%;
+  max-width: 1100px;
+  padding: 40px;
+  gap: 60px;
+}
+
+/* --- Cột trái: Nội dung Text --- */
+.leftCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: white;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 60px;
+}
+
+.logoIcon {
+  color: #f0724f; /* Màu cam giống thiết kế */
+  font-style: italic;
+  font-size: 1.8rem;
+}
+.logoIcon img {
+  width: 50px;
+  height: 50px;
+}
+.title {
+  font-size: 4rem;
+  line-height: 1.1;
+  margin: 0 0 15px 0;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  margin: 0 0 40px 0;
+}
+
+.link {
+  color: white;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.link:hover {
+  color: #f0724f;
+}
+
+.divider {
+  width: 50px;
+  height: 2px;
+  background-color: white;
+  margin-bottom: 30px;
+}
+
+.description {
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  max-width: 400px;
+  margin-bottom: 40px;
+}
+
+.learnMoreBtn {
+  width: fit-content;
+}
+
+/* --- Cột phải: Form Kính mờ (Glassmorphism) --- */
+.rightCol {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.glassCard {
+  width: 100%;
+  max-width: 450px;
+  background: rgba(255, 255, 255, 0.05); /* Nền kính hơi mờ */
+  backdrop-filter: blur(20px); /* Hiệu ứng làm nhòe nền đằng sau */
+  -webkit-backdrop-filter: blur(20px); /* Hỗ trợ cho Safari */
+  border: 1px solid rgba(255, 255, 255, 0.15); /* Viền kính sáng nhẹ */
+  border-radius: 30px;
+  padding: 50px 40px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); /* Đổ bóng tạo chiều sâu */
+}
+
+.formTitle {
+  color: white;
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 40px;
+  margin-top: 0;
+}
+
+.submitWrapper {
+  display: flex;
+  justify-content: flex-end; /* Đẩy nút sang phải giống thiết kế */
+  margin-top: 30px;
+}
+.passwordAction {
+  display: flex;
+  justify-content: flex-end; /* Đẩy nút sang phải giống thiết kế */
+  margin-top: 25px;
+
+  position: relative;
+  justify-content: space-between;
+}
+.passwordAction a {
+  color: #fff;
+}
+.passwordAction a:hover {
+  color: #f0724f;
+}
+.submitBtn {
+  padding: 12px 40px;
+}
+
+.require {
+  margin-bottom: 10px;
+}
+.require li {
+  color: #f0724f;
+}
+.errorMessage {
+  color: #ff6b6b;
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+.modal {
+  position: absolute;
+  /* Căn giữa tuyệt đối */
+  top: 10%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  /* Giao diện */
+  width: fit-content;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  z-index: 1000; /* Đảm bảo nằm trên các phần tử khác */
+
+  /* Hiệu ứng mượt mà khi hiện */
+  animation: fadeIn 0.3s ease-out;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+/* --- Responsive cho Mobile & Tablet --- */
+@media (max-width: 900px) {
+  .wrapper {
+    flex-direction: column;
+    padding: 20px;
+    gap: 40px;
+  }
+
+  .title {
+    font-size: 2.5rem;
+  }
+
+  .rightCol {
+    justify-content: center;
+  }
+
+  .glassCard {
+    padding: 30px 20px;
+  }
+}

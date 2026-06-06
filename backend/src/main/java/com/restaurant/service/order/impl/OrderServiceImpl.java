@@ -38,6 +38,7 @@ public class OrderServiceImpl implements OrderService {
     // QUERY: Lấy danh sách order, có thể filter theo status và ngày
     // ─────────────────────────────────────────────────────────────────────────
     @Override
+    @Transactional(readOnly = true)
     public PageResponse<List<OrderResponse>> getOrders(OrderStatus status, LocalDate date, Pageable pageable) {
         // Logic: Nếu có cả status và date → filter theo cả hai
         //        Nếu chỉ có status → filter theo status
@@ -78,6 +79,7 @@ public class OrderServiceImpl implements OrderService {
     // QUERY: Lấy một order theo id
     // ─────────────────────────────────────────────────────────────────────────
     @Override
+    @Transactional(readOnly = true)
     public OrderResponse getById(UUID id) {
         // Logic: Tìm order theo id, nếu không tìm thấy → ném ResourceNotFoundException
         Order order = orderRepository.findById(id)
@@ -89,6 +91,7 @@ public class OrderServiceImpl implements OrderService {
     // QUERY: Lấy order đang mở của một bàn (status = OPEN)
     // ─────────────────────────────────────────────────────────────────────────
     @Override
+    @Transactional(readOnly = true)
     public OrderResponse getOpenOrderByTable(UUID tableId) {
         // Logic: Tìm order có tableId khớp và status = OPEN
         Order order = orderRepository.findByTableIdAndStatus(tableId, OrderStatus.OPEN)
@@ -110,13 +113,8 @@ public class OrderServiceImpl implements OrderService {
         Table table = tableRepository.findById(request.getTableId())
                 .orElseThrow(() -> new ResourceNotFoundException("Table", "id", request.getTableId()));
 
-        // Bước 2: Kiểm tra trạng thái bàn — EMPTY hoặc SERVING (đã check-in đặt bàn) chưa có order OPEN
-        if (table.getStatus() == TableStatus.EMPTY) {
-            // ok
-        } else if (table.getStatus() == TableStatus.SERVING
-                && !orderRepository.existsByTableIdAndStatus(table.getId(), OrderStatus.OPEN)) {
-            // Khách đặt bàn đã arrived, chưa mở order
-        } else {
+        // Bước 2: Kiểm tra trạng thái bàn — không được có hóa đơn đang mở
+        if (orderRepository.existsByTableIdAndStatus(table.getId(), OrderStatus.OPEN)) {
             throw new BusinessException("Bàn đang không trống, không thể tạo đơn mới!");
         }
 
@@ -129,7 +127,7 @@ public class OrderServiceImpl implements OrderService {
         Order saved = orderRepository.save(order);
 
         // Bước 4: Cập nhật bàn sang trạng thái SERVING
-        table.setStatus(TableStatus.SERVING);
+        table.setIsActive(false);
         tableRepository.save(table);
 
         return mapToResponse(saved);
@@ -150,12 +148,12 @@ public class OrderServiceImpl implements OrderService {
         // Cập nhật trạng thái bàn tương ứng
         if (status == OrderStatus.CANCELLED) {
             tableRepository.findById(order.getTableId()).ifPresent(table -> {
-                table.setStatus(TableStatus.EMPTY);
+                table.setIsActive(true);
                 tableRepository.save(table);
             });
         } else if (status == OrderStatus.PAID) {
             tableRepository.findById(order.getTableId()).ifPresent(table -> {
-                table.setStatus(TableStatus.CLEANING);
+                // table is already inactive, computeStatus will return CLEANING
                 tableRepository.save(table);
             });
         }
@@ -181,7 +179,7 @@ public class OrderServiceImpl implements OrderService {
 
         // Bước 2: Tìm bàn tương ứng và chuyển sang CLEANING để nhân viên dọn dẹp
         tableRepository.findById(order.getTableId()).ifPresent(table -> {
-            table.setStatus(TableStatus.CLEANING);
+            // table is already inactive, computeStatus will return CLEANING
             tableRepository.save(table);
         });
 

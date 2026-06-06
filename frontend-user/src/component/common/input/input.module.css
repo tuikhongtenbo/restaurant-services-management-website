@@ -1,0 +1,63 @@
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.inputField {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background-color: rgba(255, 255, 255, 0.15); /* Nền bán trong suốt */
+  border: 1px solid transparent;
+  color: white;
+  font-size: 0.9rem;
+  outline: none;
+  transition:
+    background-color 0.3s,
+    border 0.3s;
+  box-sizing: border-box;
+}
+
+.inputField::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.inputField:focus {
+  background-color: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.option {
+  color: #333; /* Chữ màu tối khi xổ xuống để dễ đọc */
+}
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputField {
+  width: 100%;
+  padding-right: 40px; /* Tạo khoảng trống để icon không đè lên chữ */
+}
+
+.iconContainer {
+  position: absolute;
+  right: 15px;
+  cursor: pointer;
+  color: #fff;
+}
+.errorBorder {
+  border: 1px solid red !important; /* Dùng !important để ghi đè border mặc định */
+}

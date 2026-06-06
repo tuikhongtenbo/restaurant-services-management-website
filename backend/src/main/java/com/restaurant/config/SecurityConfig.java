@@ -42,7 +42,8 @@ public class SecurityConfig {
             "/api/auth/customer/register",
             "/api/auth/customer/login",
             "/api/payments/vnpay/return",
-            "/api/payments/vnpay/ipn"
+            "/api/payments/vnpay/ipn",
+            "/api/public/**"
     };
 
     @Bean
@@ -75,8 +76,9 @@ public class SecurityConfig {
         CorsConfiguration corsConfig = new CorsConfiguration();
         corsConfig.setAllowedOriginPatterns(List.of("*"));
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "x-auth-token"));
+        corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "x-auth-token", "X-Staff-ID"));
         corsConfig.setExposedHeaders(List.of("x-auth-token"));
+        corsConfig.setAllowCredentials(false);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);
         return source;
