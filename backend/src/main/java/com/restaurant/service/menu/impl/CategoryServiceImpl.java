@@ -26,9 +26,9 @@ public class CategoryServiceImpl implements CategoryService {
     // Lấy danh sách tên category — dùng cho filter dropdown
     @Override
     public List<String> getAllCategories() {
-        // Lấy distinct category từ DB — chỉ những category có món AVAILABLE
+        // Lấy distinct category từ DB — chỉ những category có món AVAILABLE và chưa bị xóa
         return menuItemRepository
-                .findByStatus(MenuItemStatus.AVAILABLE)
+                .findByStatusAndDeletedAtIsNullOrderBySortOrderAsc(MenuItemStatus.AVAILABLE)
                 .stream()
                 .map(MenuItem::getCategory)
                 .distinct()
@@ -43,7 +43,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         // Lấy tất cả món AVAILABLE, sắp xếp theo sortOrder
         List<MenuItem> availableItems = menuItemRepository
-                .findByStatusOrderBySortOrderAsc(MenuItemStatus.AVAILABLE);
+                .findByStatusAndDeletedAtIsNullOrderBySortOrderAsc(MenuItemStatus.AVAILABLE);
 
         // Nhóm theo category bằng stream
         // groupingBy → Map<String, List<MenuItem>>

@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -40,6 +41,7 @@ public class MenuServiceImpl implements MenuService {
         // Lấy tất cả rồi filter — đơn giản, phù hợp data nhỏ.
         // Khi dùng pageable với filter ở memory, cần tạo lại PageImpl với tổng chính xác.
         var filteredItems = menuItemRepository.findAll().stream()
+                .filter(item -> item.getDeletedAt() == null)
                 .filter(item -> category == null || category.isBlank() || category.equals(item.getCategory()))
                 .filter(item -> status == null || item.getStatus() == status)
                 .filter(item -> tag == null || tag.isBlank() || (item.getTags() != null && item.getTags().contains(tag)))
@@ -68,13 +70,13 @@ public class MenuServiceImpl implements MenuService {
 
         if (category != null && !category.isBlank()) {
             return menuItemRepository
-                    .findByCategoryAndStatusOrderBySortOrderAsc(
+                    .findByCategoryAndStatusAndDeletedAtIsNullOrderBySortOrderAsc(
                         category, MenuItemStatus.AVAILABLE, pageable)
                     .map(this::toPublicResponse);
         }
 
         return menuItemRepository
-                .findByStatusOrderBySortOrderAsc(MenuItemStatus.AVAILABLE, pageable)
+                .findByStatusAndDeletedAtIsNullOrderBySortOrderAsc(MenuItemStatus.AVAILABLE, pageable)
                 .map(this::toPublicResponse);
     }
 
@@ -93,7 +95,7 @@ public class MenuServiceImpl implements MenuService {
     public MenuItemResponse create(CreateMenuItemRequest request, UUID updatedBy) {
 
         // Kiểm tra tên món chưa tồn tại trong category
-        if (menuItemRepository.existsByCategoryAndName(
+        if (menuItemRepository.existsByCategoryAndNameAndDeletedAtIsNull(
                 request.getCategory(), request.getName())) {
             throw new BusinessException(
                 "Món '" + request.getName()
@@ -181,6 +183,7 @@ public class MenuServiceImpl implements MenuService {
         // Soft delete — ẩn món, không xóa khỏi DB
         // Giữ lại để order_items cũ vẫn tham chiếu được
         item.setStatus(MenuItemStatus.HIDDEN);
+        item.setDeletedAt(OffsetDateTime.now());
     }
 
     // 10. GET PRICE HISTORY 
@@ -225,8 +228,12 @@ public class MenuServiceImpl implements MenuService {
     // 2 HELPERS 
 
     private MenuItem findOrThrow(UUID id) {
-        return menuItemRepository.findById(id)
+        MenuItem item = menuItemRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy món: " + id));
+        if (item.getDeletedAt() != null) {
+            throw new BusinessException("Không tìm thấy món: " + id);
+        }
+        return item;
     }
 
     private MenuItemResponse toResponse(MenuItem item) {
@@ -244,6 +251,7 @@ public class MenuServiceImpl implements MenuService {
                 .status(item.getStatus())
                 .sortOrder(item.getSortOrder())
                 .createdAt(item.getCreatedAt() != null ? item.getCreatedAt().toLocalDateTime() : null)
+                .deletedAt(item.getDeletedAt() != null ? item.getDeletedAt().toLocalDateTime() : null)
                 .build();
     }
 
@@ -273,7 +281,7 @@ public class MenuServiceImpl implements MenuService {
     @Override
     @Transactional(readOnly = true)
     public List<MenuItemResponse> getRecommended() {
-        return menuItemRepository.findByStatusOrderBySortOrderAsc(MenuItemStatus.AVAILABLE).stream()
+        return menuItemRepository.findByStatusAndDeletedAtIsNullOrderBySortOrderAsc(MenuItemStatus.AVAILABLE).stream()
                 .limit(5)
                 .map(this::toResponse)
                 .toList();

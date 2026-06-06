@@ -24,6 +24,7 @@ public class MenuItemResponse {
     private MenuItemStatus status;
     private Integer sortOrder;
     private LocalDateTime createdAt;
+    private LocalDateTime deletedAt;
     // updatedBy không trả ra — không cần thiết với client
 }
 
