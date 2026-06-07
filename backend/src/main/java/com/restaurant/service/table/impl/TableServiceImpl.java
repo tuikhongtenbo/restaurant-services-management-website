@@ -66,7 +66,7 @@ public class TableServiceImpl implements TableService {
                 .id(table.getId())
                 .number(table.getNumber())
                 .capacity(table.getCapacity())
-                .status(table.getStatus().name())
+                .status(table.getStatus() != null ? table.getStatus().name() : TableStatus.EMPTY.name())
                 .area(table.getArea())
                 .isActive(table.getIsActive())
                 .updatedAt(table.getUpdatedAt())

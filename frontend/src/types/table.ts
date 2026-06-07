@@ -39,13 +39,17 @@ export interface UpdateTableRequest {
  * Request mở bàn — match backend OpenTableRequest DTO
  */
 export interface OpenTableRequest {
-  partySize: number;
-  note?: string;
+  reservationId?: string;
+  actualGuestCount: number;
 }
 
 /**
  * Response sơ đồ bàn theo khu vực — match backend TableLayoutResponse DTO
  */
 export interface TableLayoutResponse {
-  areas: Record<string, Table[]>;
+  tables: Table[];
+  total: number;
+  available: number;
+  occupied: number;
+  cleaning: number;
 }
