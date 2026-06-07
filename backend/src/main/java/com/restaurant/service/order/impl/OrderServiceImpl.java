@@ -71,7 +71,7 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
 
         // PageResponse.of() là static factory của record PageResponse
-        return PageResponse.of(content, page.getNumber(), page.getSize(), page.getTotalElements());
+        return PageResponse.<OrderResponse>of(content, page.getNumber(), page.getSize(), page.getTotalElements());
     }
 
     // ─────────────────────────────────────────────────────────────────────────

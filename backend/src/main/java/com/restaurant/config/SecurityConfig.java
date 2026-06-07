@@ -42,7 +42,8 @@ public class SecurityConfig {
             "/api/auth/customer/register",
             "/api/auth/customer/login",
             "/api/payments/vnpay/return",
-            "/api/payments/vnpay/ipn"
+            "/api/payments/vnpay/ipn",
+            "/api/public/**"
     };
 
     @Bean
