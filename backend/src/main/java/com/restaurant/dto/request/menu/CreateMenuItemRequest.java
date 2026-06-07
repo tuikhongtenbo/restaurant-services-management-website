@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Data
 public class CreateMenuItemRequest {
@@ -29,8 +29,8 @@ public class CreateMenuItemRequest {
     private BigDecimal price;
 
     private BigDecimal promoPrice;
-    private LocalTime promoStart;
-    private LocalTime promoEnd;
+    private LocalDateTime promoStart;
+    private LocalDateTime promoEnd;
     private String tags;
     private Integer sortOrder;
 }

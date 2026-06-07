@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;  // Dùng BigDecimal cho tiền — KHÔNG dùng double
-import java.time.LocalTime;   // Giờ trong ngày: 17:00, 21:00
+import java.time.LocalDateTime;   // Giờ trong ngày: 17:00, 21:00
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -44,10 +44,10 @@ public class MenuItem {
     private BigDecimal promoPrice = null;  // Giá KM: 120000 — null = không KM
 
     @Column(name = "promo_start")
-    private LocalTime promoStart = null;  // KM từ 17:00
+    private LocalDateTime promoStart = null;
 
     @Column(name = "promo_end")
-    private LocalTime promoEnd = null;    // KM đến 21:00
+    private LocalDateTime promoEnd = null;
 
     @Column(columnDefinition = "TEXT")
     private String tags = null;  // "spicy,popular,new" — tìm kiếm dễ hơn
@@ -70,6 +70,9 @@ public class MenuItem {
 
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
+
+    @Column(name = "deleted_at")
+    private OffsetDateTime deletedAt;
 
     @PrePersist
     protected void onCreate() {
