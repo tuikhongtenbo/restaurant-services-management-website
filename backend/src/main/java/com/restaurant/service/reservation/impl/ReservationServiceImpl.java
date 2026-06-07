@@ -25,6 +25,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -83,7 +84,7 @@ public class ReservationServiceImpl implements ReservationService {
      *   4. Pool còn bàn nào capacity >= partySize mới → còn chỗ.
      */
     private boolean hasCapacity(Integer partySize, OffsetDateTime wantedTime, UUID excludeReservationId) {
-        List<Table> allTables = tableRepository.findByIsActiveTrueAndDeleteAtIsNull();
+        List<Table> allTables = tableRepository.findByIsActiveTrueAndDeletedAtIsNull();
         if (allTables.isEmpty()) return false;
 
         List<Reservation> blocking = reservationRepository
@@ -104,7 +105,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         List<Table> availablePool = allTables.stream()
                 .filter(t -> !assignedTableIds.contains(t.getId()))
-                .collect(Collectors.toCollection(java.util.ArrayList::new));
+                .collect(Collectors.toCollection(ArrayList::new));
 
         // Step 2: simulate gán bàn cho reservation chưa có tableId
         // Sắp xếp partySize tăng dần → bàn nhỏ được fill trước, tránh lãng phí bàn lớn
@@ -368,7 +369,7 @@ public class ReservationServiceImpl implements ReservationService {
         OffsetDateTime soon = now.plusMinutes(ASSIGN_BEFORE_MINUTES);
 
         reservationRepository.findUnassignedUpcoming(now, soon).forEach(reservation ->
-            tableRepository.findByIsActiveTrueAndStatusAndDeleteAtIsNull(TableStatus.EMPTY)
+            tableRepository.findByIsActiveTrueAndStatusAndDeletedAtIsNull(TableStatus.EMPTY)
                     .stream()
                     .filter(t -> t.getCapacity() >= reservation.getPartySize())
                     .min(Comparator.comparingInt(t -> t.getCapacity() - reservation.getPartySize()))
