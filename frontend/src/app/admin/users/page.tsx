@@ -160,14 +160,14 @@ export default function UsersPage() {
       title: "Điện thoại",
       dataIndex: "phone",
       key: "phone",
-      width: 200,
+      width: 150,
       render: (val: string) => val || <span className="text-zinc-300">—</span>,
     },
     {
       title: "Vai trò",
       dataIndex: "roles",
       key: "roles",
-      width: 180,
+      width: 100,
       render: (roles: string[]) => (
         <div className="flex gap-1 flex-wrap">
           {roles.map((role) => (
@@ -188,21 +188,6 @@ export default function UsersPage() {
         return <Tag color={cfg.color}>{cfg.label}</Tag>;
       },
     },
-    {
-      title: "Chi tiết",
-      key: "action",
-      width: 100,
-      align: "center" as const,
-      render: (_: any, record: User) => (
-        <Tooltip title="Xem chi tiết">
-          <Button
-            type="text"
-            icon={<Eye size={18} />}
-            onClick={(e) => { e.stopPropagation(); handleViewUser(record); }}
-          />
-        </Tooltip>
-      ),
-    },
   ];
 
   return (
@@ -211,7 +196,7 @@ export default function UsersPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900">Quản lý Nhân sự</h1>
-          <p className="text-zinc-500 mt-1">Danh sách tài khoản nhân viên và phân quyền hệ thống</p>
+          <p className="text-zinc-500 mt-1">Danh sách tài khoản nhân viên</p>
         </div>
         <div className="flex items-center gap-3">
           <Select

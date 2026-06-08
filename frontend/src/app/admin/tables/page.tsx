@@ -92,7 +92,7 @@ export default function TablesPage() {
       key: area,
       label: `${area} (${tables.length})`,
       children: (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 pt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5 pt-4">
           {tables.map((table) => (
             <TableCard
               key={table.id}
@@ -128,14 +128,14 @@ export default function TablesPage() {
         </div>
 
         <div className="flex gap-3">
-          <Button 
-            icon={<RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />} 
+          <Button
+            icon={<RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />}
             onClick={handleRefresh}
           >
             Làm mới
           </Button>
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<Plus size={16} />}
             onClick={handleCreateNew}
           >
