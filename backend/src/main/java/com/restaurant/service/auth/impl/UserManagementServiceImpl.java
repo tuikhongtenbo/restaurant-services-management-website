@@ -41,6 +41,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     //  NOTE: role và status không filter đồng thời — role được ưu tiên trước
     // ─────────────────────────────────────────────────────────────────────────
     @Override
+    @Transactional(readOnly = true)
     public Page<UserResponse> getUsers(String role, String status, Pageable pageable) {
         if (role != null) {
             // Filter theo tên role — chuyển toUpperCase để đồng nhất với dữ liệu DB
