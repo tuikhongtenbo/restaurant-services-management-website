@@ -5,6 +5,7 @@ target/
 !**/src/test/**/target/
 AGENTS.md
 CLAUDE.md
+LOGIC_INCONSISTENCY_REPORT.md
 
 ### STS ###
 .apt_generated
