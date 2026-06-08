@@ -29,6 +29,7 @@ export default function OrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
   const [totalElements, setTotalElements] = useState(0);
+  const [stats, setStats] = useState({ open: 0, paid: 0, cancelled: 0, revenue: 0 });
 
   // Detail modal
   const [detailOpen, setDetailOpen] = useState(false);
@@ -39,21 +40,42 @@ export default function OrdersPage() {
       if (showRefresh) setRefreshing(true);
       else setLoading(true);
 
-      const statusParam = selectedStatus === "ALL" ? undefined : (selectedStatus as OrderStatus);
-      const dateStr = selectedDate.format("YYYY-MM-DD");
-
+      // Lấy toàn bộ đơn hàng (size: 10000) để filter client-side, khắc phục lỗi lệch múi giờ của backend
       const res = await orderService.getOrders({
-        status: statusParam,
-        date: dateStr,
-        page: currentPage - 1,
-        size: pageSize,
+        size: 10000,
       });
 
-      // Response structure: ApiResponse<PageResponse<Order[]>>
-      // So data is at res.data
-      const pageData = res.data;
-      setOrders(pageData.data);
-      setTotalElements(pageData.totalElements);
+      const allOrders = res.data.data || [];
+      
+      // 1. Lọc theo ngày dựa vào local timezone (bỏ qua timezone UTC của backend)
+      const targetStart = selectedDate.startOf("day").valueOf();
+      const targetEnd = selectedDate.endOf("day").valueOf();
+      
+      let filteredOrders = allOrders.filter((ord) => {
+        const d = dayjs(ord.openedAt).valueOf();
+        return d >= targetStart && d <= targetEnd;
+      });
+
+      // 2. Tính toán Stats dựa trên tất cả đơn hàng TRONG NGÀY (không bị giới hạn bởi phân trang)
+      let open = 0, paid = 0, cancelled = 0, revenue = 0;
+      filteredOrders.forEach(o => {
+        if (o.status === "OPEN") open++;
+        else if (o.status === "PAID") { paid++; revenue += o.subtotal || 0; }
+        else if (o.status === "CANCELLED") cancelled++;
+      });
+      setStats({ open, paid, cancelled, revenue });
+
+      // 3. Lọc theo trạng thái
+      if (selectedStatus !== "ALL") {
+        filteredOrders = filteredOrders.filter(ord => ord.status === selectedStatus);
+      }
+
+      // 4. Phân trang Client-side
+      setTotalElements(filteredOrders.length);
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      
+      setOrders(filteredOrders.slice(startIndex, endIndex));
     } catch (error: any) {
       message.error(error.message || "Lỗi tải danh sách đơn hàng");
     } finally {
@@ -74,10 +96,10 @@ export default function OrdersPage() {
   };
 
   // Stats
-  const openCount = orders.filter((o) => o.status === "OPEN").length;
-  const paidCount = orders.filter((o) => o.status === "PAID").length;
-  const cancelledCount = orders.filter((o) => o.status === "CANCELLED").length;
-  const totalRevenue = orders.filter((o) => o.status === "PAID").reduce((sum, o) => sum + o.subtotal, 0);
+  const openCount = stats.open;
+  const paidCount = stats.paid;
+  const cancelledCount = stats.cancelled;
+  const totalRevenue = stats.revenue;
 
   const columns = [
     {
@@ -141,7 +163,7 @@ export default function OrdersPage() {
       key: "status",
       width: 130,
       render: (status: OrderStatus) => {
-        const cfg = statusConfig[status];
+        const cfg = statusConfig[status] || { label: "Không xác định", color: "default" };
         return <Tag color={cfg.color}>{cfg.label}</Tag>;
       },
     },
