@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useState } from 'react';
-import { Layout, Menu, theme, Dropdown, Avatar, Modal } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Layout, Menu, theme, Dropdown, Avatar, Modal, Tag } from 'antd';
 import {
   LayoutDashboard,
   MenuSquare,
@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { authService } from '@/services/auth.service';
+import { User as UserType } from '@/types/user';
 
 const { Header, Sider, Content } = Layout;
 
@@ -38,6 +40,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await authService.getCurrentUser();
+        setCurrentUser(res.data);
+      } catch (err) {
+        console.error("Failed to fetch user in layout:", err);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const handleLogout = () => {
     Modal.confirm({
@@ -73,8 +89,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider trigger={null} collapsible collapsed={collapsed} theme="dark" width={250}>
-        <div className="h-16 flex items-center justify-center border-b border-gray-800">
+      <Sider 
+        trigger={null} 
+        collapsible 
+        collapsed={collapsed} 
+        theme="dark" 
+        width={250}
+        style={{ overflow: 'auto', height: '100vh', position: 'fixed', left: 0, top: 0, bottom: 0, zIndex: 50 }}
+      >
+        <div className="h-16 flex items-center justify-center border-b border-gray-800 sticky top-0 bg-[#001529] z-10">
           <h1 className={`text-white font-bold transition-all duration-300 ${collapsed ? 'text-sm' : 'text-xl'}`}>
             {collapsed ? 'RMN' : 'Restaurant Management'}
           </h1>
@@ -87,22 +110,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           className="mt-4"
         />
       </Sider>
-      <Layout>
-        <Header style={{ padding: 12, background: colorBgContainer }} className="flex justify-between items-center px-6 shadow-sm z-10">
+      <Layout style={{ marginLeft: collapsed ? 80 : 250, transition: 'all 0.2s ease' }}>
+        <Header 
+          style={{ 
+            padding: '0 24px', 
+            background: colorBgContainer,
+            position: 'sticky',
+            top: 0,
+            zIndex: 40,
+          }} 
+          className="flex justify-between items-center shadow-sm border-b border-gray-100"
+        >
           <div className="flex items-center gap-4">
             <button
               onClick={() => setCollapsed(!collapsed)}
-              className="p-2 hover:bg-gray-100 rounded-md transition-colors cursor-pointer outline-none border-none bg-transparent"
+              className="p-2 hover:bg-gray-100 rounded-md transition-colors cursor-pointer outline-none border-none bg-transparent flex items-center justify-center"
             >
               <MenuIcon size={20} />
             </button>
-            <h2 className="text-lg font-semibold m-0">Trang quản trị</h2>
+            <h2 className="text-lg font-semibold m-0 text-gray-800">Trang quản trị</h2>
           </div>
 
           <Dropdown menu={{ items: userMenuItems as any }} trigger={['hover']} placement="bottomRight">
             <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 pr-3 rounded-full border border-transparent hover:border-gray-200 transition-all">
-              <Avatar style={{ backgroundColor: '#e6f4ff', color: '#1677ff' }} icon={<UserIcon size={16} />} />
-              <span className="text-sm font-medium text-gray-700 pr-10">Admin</span>
+              <Avatar 
+                style={{ backgroundColor: '#e6f4ff', color: '#1677ff' }} 
+                icon={!currentUser && <UserIcon size={16} />}
+              >
+                {currentUser && currentUser.fullName.charAt(0).toUpperCase()}
+              </Avatar>
+              <span className="text-sm font-medium text-gray-700 pr-2">
+                {currentUser ? currentUser.fullName : 'Đang tải...'}
+              </span>
             </div>
           </Dropdown>
         </Header>
