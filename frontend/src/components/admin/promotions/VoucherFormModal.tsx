@@ -1,124 +1,107 @@
-import React, { useEffect, useState } from "react";
-import { Modal, Form, Input, InputNumber, Select, DatePicker, message, Row, Col } from "antd";
-import { voucherService } from "@/services/voucher.service";
-import { Voucher, VoucherDiscountType, CustomerTier } from "@/types/voucher";
-import dayjs from "dayjs";
+"use client";
 
-const { TextArea } = Input;
-const { RangePicker } = DatePicker;
+import React, { useEffect } from "react";
+import { Modal, Form, Input, Select, InputNumber, DatePicker, Switch, Row, Col } from "antd";
+import dayjs from "dayjs";
+import { Voucher, VoucherDiscountType, CustomerTier } from "@/types/voucher";
 
 interface VoucherFormModalProps {
   open: boolean;
-  initialData?: Voucher;
   onCancel: () => void;
-  onSuccess: () => void;
+  onSubmit: (values: any) => Promise<void>;
+  initialValues: Voucher | null;
+  loading: boolean;
 }
 
 export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
   open,
-  initialData,
   onCancel,
-  onSuccess,
+  onSubmit,
+  initialValues,
+  loading,
 }) => {
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
-  const isEdit = !!initialData;
+  const discountType = Form.useWatch("discountType", form);
 
   useEffect(() => {
     if (open) {
-      if (initialData) {
+      if (initialValues) {
         form.setFieldsValue({
-          ...initialData,
+          ...initialValues,
           dateRange: [
-            initialData.validFrom ? dayjs(initialData.validFrom) : undefined,
-            initialData.validUntil ? dayjs(initialData.validUntil) : undefined,
+            initialValues.validFrom ? dayjs(initialValues.validFrom) : undefined,
+            initialValues.validUntil ? dayjs(initialValues.validUntil) : undefined,
           ],
         });
       } else {
         form.resetFields();
+        // Set defaults for new voucher
         form.setFieldsValue({
-          discountType: "FIXED",
-          minTier: "MEMBER",
+          discountType: "PERCENT" as VoucherDiscountType,
+          minTier: "MEMBER" as CustomerTier,
+          isActive: true,
         });
       }
     }
-  }, [open, initialData, form]);
+  }, [open, initialValues, form]);
 
-  const handleFinish = async (values: any) => {
+  const handleOk = async () => {
     try {
-      setLoading(true);
-
-      const payload = {
-        code: values.code.toUpperCase(),
-        description: values.description,
-        discountType: values.discountType,
-        discountValue: values.discountValue,
-        minOrderValue: values.minOrderValue,
-        minTier: values.minTier,
-        minPoints: values.minPoints,
-        validFrom: values.dateRange?.[0]?.toISOString() || undefined,
-        validUntil: values.dateRange?.[1]?.toISOString() || undefined,
-        usageLimit: values.usageLimit,
-      };
-
-      if (isEdit) {
-        await voucherService.updateVoucher(initialData!.id, payload);
-        message.success("Cập nhật khuyến mãi thành công!");
-      } else {
-        await voucherService.createVoucher(payload);
-        message.success("Tạo khuyến mãi mới thành công!");
+      const values = await form.validateFields();
+      
+      // Transform dateRange to validFrom and validUntil
+      const payload = { ...values };
+      if (values.dateRange && values.dateRange.length === 2) {
+        payload.validFrom = values.dateRange[0]?.toISOString();
+        payload.validUntil = values.dateRange[1]?.toISOString();
       }
+      delete payload.dateRange;
 
-      form.resetFields();
-      onSuccess();
-    } catch (error: any) {
-      message.error(error.message || "Đã xảy ra lỗi.");
-    } finally {
-      setLoading(false);
+      await onSubmit(payload);
+    } catch (error) {
+      console.error("Validation failed:", error);
     }
   };
 
+  const isPercent = discountType === "PERCENT";
+
   return (
     <Modal
-      title={isEdit ? "Cập nhật Khuyến mãi" : "Tạo Khuyến mãi mới"}
+      title={initialValues ? "Cập nhật Khuyến mãi" : "Thêm Khuyến mãi mới"}
       open={open}
+      onOk={handleOk}
       onCancel={onCancel}
-      onOk={() => form.submit()}
       confirmLoading={loading}
-      okText={isEdit ? "Cập nhật" : "Tạo mới"}
-      cancelText="Hủy"
       width={700}
+      destroyOnClose
+      okText={initialValues ? "Cập nhật" : "Tạo mới"}
+      cancelText="Hủy"
     >
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleFinish}
-        className="mt-4"
-      >
+      <Form form={form} layout="vertical" className="mt-4">
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
               name="code"
               label="Mã Voucher"
               rules={[
-                { required: true, message: "Vui lòng nhập mã Voucher" },
-                { pattern: /^[A-Za-z0-9_]+$/, message: "Mã không được chứa ký tự đặc biệt hoặc khoảng trắng" }
+                { required: true, message: "Vui lòng nhập mã voucher" },
+                { pattern: /^[A-Z0-9]+$/, message: "Mã chỉ chứa chữ in hoa và số, không khoảng trắng" }
               ]}
-              normalize={(value) => value?.toUpperCase()}
+              normalize={(value) => (value || "").toUpperCase().replace(/\s/g, "")}
             >
-              <Input placeholder="VD: SUMMER2024" disabled={isEdit} />
+              <Input 
+                placeholder="VD: SUMMER2026" 
+                disabled={!!initialValues} // Disable editing code after creation
+                maxLength={20}
+              />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item
-              name="discountType"
-              label="Loại giảm giá"
-              rules={[{ required: true }]}
+              name="description"
+              label="Mô tả ngắn"
             >
-              <Select>
-                <Select.Option value="FIXED">Giảm tiền mặt (VNĐ)</Select.Option>
-                <Select.Option value="PERCENT">Giảm phần trăm (%)</Select.Option>
-              </Select>
+              <Input placeholder="VD: Giảm 20% cho đơn từ 500k" />
             </Form.Item>
           </Col>
         </Row>
@@ -126,37 +109,38 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
-              noStyle
-              shouldUpdate={(prevValues, currentValues) => prevValues.discountType !== currentValues.discountType}
+              name="discountType"
+              label="Loại giảm giá"
+              rules={[{ required: true, message: "Vui lòng chọn loại giảm giá" }]}
             >
-              {({ getFieldValue }) => {
-                const isPercent = getFieldValue('discountType') === 'PERCENT';
-                return (
-                  <Form.Item
-                    name="discountValue"
-                    label={isPercent ? "Mức giảm (%)" : "Số tiền giảm (VNĐ)"}
-                    rules={[{ required: true, message: "Vui lòng nhập mức giảm" }]}
-                  >
-                    <InputNumber
-                      className="w-full"
-                      min={0}
-                      max={isPercent ? 100 : undefined}
-                      formatter={value => isPercent ? `${value}` : `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                    />
-                  </Form.Item>
-                );
-              }}
+              <Select>
+                <Select.Option value="PERCENT">Theo phần trăm (%)</Select.Option>
+                <Select.Option value="FIXED">Số tiền cố định (VNĐ)</Select.Option>
+              </Select>
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item
-              name="minOrderValue"
-              label="Đơn hàng tối thiểu (VNĐ)"
+              name="discountValue"
+              label="Mức giảm giá"
+              rules={[
+                { required: true, message: "Vui lòng nhập mức giảm" },
+                { 
+                  validator: async (_, value) => {
+                    if (value === undefined || value === null) return;
+                    if (value <= 0) throw new Error("Mức giảm phải lớn hơn 0");
+                    if (isPercent && value > 100) throw new Error("Phần trăm không được vượt quá 100%");
+                  }
+                }
+              ]}
             >
               <InputNumber
                 className="w-full"
-                min={0}
-                formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                min={1}
+                max={isPercent ? 100 : undefined}
+                formatter={(value) => isPercent ? `${value}%` : `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                parser={(value) => value!.replace(/%|\s?|(,*)/g, "") as any}
+                addonAfter={isPercent ? "%" : "VNĐ"}
               />
             </Form.Item>
           </Col>
@@ -165,23 +149,32 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
-              name="minTier"
-              label="Hạng khách hàng áp dụng"
+              name="minOrderValue"
+              label="Giá trị đơn tối thiểu (VNĐ)"
+              rules={[{ type: "number", min: 0, message: "Giá trị không hợp lệ" }]}
             >
-              <Select>
-                <Select.Option value="MEMBER">Thành viên (Member)</Select.Option>
-                <Select.Option value="BRONZE">Đồng (Bronze)</Select.Option>
-                <Select.Option value="SILVER">Bạc (Silver)</Select.Option>
-                <Select.Option value="GOLD">Vàng (Gold)</Select.Option>
-              </Select>
+              <InputNumber
+                className="w-full"
+                min={0}
+                step={10000}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                parser={(value) => value!.replace(/\s?|(,*)/g, "") as any}
+                placeholder="VD: 500,000"
+              />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item
-              name="minPoints"
-              label="Điểm tích lũy tối thiểu"
+              name="minTier"
+              label="Hạng khách hàng áp dụng"
+              rules={[{ required: true, message: "Vui lòng chọn hạng" }]}
             >
-              <InputNumber className="w-full" min={0} />
+              <Select>
+                <Select.Option value="MEMBER">Tất cả khách hàng (Member)</Select.Option>
+                <Select.Option value="BRONZE">Từ hạng Đồng (Bronze) trở lên</Select.Option>
+                <Select.Option value="SILVER">Từ hạng Bạc (Silver) trở lên</Select.Option>
+                <Select.Option value="GOLD">Chỉ hạng Vàng (Gold)</Select.Option>
+              </Select>
             </Form.Item>
           </Col>
         </Row>
@@ -189,26 +182,58 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
-              name="dateRange"
-              label="Thời gian áp dụng"
+              name="usageLimit"
+              label="Giới hạn số lượt dùng"
+              rules={[{ type: "number", min: 1, message: "Số lượt phải lớn hơn 0" }]}
             >
-              <RangePicker showTime className="w-full" format="DD/MM/YYYY HH:mm" />
+              <InputNumber
+                className="w-full"
+                min={1}
+                placeholder="Để trống nếu không giới hạn"
+              />
             </Form.Item>
           </Col>
           <Col span={12}>
             <Form.Item
-              name="usageLimit"
-              label="Giới hạn số lượt dùng"
-              tooltip="Để trống nếu không giới hạn"
+              name="minPoints"
+              label="Điểm tối thiểu yêu cầu"
+              rules={[{ type: "number", min: 0, message: "Điểm không hợp lệ" }]}
             >
-              <InputNumber className="w-full" min={1} />
+              <InputNumber
+                className="w-full"
+                min={0}
+                placeholder="Để trống nếu không yêu cầu điểm"
+              />
             </Form.Item>
           </Col>
         </Row>
 
-        <Form.Item name="description" label="Mô tả chi tiết">
-          <TextArea rows={3} placeholder="Điều kiện áp dụng, đối tượng khách hàng..." />
-        </Form.Item>
+        <Row gutter={16}>
+          <Col span={16}>
+            <Form.Item
+              name="dateRange"
+              label="Thời hạn sử dụng"
+            >
+              <DatePicker.RangePicker 
+                showTime 
+                className="w-full"
+                format="DD/MM/YYYY HH:mm"
+                placeholder={["Bắt đầu", "Kết thúc"]}
+              />
+            </Form.Item>
+          </Col>
+          {initialValues && (
+            <Col span={8}>
+              <Form.Item
+                name="isActive"
+                label="Trạng thái"
+                valuePropName="checked"
+              >
+                <Switch checkedChildren="Hoạt động" unCheckedChildren="Tạm dừng" />
+              </Form.Item>
+            </Col>
+          )}
+        </Row>
       </Form>
     </Modal>
   );
