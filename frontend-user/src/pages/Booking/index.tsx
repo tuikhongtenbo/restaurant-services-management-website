@@ -8,6 +8,20 @@ import Footer from "../../component/layouts/Footer/footer";
 import { reservationService } from "../../services/reservationService";
 import type { ApiError } from "../../types/auth";
 
+const generateTimeSlots = () => {
+  const slots = [];
+  // Giả sử giờ mở cửa từ 08:00 đến 22:00, mỗi slot cách nhau 30 phút
+  for (let i = 10; i <= 18; i++) {
+    slots.push(`${i.toString().padStart(2, "0")}:00`);
+    if (i !== 18) {
+      slots.push(`${i.toString().padStart(2, "0")}:30`);
+    }
+  }
+  return slots;
+};
+
+const TIME_SLOTS = generateTimeSlots();
+
 export default function BookingPage() {
   const [activeTab, setActiveTab] = useState<"booking" | "check">("booking");
   const [loading, setLoading] = useState(false);
@@ -230,10 +244,11 @@ export default function BookingPage() {
                         disabled={loading}
                       >
                         <option value="">Chọn giờ</option>
-                        <option value="18:00">18:00</option>
-                        <option value="19:00">19:00</option>
-                        <option value="20:00">20:00</option>
-                        <option value="21:00">21:00</option>
+                        {TIME_SLOTS.map((time) => (
+                          <option key={time} value={time}>
+                            {time}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>

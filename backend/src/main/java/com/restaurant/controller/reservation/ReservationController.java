@@ -94,6 +94,14 @@ public class ReservationController {
         return reservationService.cancel(id, staffId, request.getReason());
     }
 
+    @PutMapping("/{id}/reject")
+    public ReservationResponse rejectReservation(
+            @PathVariable UUID id,
+            @RequestBody CancelReservationRequest request,
+            @RequestHeader(value = "X-Staff-ID", required = false) UUID staffId) {
+        return reservationService.reject(id, staffId, request.getReason());
+    }
+
     /**
      * Trả về danh sách giờ còn trống trong ngày cho partySize cho trước.
      * Wrapper của suggestBookingSlots — chỉ lấy availableSlots của ngày đó.

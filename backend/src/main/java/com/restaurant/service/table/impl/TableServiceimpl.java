@@ -59,25 +59,8 @@ public class TableServiceImpl implements TableService {
         return reservationRepository.existsByTableIdAndStatus(tableId, ReservationStatus.CONFIRMED);
     }
 
-    private TableStatus computeStatus(Table table) {
-        if (!table.getIsActive()) {
-            if (isTableServing(table.getId())) {
-                return TableStatus.SERVING;
-            } else if (isTableReserved(table.getId())) {
-                return TableStatus.RESERVED;
-            }
-            // Nếu bàn đã được kích hoạt (isActive=false) mà không có đơn OPEN hay đặt bàn CONFIRMED, 
-            // có nghĩa là đơn đã được thanh toán (PAID) và đang chờ dọn dẹp (PAID status cho UI)
-            return TableStatus.PAID;
-        }
-        return TableStatus.OPEN;
-    }
-
     private boolean isNotSoftDeleted(Table table) {
-        // Nếu isActive = true -> Bàn đang hoạt động (trống)
-        if (table.getIsActive()) return true;
-        // Nếu isActive = false -> Có thể đang phục vụ, đã đặt, hoặc bị xoá (soft delete)
-        return isTableServing(table.getId()) || isTableReserved(table.getId());
+        return table.getIsActive();
     }
 
     private TableResponse toResponse(Table table) {
@@ -85,7 +68,7 @@ public class TableServiceImpl implements TableService {
                 .id(table.getId())
                 .number(table.getNumber())
                 .capacity(table.getCapacity())
-                .status(computeStatus(table).name())
+                .status(table.getStatus() != null ? table.getStatus().name() : TableStatus.EMPTY.name())
                 .area(table.getArea())
                 .isActive(table.getIsActive())
                 .updatedAt(table.getUpdatedAt())
@@ -135,7 +118,7 @@ public class TableServiceImpl implements TableService {
         List<TableResponse> filtered = allTables.stream()
                 .filter(this::isNotSoftDeleted)
                 .filter(t -> area == null || area.isBlank() || area.equals(t.getArea()))
-                .filter(t -> status == null || computeStatus(t) == status)
+                .filter(t -> status == null || getCurrentStatus(t) == status)
                 .map(this::toResponse)
                 .collect(Collectors.toList());
 
@@ -186,11 +169,15 @@ public class TableServiceImpl implements TableService {
         return toResponse(tableRepository.save(table));
     }
 
+    private TableStatus getCurrentStatus(Table table) {
+        return table.getStatus() != null ? table.getStatus() : TableStatus.EMPTY;
+    }
+
     @Override
     public void deleteTable(UUID id) {
         Table table = findOrThrow(id);
 
-        if (isTableServing(id)) {
+        if (getCurrentStatus(table) == TableStatus.SERVING) {
             throw new BusinessException("Khong the xoa ban dang co khach");
         }
 
@@ -202,7 +189,7 @@ public class TableServiceImpl implements TableService {
     public TableResponse openTable(UUID id, OpenTableRequest request, UUID waiterId) {
         Table table = findOrThrow(id);
 
-        if (!table.getIsActive()) {
+        if (getCurrentStatus(table) != TableStatus.EMPTY) {
             throw new BusinessException("Ban " + table.getNumber() + " khong trong");
         }
 
@@ -215,11 +202,7 @@ public class TableServiceImpl implements TableService {
             );
         }
 
-        if (isTableServing(id)) {
-            throw new BusinessException("Ban da co order dang mo");
-        }
-
-        table.setIsActive(false); // Chuyển sang bận
+        table.setStatus(TableStatus.SERVING); // Chuyển sang bận
         tableRepository.save(table);
 
         return toResponse(table);
@@ -229,11 +212,11 @@ public class TableServiceImpl implements TableService {
     public TableResponse closeTable(UUID id) {
         Table table = findOrThrow(id);
 
-        if (isTableServing(id)) {
+        if (getCurrentStatus(table) == TableStatus.SERVING) {
             throw new BusinessException("Ban van con hoa don chua thanh toan");
         }
 
-        table.setIsActive(true); // Trả lại thành bàn trống
+        table.setStatus(TableStatus.EMPTY); // Trả lại thành bàn trống
         return toResponse(tableRepository.save(table));
     }
 
@@ -244,9 +227,9 @@ public class TableServiceImpl implements TableService {
                 .filter(this::isNotSoftDeleted)
                 .collect(Collectors.toList());
 
-        long available = all.stream().filter(t -> computeStatus(t) == TableStatus.OPEN).count();
-        long occupied  = all.stream().filter(t -> computeStatus(t) == TableStatus.SERVING).count();
-        long cleaning  = all.stream().filter(t -> computeStatus(t) == TableStatus.PAID).count();
+        long available = all.stream().filter(t -> getCurrentStatus(t) == TableStatus.EMPTY).count();
+        long occupied  = all.stream().filter(t -> getCurrentStatus(t) == TableStatus.SERVING).count();
+        long cleaning  = all.stream().filter(t -> getCurrentStatus(t) == TableStatus.CLEANING).count();
 
         return TableLayoutResponse.builder()
                 .tables(all.stream().map(this::toResponse).toList())

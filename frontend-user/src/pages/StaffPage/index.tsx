@@ -3,7 +3,7 @@ import Header from "../../component/layouts/Header/Header";
 import { useAuth } from "../../context/AuthContext";
 import { tableService, type RestaurantTable } from "../../services/tableService";
 import { orderService, type OrderResponse } from "../../services/orderService";
-import { invoiceService, type InvoiceResponse } from "../../services/invoiceService";
+import { invoiceService, type InvoiceResponse, type CheckoutResponse } from "../../services/invoiceService";
 import { reservationService, type ReservationResponse, type ReservationCalendarResponse } from "../../services/reservationService";
 import { useMenu } from "../../hooks/useMenu";
 import type { MenuItem } from "../../types/menu";
@@ -56,6 +56,7 @@ export default function StaffPage() {
 
   // ─── State đặt bàn ───────────────────────────────────────────
   const [reservationsDate, setReservationsDate] = useState(new Date().toISOString().split("T")[0]);
+  const [allReservations, setAllReservations] = useState<ReservationResponse[]>([]);
   const [pendingReservations, setPendingReservations] = useState<ReservationResponse[]>([]);
   const [calendar, setCalendar] = useState<ReservationCalendarResponse | null>(null);
   const [reservationsLoading, setReservationsLoading] = useState(false);
@@ -67,7 +68,10 @@ export default function StaffPage() {
   const [invoiceHtml, setInvoiceHtml] = useState<string | null>(null);
   const [lastInvoice, setLastInvoice] = useState<InvoiceResponse | null>(null);
   const [systemAlert, setSystemAlert] = useState<{ title: string; message: string } | null>(null);
-  const [checkoutConfirm, setCheckoutConfirm] = useState<boolean>(false);
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [checkoutPreview, setCheckoutPreview] = useState<CheckoutResponse | null>(null);
+  const [cashReceived, setCashReceived] = useState<number>(0);
 
   // ─── State thao tác bàn ──────────────────────────────────────
   const [tableActionLoading, setTableActionLoading] = useState(false);
@@ -79,32 +83,8 @@ export default function StaffPage() {
   const loadTables = useCallback(async () => {
     setTablesLoading(true);
     try {
-      const [data, ordersData] = await Promise.all([
-        tableService.getTables(),
-        orderService.getAllOrders()
-      ]);
-
-      const updatedTables = data.map(table => {
-        if (table.status === "RESERVED") {
-          return table;
-        }
-
-        const tableOrders = ordersData.filter((o: any) => o.tableId === table.id);
-        if (tableOrders.length > 0) {
-          tableOrders.sort((a: any, b: any) => new Date(b.openedAt).getTime() - new Date(a.openedAt).getTime());
-          const latestOrder = tableOrders[0];
-          
-          if (latestOrder.status === "OPEN") {
-            return { ...table, status: "OPEN" };
-          }
-          if (latestOrder.status === "PAID" && (!table.isActive && table.status !== "OPEN")) {
-            return { ...table, status: "PAID" };
-          }
-        }
-        return { ...table, status: "EMPTY" };
-      });
-
-      setTables(updatedTables);
+      const data = await tableService.getTables();
+      setTables(data);
     } catch (err) {
       console.error("Lỗi khi tải danh sách bàn", err);
     } finally {
@@ -119,6 +99,7 @@ export default function StaffPage() {
         reservationService.getReservations(reservationsDate),
         reservationService.getCalendar(reservationsDate),
       ]);
+      setAllReservations(allRes);
       setPendingReservations(allRes.filter((r) => r.status === "PENDING"));
       setCalendar(cal);
     } catch (err) {
@@ -140,9 +121,9 @@ export default function StaffPage() {
   // ════════════════════════════════════════════════════════════
   // HELPERS
   // ════════════════════════════════════════════════════════════
-  const isTableServing = (t: RestaurantTable) => t.status === "OPEN";
+  const isTableServing = (t: RestaurantTable) => t.status === "SERVING";
   const isTableEmpty   = (t: RestaurantTable) => t.status === "EMPTY";
-  const isTablePaid    = (t: RestaurantTable) => t.status === "PAID";
+  const isTablePaid    = (t: RestaurantTable) => t.status === "CLEANING";
 
   // ════════════════════════════════════════════════════════════
   // HANDLER: Chọn bàn → chuyển sang tab gọi món, load order
@@ -183,7 +164,7 @@ export default function StaffPage() {
         guestCount,
       });
       await loadTables();
-      const updated = { ...table, status: "OPEN" };
+      const updated = { ...table, status: "SERVING" };
       setSelectedTable(updated);
       setCurrentOrder(newOrder);
     } catch (err) {
@@ -301,42 +282,83 @@ export default function StaffPage() {
   // ════════════════════════════════════════════════════════════
   // HANDLER: Thanh toán & xuất hoá đơn
   // ════════════════════════════════════════════════════════════
-  const handleCheckoutClick = () => {
+  const handleCheckoutClick = async () => {
     if (!currentOrder) {
       setSystemAlert({ title: "Thông báo", message: "Không có đơn hàng nào để thanh toán!" });
       return;
     }
-    setCheckoutConfirm(true);
+    setCheckoutLoading(true);
+    try {
+      const preview = await invoiceService.previewCheckout({
+        orderId: currentOrder.id,
+      });
+      setCheckoutPreview(preview);
+      setCashReceived(preview.totalAmount);
+      setCheckoutModalOpen(true);
+    } catch (err) {
+      setSystemAlert({ title: "Lỗi", message: (err as Error).message });
+    } finally {
+      setCheckoutLoading(false);
+    }
   };
 
-  const handleCheckoutConfirm = async () => {
-    setCheckoutConfirm(false);
+  const handlePreviewRefresh = async () => {
+    if (!currentOrder) return;
+    try {
+      const preview = await invoiceService.previewCheckout({
+        orderId: currentOrder.id,
+        customerPhone: customerPhone || undefined,
+      });
+      setCheckoutPreview(preview);
+      setCashReceived(preview.totalAmount);
+    } catch (err) {
+      setSystemAlert({ title: "Lỗi", message: (err as Error).message });
+    }
+  };
+
+  const handleCheckoutCash = async () => {
+    if (!currentOrder) return;
     setCheckoutLoading(true);
     try {
       const invoice = await invoiceService.checkoutCash({
         orderId: currentOrder.id,
-        paymentMethod: "CASH",
+        customerPhone: customerPhone || undefined,
+        cashReceived: cashReceived,
       });
       setLastInvoice(invoice);
 
-      // Lấy HTML hoá đơn để hiện modal
       try {
         const html = await invoiceService.getInvoiceHtml(invoice.id);
         setInvoiceHtml(html);
       } catch {}
 
       setSystemAlert({ title: "Thành công", message: "Thanh toán thành công" });
+      setCheckoutModalOpen(false);
 
-      // Cập nhật lại bàn
       await loadTables();
       setCurrentOrder(null);
       setCart([]);
       if (selectedTable) {
-        setSelectedTable({ ...selectedTable, status: "PAID" });
+        setSelectedTable({ ...selectedTable, status: "CLEANING" });
       }
     } catch (err) {
       setSystemAlert({ title: "Lỗi thanh toán", message: (err as Error).message });
     } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
+  const handleCheckoutVnpay = async () => {
+    if (!currentOrder) return;
+    setCheckoutLoading(true);
+    try {
+      const res = await invoiceService.createVnpayPayment({
+        orderId: currentOrder.id,
+        customerPhone: customerPhone || undefined,
+      });
+      window.location.href = res.paymentUrl;
+    } catch (err) {
+      setSystemAlert({ title: "Lỗi VNPay", message: (err as Error).message });
       setCheckoutLoading(false);
     }
   };
@@ -375,6 +397,73 @@ export default function StaffPage() {
       setSystemAlert({ title: "Thành công", message: "Đã xác nhận đặt bàn và gán bàn!" });
     } catch (err) {
       setSystemAlert({ title: "Lỗi", message: "Lỗi khi duyệt: " + (err as Error).message });
+    } finally {
+      setTableActionLoading(false);
+    }
+  };
+
+  const handleRejectReservation = async (res: ReservationResponse) => {
+    const reason = window.prompt("Lý do từ chối:");
+    if (reason === null) return;
+    setTableActionLoading(true);
+    try {
+      await reservationService.rejectReservation(res.id, reason);
+      await loadReservations();
+      setSystemAlert({ title: "Thành công", message: "Đã từ chối đặt bàn" });
+    } catch (err) {
+      setSystemAlert({ title: "Lỗi", message: "Lỗi khi từ chối: " + (err as Error).message });
+    } finally {
+      setTableActionLoading(false);
+    }
+  };
+
+  const handleArrivedReservation = async (res: ReservationResponse) => {
+    const today = new Date().toISOString().split("T")[0];
+    const resDate = new Date(res.reservedAt).toISOString().split("T")[0];
+    if (today !== resDate) {
+      setSystemAlert({ title: "Cảnh báo", message: "Chỉ được check-in vào đúng ngày đặt bàn!" });
+      return;
+    }
+
+    setTableActionLoading(true);
+    try {
+      await reservationService.arrivedReservation(res.id);
+      await loadReservations();
+      await loadTables();
+      setSystemAlert({ title: "Thành công", message: "Khách đã đến" });
+    } catch (err) {
+      setSystemAlert({ title: "Lỗi", message: "Lỗi cập nhật khách đến: " + (err as Error).message });
+    } finally {
+      setTableActionLoading(false);
+    }
+  };
+
+  const handleNoShowReservation = async (res: ReservationResponse) => {
+    if (!window.confirm("Xác nhận khách không đến? Bàn sẽ được giải phóng.")) return;
+    setTableActionLoading(true);
+    try {
+      await reservationService.noShowReservation(res.id);
+      await loadReservations();
+      await loadTables();
+      setSystemAlert({ title: "Thành công", message: "Đã ghi nhận khách không đến" });
+    } catch (err) {
+      setSystemAlert({ title: "Lỗi", message: "Lỗi ghi nhận: " + (err as Error).message });
+    } finally {
+      setTableActionLoading(false);
+    }
+  };
+
+  const handleCancelReservation = async (res: ReservationResponse) => {
+    const reason = window.prompt("Lý do huỷ:");
+    if (reason === null) return;
+    setTableActionLoading(true);
+    try {
+      await reservationService.cancelReservation(res.id, reason);
+      await loadReservations();
+      await loadTables();
+      setSystemAlert({ title: "Thành công", message: "Đã huỷ đặt bàn" });
+    } catch (err) {
+      setSystemAlert({ title: "Lỗi", message: "Lỗi huỷ: " + (err as Error).message });
     } finally {
       setTableActionLoading(false);
     }
@@ -434,8 +523,8 @@ export default function StaffPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "EMPTY": return "#22c55e"; 
-      case "OPEN": return "#f59e0b"; 
-      case "PAID": return "#a78bfa"; 
+      case "SERVING": return "#f59e0b"; 
+      case "CLEANING": return "#a78bfa"; 
       case "RESERVED": return "#3b82f6";
       default: return "#6b7280";
     }
@@ -443,9 +532,9 @@ export default function StaffPage() {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case "EMPTY": return "EMPTY (Trống)";
-      case "OPEN": return "OPEN (Đang phục vụ)";
-      case "PAID": return "PAID (Đã thanh toán)";
+      case "EMPTY": return "Trống";
+      case "SERVING": return "Đang phục vụ";
+      case "CLEANING": return "Chờ dọn dẹp";
       case "RESERVED": return "Đã đặt";
       default: return status;
     }
@@ -520,8 +609,8 @@ export default function StaffPage() {
               </div>
 
               <div style={{ display: "flex", gap: "16px", marginBottom: "16px", flexWrap: "wrap", fontSize: "13px" }}>
-                <span style={{ color: "#22c55e" }}>● EMPTY (Trống)</span>
-                <span style={{ color: "#f59e0b" }}>● OPEN (Đang phục vụ)</span>
+                <span style={{ color: "#22c55e" }}>● OPEN (Trống)</span>
+                <span style={{ color: "#f59e0b" }}>● SERVING (Đang phục vụ)</span>
                 <span style={{ color: "#a78bfa" }}>● PAID (Đã thanh toán)</span>
                 <span style={{ color: "#3b82f6" }}>● Đã đặt</span>
               </div>
@@ -926,28 +1015,73 @@ export default function StaffPage() {
                     )}
                   </div>
 
-                  {/* Danh sách chờ duyệt */}
+                  {/* Danh sách toàn bộ đặt bàn */}
                   <div className={styles.reservationSection}>
-                    <h3 className={styles.cartTitle}>Yêu cầu cần duyệt (PENDING)</h3>
-                    {pendingReservations.length === 0 ? (
-                      <div className={styles.emptyCart}>Không có yêu cầu đang chờ duyệt</div>
+                    <h3 className={styles.cartTitle}>Danh sách đặt bàn</h3>
+                    {allReservations.length === 0 ? (
+                      <div className={styles.emptyCart}>Không có đơn đặt bàn nào trong ngày này</div>
                     ) : (
                       <div className={styles.reservationList}>
-                        {pendingReservations.map((res) => (
+                        {allReservations.map((res) => (
                           <div key={res.id} className={styles.reservationCard}>
                             <div className={styles.resInfo}>
-                              <h4>{res.customerName} — {res.customerPhone}</h4>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                                <h4>{res.customerName} — {res.customerPhone}</h4>
+                                <span style={{
+                                  padding: "2px 8px", borderRadius: "12px", fontSize: "12px", fontWeight: "bold",
+                                  backgroundColor: res.status === "PENDING" ? "#f59e0b22" : res.status === "CONFIRMED" ? "#3b82f622" : res.status === "ARRIVED" ? "#22c55e22" : "#ef444422",
+                                  color: res.status === "PENDING" ? "#f59e0b" : res.status === "CONFIRMED" ? "#3b82f6" : res.status === "ARRIVED" ? "#22c55e" : "#ef4444"
+                                }}>
+                                  {res.status}
+                                </span>
+                              </div>
                               <p>🕒 {new Date(res.reservedAt).toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" })}</p>
                               <p>👥 {res.partySize} khách</p>
                               {res.note && <p>📝 {res.note}</p>}
                             </div>
-                            <div className={styles.resActions}>
-                              <button
-                                className={styles.resConfirmBtn}
-                                onClick={() => handleConfirmReservation(res)}
-                              >
-                                ✓ Xác nhận
-                              </button>
+                            <div className={styles.resActions} style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                              {res.status === "PENDING" && (
+                                <>
+                                  <button
+                                    className={styles.resConfirmBtn}
+                                    onClick={() => handleConfirmReservation(res)}
+                                  >
+                                    ✓ Xác nhận
+                                  </button>
+                                  <button
+                                    className={styles.closeTableBtn}
+                                    style={{fontSize: "13px", padding: "8px 12px"}}
+                                    onClick={() => handleRejectReservation(res)}
+                                  >
+                                    ❌ Từ chối
+                                  </button>
+                                </>
+                              )}
+                              {res.status === "CONFIRMED" && (
+                                <>
+                                  <button
+                                    className={styles.resConfirmBtn}
+                                    style={{background: "#22c55e", fontSize: "13px", padding: "8px 12px"}}
+                                    onClick={() => handleArrivedReservation(res)}
+                                  >
+                                    🚪 Khách đến
+                                  </button>
+                                  <button
+                                    className={styles.closeTableBtn}
+                                    style={{background: "#6b7280", fontSize: "13px", padding: "8px 12px"}}
+                                    onClick={() => handleNoShowReservation(res)}
+                                  >
+                                    🚫 Không đến
+                                  </button>
+                                  <button
+                                    className={styles.closeTableBtn}
+                                    style={{fontSize: "13px", padding: "8px 12px"}}
+                                    onClick={() => handleCancelReservation(res)}
+                                  >
+                                    🛑 Huỷ
+                                  </button>
+                                </>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -961,47 +1095,140 @@ export default function StaffPage() {
         </div>
       </div>
 
-      {/* ── Modal Xác nhận thanh toán ────────────────────────────────── */}
-      {checkoutConfirm && (
+      {/* ── Modal Thanh toán ────────────────────────────────── */}
+      {checkoutModalOpen && checkoutPreview && (
         <div
           style={{
             position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
             zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center",
           }}
-          onClick={() => setCheckoutConfirm(false)}
+          onClick={() => setCheckoutModalOpen(false)}
         >
           <div
             style={{
               background: "#1e1e1e", border: "1px solid #333", borderRadius: "12px", padding: "24px",
-              maxWidth: "400px", width: "90%", color: "#fff",
+              maxWidth: "500px", width: "90%", color: "#fff",
               boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+              maxHeight: "90vh", overflowY: "auto"
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ margin: "0 0 16px 0", fontSize: "18px", color: "#d4af37" }}>
-              Xác nhận thanh toán
+            <h3 style={{ margin: "0 0 16px 0", fontSize: "20px", color: "#d4af37", textAlign: "center" }}>
+              Thanh Toán - Bàn {selectedTable?.number}
             </h3>
-            <p style={{ margin: "0 0 24px 0", fontSize: "15px", lineHeight: "1.5", color: "#a1a1aa" }}>
-              Bạn có chắc chắn muốn thanh toán tiền mặt và xuất hoá đơn cho bàn <strong>{selectedTable?.number}</strong> không?
-            </p>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
-              <button
+
+            {/* Form nhập SĐT */}
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{ display: "block", fontSize: "14px", color: "#a1a1aa", marginBottom: "8px" }}>
+                Số điện thoại khách hàng (nếu có)
+              </label>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input
+                  type="text"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  placeholder="Nhập SĐT..."
+                  style={{
+                    flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #333",
+                    background: "#0a0a0a", color: "#fff"
+                  }}
+                />
+                <button
+                  onClick={handlePreviewRefresh}
+                  style={{
+                    padding: "10px 16px", borderRadius: "6px", border: "none",
+                    background: "#3b82f6", color: "#fff", cursor: "pointer"
+                  }}
+                >
+                  Kiểm tra
+                </button>
+              </div>
+              {checkoutPreview.customer && (
+                <div style={{ marginTop: "8px", fontSize: "14px", color: "#22c55e" }}>
+                  Khách hàng: {checkoutPreview.customer.fullName} - Điểm: {checkoutPreview.customer.currentPoints}
+                </div>
+              )}
+            </div>
+
+            {/* Chi tiết tiền */}
+            <div style={{ background: "#0a0a0a", padding: "16px", borderRadius: "8px", marginBottom: "16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                <span style={{ color: "#a1a1aa" }}>Tổng phụ:</span>
+                <span>{checkoutPreview.subtotal.toLocaleString("vi-VN")}đ</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                <span style={{ color: "#a1a1aa" }}>VAT ({checkoutPreview.vatRate * 100}%):</span>
+                <span>{checkoutPreview.vatAmount.toLocaleString("vi-VN")}đ</span>
+              </div>
+              {checkoutPreview.voucherDiscount > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                  <span style={{ color: "#22c55e" }}>Voucher:</span>
+                  <span style={{ color: "#22c55e" }}>-{checkoutPreview.voucherDiscount.toLocaleString("vi-VN")}đ</span>
+                </div>
+              )}
+              {checkoutPreview.pointsDeducted > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                  <span style={{ color: "#22c55e" }}>Dùng điểm:</span>
+                  <span style={{ color: "#22c55e" }}>-{checkoutPreview.pointsDeducted.toLocaleString("vi-VN")}đ</span>
+                </div>
+              )}
+              <div style={{ borderTop: "1px solid #333", margin: "8px 0", paddingTop: "8px", display: "flex", justifyContent: "space-between", fontWeight: "bold", fontSize: "18px", color: "#d4af37" }}>
+                <span>Tổng cộng:</span>
+                <span>{checkoutPreview.totalAmount.toLocaleString("vi-VN")}đ</span>
+              </div>
+            </div>
+
+            {/* Nhập tiền mặt */}
+            <div style={{ marginBottom: "24px" }}>
+              <label style={{ display: "block", fontSize: "14px", color: "#a1a1aa", marginBottom: "8px" }}>
+                Khách đưa (Tiền mặt)
+              </label>
+              <input
+                type="number"
+                value={cashReceived}
+                onChange={(e) => setCashReceived(Number(e.target.value))}
                 style={{
-                  background: "transparent", color: "#a1a1aa", border: "1px solid #333", borderRadius: "6px",
-                  padding: "8px 24px", cursor: "pointer", fontWeight: 600,
+                  width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #333",
+                  background: "#0a0a0a", color: "#fff", fontSize: "16px"
                 }}
-                onClick={() => setCheckoutConfirm(false)}
+              />
+              <div style={{ marginTop: "8px", fontSize: "14px", display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#a1a1aa" }}>Tiền thừa:</span>
+                <span style={{ color: cashReceived >= checkoutPreview.totalAmount ? "#22c55e" : "#ef4444" }}>
+                  {(cashReceived - checkoutPreview.totalAmount).toLocaleString("vi-VN")}đ
+                </span>
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <button
+                onClick={handleCheckoutCash}
+                disabled={cashReceived < checkoutPreview.totalAmount}
+                style={{
+                  width: "100%", background: cashReceived >= checkoutPreview.totalAmount ? "#22c55e" : "#3f6212", 
+                  color: "#fff", border: "none", borderRadius: "8px", padding: "12px", cursor: cashReceived >= checkoutPreview.totalAmount ? "pointer" : "not-allowed", fontWeight: "bold", fontSize: "16px"
+                }}
               >
-                Huỷ
+                💵 THANH TOÁN TIỀN MẶT
               </button>
               <button
+                onClick={handleCheckoutVnpay}
                 style={{
-                  background: "#22c55e", color: "#fff", border: "none", borderRadius: "6px",
-                  padding: "8px 24px", cursor: "pointer", fontWeight: 600,
+                  width: "100%", background: "#005baa", color: "#fff", border: "none", borderRadius: "8px", 
+                  padding: "12px", cursor: "pointer", fontWeight: "bold", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px"
                 }}
-                onClick={handleCheckoutConfirm}
               >
-                Xác nhận & Xuất Hoá Đơn
+                Thanh toán qua VNPAY
+              </button>
+              <button
+                onClick={() => setCheckoutModalOpen(false)}
+                style={{
+                  width: "100%", background: "transparent", color: "#a1a1aa", border: "1px solid #333", 
+                  borderRadius: "8px", padding: "12px", cursor: "pointer", fontWeight: "bold"
+                }}
+              >
+                Hủy bỏ
               </button>
             </div>
           </div>

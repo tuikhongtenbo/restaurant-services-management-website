@@ -37,6 +37,15 @@ public class Table {
     @Column(name = "area", length = 50)
     private String area;  // Vị trí bàn: Tang_1, Tang_2, San_vuon, Phong_VIP
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 20)
+    @Builder.Default
+    private TableStatus status = TableStatus.EMPTY;
+
+    public TableStatus getStatus() {
+        return status != null ? status : TableStatus.EMPTY;
+    }
+
     @Column(name = "is_active")
     @Builder.Default
     private Boolean isActive = true;  // Mặc định: bàn đang hoạt động

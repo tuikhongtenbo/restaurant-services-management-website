@@ -19,13 +19,54 @@ export interface InvoiceResponse {
 
 export interface CheckoutRequest {
   orderId: string;           // UUID của order
-  paymentMethod: string;     // "CASH"
+  paymentMethod?: string;    // "CASH" hoặc "VNPAY"
   customerPhone?: string;
   voucherId?: string;
   pointsToUse?: number;
+  cashReceived?: number;
+}
+
+export interface CheckoutResponse {
+  orderId: string;
+  subtotal: number;
+  voucherCode?: string;
+  voucherDiscount: number;
+  pointsUsed: number;
+  pointsDeducted: number;
+  vatRate: number;
+  vatAmount: number;
+  totalAmount: number;
+  customer?: any;
+  pointsEarned: number;
+}
+
+export interface VnpayCreateRequest {
+  orderId: string;
+  customerPhone?: string;
+  voucherId?: string;
+  pointsToUse?: number;
+  bankCode?: string;
+}
+
+export interface PaymentResponse {
+  invoiceId: string;
+  paymentUrl: string;
+  amount: number;
+  orderInfo: string;
+  transactionId: string;
 }
 
 export const invoiceService = {
+  // Preview hoá đơn trước khi thanh toán
+  async previewCheckout(data: CheckoutRequest): Promise<CheckoutResponse> {
+    const response = await ApiClient.post<{ data: CheckoutResponse }>(
+      API_ENDPOINTS.PAYMENT.CHECKOUT,
+      data,
+      getAuthHeaders(),
+    );
+    return response.data;
+  },
+
   // Thanh toán tiền mặt - trả về InvoiceResponse
   async checkoutCash(data: CheckoutRequest): Promise<InvoiceResponse> {
     const response = await ApiClient.post<{ data: InvoiceResponse }>(
@@ -33,7 +74,16 @@ export const invoiceService = {
       data,
       getAuthHeaders(),
     );
-    // Backend trả { status, message, data: InvoiceResponse }
+    return response.data;
+  },
+
+  // Tạo thanh toán VNPAY - trả về URL để redirect
+  async createVnpayPayment(data: VnpayCreateRequest): Promise<PaymentResponse> {
+    const response = await ApiClient.post<{ data: PaymentResponse }>(
+      API_ENDPOINTS.PAYMENT.VNPAY_CREATE,
+      data,
+      getAuthHeaders(),
+    );
     return response.data;
   },
 

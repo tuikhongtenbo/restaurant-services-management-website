@@ -96,4 +96,10 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
         );
 
         boolean existsByTableIdAndStatus(UUID tableId, ReservationStatus status);
+
+        @Query("SELECT r FROM Reservation r WHERE r.status = 'CONFIRMED' AND r.tableId IS NOT NULL AND r.reservedAt BETWEEN :start AND :end")
+        List<Reservation> findAssignedUpcoming(
+                @Param("start") OffsetDateTime start,
+                @Param("end") OffsetDateTime end
+        );
 }

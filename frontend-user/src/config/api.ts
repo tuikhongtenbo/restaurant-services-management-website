@@ -22,6 +22,9 @@ export const API_ENDPOINTS = {
     GET_ALL: `${API_BASE_URL}/api/reservations`,
     GET_BY_ID: (id: string) => `${API_BASE_URL}/api/reservations/${id}`,
     CANCEL: (id: string) => `${API_BASE_URL}/api/reservations/${id}/cancel`,
+    REJECT: (id: string) => `${API_BASE_URL}/api/reservations/${id}/reject`,
+    ARRIVED: (id: string) => `${API_BASE_URL}/api/reservations/${id}/arrived`,
+    NO_SHOW: (id: string) => `${API_BASE_URL}/api/reservations/${id}/no-show`,
     AVAILABLE_DATES: `${API_BASE_URL}/api/public/reservations/available-dates`,
     AVAILABLE_TIMES: `${API_BASE_URL}/api/public/reservations/available-times`,
     CONFIRM: (id: string) => `${API_BASE_URL}/api/reservations/${id}/confirm`,
@@ -51,7 +54,9 @@ export const API_ENDPOINTS = {
     GET_BY_ID: (id: string) => `${API_BASE_URL}/api/orders/${id}`,
   },
   PAYMENT: {
+    CHECKOUT: `${API_BASE_URL}/api/payments/checkout`,
     CASH: `${API_BASE_URL}/api/payments/cash`,
+    VNPAY_CREATE: `${API_BASE_URL}/api/payments/vnpay/create`,
   },
   INVOICE: {
     GET_ALL: `${API_BASE_URL}/api/payments/invoices`,
