@@ -23,4 +23,10 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
     boolean existsByEmail(String email);
     boolean existsByPhone(String phone);
     Page<Customer> findByStatus(UserStatus status, Pageable pageable);
+
+    @Query("SELECT c FROM Customer c WHERE c.deletedAt IS NULL")
+    Page<Customer> findAllByDeletedAtIsNull(Pageable pageable);
+
+    @Query("SELECT c FROM Customer c WHERE c.phone LIKE %:phone% AND c.deletedAt IS NULL")
+    java.util.List<Customer> findByPhoneContainingAndDeletedAtIsNull(@Param("phone") String phone);
 }
