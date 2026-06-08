@@ -59,8 +59,8 @@ export const MenuItemFormModal: React.FC<MenuItemFormModalProps> = ({
       setLoading(true);
       const { menuService } = await import("@/services/menu.service");
 
-      const promoStart = values.promoRange?.[0]?.toISOString();
-      const promoEnd = values.promoRange?.[1]?.toISOString();
+      const promoStart = values.promoRange?.[0] ? dayjs(values.promoRange[0]).format("YYYY-MM-DDTHH:mm:ss") : undefined;
+      const promoEnd = values.promoRange?.[1] ? dayjs(values.promoRange[1]).format("YYYY-MM-DDTHH:mm:ss") : undefined;
 
       if (initialData) {
         const payload: UpdateMenuItemRequest = {
@@ -191,7 +191,26 @@ export const MenuItemFormModal: React.FC<MenuItemFormModalProps> = ({
         <div className="bg-amber-50/70 p-4 rounded-lg border border-amber-100 mb-4">
           <p className="text-sm font-semibold text-amber-800 mb-3">Khuyến mãi (tùy chọn)</p>
           <div className="grid grid-cols-2 gap-4">
-            <Form.Item name="promoPrice" label="Giá khuyến mãi (VNĐ)" className="mb-0">
+            <Form.Item 
+              name="promoPrice" 
+              label="Giá khuyến mãi (VNĐ)" 
+              dependencies={['price', 'promoRange']}
+              rules={[
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    const price = getFieldValue('price');
+                    const range = getFieldValue('promoRange');
+                    if (value && price && value >= price) {
+                      return Promise.reject(new Error("Giá KM phải nhỏ hơn giá gốc"));
+                    }
+                    if (range && range.length > 0 && (!value || value <= 0)) {
+                      return Promise.reject(new Error("Vui lòng nhập giá KM"));
+                    }
+                    return Promise.resolve();
+                  },
+                }),
+              ]}
+            >
               <InputNumber
                 min={0}
                 step={1000}
@@ -203,8 +222,23 @@ export const MenuItemFormModal: React.FC<MenuItemFormModalProps> = ({
               />
             </Form.Item>
 
-            <Form.Item name="promoRange" label="Thời gian áp dụng" className="mb-0">
-              <DatePicker.RangePicker showTime className="w-full" />
+            <Form.Item 
+              name="promoRange" 
+              label="Thời gian áp dụng"
+              dependencies={['promoPrice']}
+              rules={[
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    const promoPrice = getFieldValue('promoPrice');
+                    if (promoPrice && promoPrice > 0 && (!value || value.length < 2)) {
+                      return Promise.reject(new Error("Cần chọn thời gian áp dụng"));
+                    }
+                    return Promise.resolve();
+                  },
+                }),
+              ]}
+            >
+              <DatePicker.RangePicker showTime format="DD/MM/YYYY HH:mm" className="w-full" />
             </Form.Item>
           </div>
         </div>

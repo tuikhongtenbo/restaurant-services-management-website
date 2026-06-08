@@ -44,6 +44,11 @@ export const MenuItemDetailModal: React.FC<MenuItemDetailModalProps> = ({
   const [priceHistory, setPriceHistory] = useState<PriceHistoryResponse | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [currentStatus, setCurrentStatus] = React.useState<MenuItemStatus | undefined>(undefined);
+
+  React.useEffect(() => {
+    if (item) setCurrentStatus(item.status);
+  }, [item]);
 
   if (!item) return null;
   const status = statusConfig[item.status];
@@ -51,8 +56,9 @@ export const MenuItemDetailModal: React.FC<MenuItemDetailModalProps> = ({
   const handleStatusChange = async (newStatus: MenuItemStatus) => {
     try {
       setLoading(true);
-      await menuService.updateStatus(item.id, newStatus);
+      await menuService.updateStatus(item!.id, newStatus);
       message.success("Cập nhật trạng thái thành công!");
+      setCurrentStatus(newStatus);
       onRefresh();
     } catch (error: any) {
       message.error(error.message || "Lỗi cập nhật trạng thái.");
@@ -120,7 +126,7 @@ export const MenuItemDetailModal: React.FC<MenuItemDetailModalProps> = ({
             <p className="text-sm text-zinc-500 mt-0.5">{item.category}</p>
           </div>
           <Select
-            value={item.status}
+            value={currentStatus}
             onChange={handleStatusChange}
             loading={loading}
             className="w-32"
@@ -149,7 +155,7 @@ export const MenuItemDetailModal: React.FC<MenuItemDetailModalProps> = ({
               <span className="text-lg font-bold text-rose-600">{formatPrice(item.promoPrice)}</span>
               {item.promoStart && item.promoEnd && (
                 <span className="text-xs text-zinc-400">
-                  ({dayjs(item.promoStart).format("DD/MM")} - {dayjs(item.promoEnd).format("DD/MM/YYYY")})
+                  ({dayjs(item.promoStart).format("DD/MM/YYYY HH:mm")} - {dayjs(item.promoEnd).format("DD/MM/YYYY HH:mm")})
                 </span>
               )}
             </div>

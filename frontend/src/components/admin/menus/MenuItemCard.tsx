@@ -2,6 +2,7 @@ import React from "react";
 import { Tag, Tooltip } from "antd";
 import { ImageOff, TrendingDown } from "lucide-react";
 import { MenuItem, MenuItemStatus } from "@/types/menu";
+import dayjs from "dayjs";
 
 interface MenuItemCardProps {
   item: MenuItem;
@@ -64,20 +65,31 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({ item, onClick }) => 
         <p className="text-xs text-zinc-400 truncate">{item.category}</p>
 
         {/* Price */}
-        <div className="mt-auto pt-2 flex items-baseline gap-2">
-          {hasPromo ? (
-            <>
-              <span className="text-base font-bold text-rose-600">
-                {formatPrice(item.promoPrice!)}
-              </span>
-              <span className="text-xs text-zinc-400 line-through">
+        <div className="mt-auto pt-2">
+          <div className="flex items-baseline gap-2">
+            {hasPromo ? (
+              <>
+                <span className="text-base font-bold text-rose-600">
+                  {formatPrice(item.promoPrice!)}
+                </span>
+                <span className="text-xs text-zinc-400 line-through">
+                  {formatPrice(item.price)}
+                </span>
+              </>
+            ) : (
+              <span className="text-base font-bold text-zinc-800">
                 {formatPrice(item.price)}
               </span>
-            </>
-          ) : (
-            <span className="text-base font-bold text-zinc-800">
-              {formatPrice(item.price)}
-            </span>
+            )}
+          </div>
+          {/* Show promo date time if available */}
+          {hasPromo && item.promoStart && item.promoEnd && (
+            <div className="text-[10px] mt-0.5">
+              <span className="text-black font-bold">Áp dụng: </span>
+              <span className="text-green-600">{dayjs(item.promoStart).format("DD/MM HH:mm")}</span>
+              <span> - </span>
+              <span className="text-red-600">{dayjs(item.promoEnd).format("DD/MM HH:mm")}</span>
+            </div>
           )}
         </div>
       </div>
