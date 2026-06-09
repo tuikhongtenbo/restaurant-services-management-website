@@ -13,7 +13,8 @@ import {
   Settings,
   LogOut,
   User as UserIcon,
-  Menu as MenuIcon
+  Menu as MenuIcon,
+  UserSquare2
 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -28,6 +29,7 @@ const SIDEBAR_ITEMS = [
   { key: '/admin/tables', icon: <Table size={18} />, label: <Link href="/admin/tables">Sơ đồ bàn</Link> },
   { key: '/admin/reservations', icon: <CalendarDays size={18} />, label: <Link href="/admin/reservations">Đặt bàn</Link> },
   { key: '/admin/orders', icon: <ReceiptText size={18} />, label: <Link href="/admin/orders">Đơn hàng</Link> },
+  { key: '/admin/customers', icon: <UserSquare2 size={18} />, label: <Link href="/admin/customers">Khách hàng</Link> },
   { key: '/admin/users', icon: <Users size={18} />, label: <Link href="/admin/users">Nhân sự</Link> },
   { key: '/admin/promotions', icon: <TicketPercent size={18} />, label: <Link href="/admin/promotions">Khuyến mãi</Link> },
   { key: '/admin/settings', icon: <Settings size={18} />, label: <Link href="/admin/settings">Cài đặt</Link> },
