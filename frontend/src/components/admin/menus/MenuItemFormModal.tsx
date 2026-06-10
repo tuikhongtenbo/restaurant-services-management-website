@@ -9,7 +9,10 @@ import {
   Button,
   AutoComplete,
   message,
+  Divider,
+  Space,
 } from "antd";
+import { Plus } from "lucide-react";
 import { MenuItem, CreateMenuItemRequest, UpdateMenuItemRequest, MenuItemStatus } from "@/types/menu";
 import dayjs from "dayjs";
 
@@ -35,7 +38,7 @@ export const MenuItemFormModal: React.FC<MenuItemFormModalProps> = ({
     if (open && initialData) {
       form.setFieldsValue({
         name: initialData.name,
-        category: initialData.category ? [initialData.category] : [],
+        category: initialData.category,
         description: initialData.description,
         imageUrl: initialData.imageUrl,
         price: initialData.price,
@@ -65,7 +68,7 @@ export const MenuItemFormModal: React.FC<MenuItemFormModalProps> = ({
       if (initialData) {
         const payload: UpdateMenuItemRequest = {
           name: values.name,
-          category: Array.isArray(values.category) ? values.category[0] : values.category,
+          category: values.category,
           description: values.description,
           imageUrl: values.imageUrl,
           price: values.price,
@@ -81,7 +84,7 @@ export const MenuItemFormModal: React.FC<MenuItemFormModalProps> = ({
       } else {
         const payload: CreateMenuItemRequest = {
           name: values.name,
-          category: Array.isArray(values.category) ? values.category[0] : values.category,
+          category: values.category,
           description: values.description,
           imageUrl: values.imageUrl,
           price: values.price,
@@ -103,9 +106,28 @@ export const MenuItemFormModal: React.FC<MenuItemFormModalProps> = ({
     }
   };
 
-  const categoryOptions = existingCategories
+  const [items, setItems] = useState<string[]>(existingCategories);
+  const [customCategory, setCustomCategory] = useState('');
+
+  useEffect(() => {
+    setItems(existingCategories);
+  }, [existingCategories]);
+
+  const onCategoryNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomCategory(event.target.value);
+  };
+
+  const addItem = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
+    e.preventDefault();
+    if (!customCategory || items.includes(customCategory)) return;
+    setItems([...items, customCategory]);
+    form.setFieldsValue({ category: customCategory });
+    setCustomCategory('');
+  };
+
+  const categoryOptions = items
     .filter((c) => c) // remove null/undefined
-    .map((c) => ({ value: c }));
+    .map((c) => ({ value: c, label: c }));
 
   return (
     <Modal
@@ -132,15 +154,25 @@ export const MenuItemFormModal: React.FC<MenuItemFormModalProps> = ({
             rules={[{ required: true, message: "Chọn hoặc nhập danh mục" }]}
           >
             <Select
-              mode="tags"
-              maxCount={1}
               options={categoryOptions}
-              placeholder="Chọn hoặc nhập danh mục mới..."
-              onChange={(val: string[]) => {
-                if (val && val.length > 1) {
-                  form.setFieldsValue({ category: [val[val.length - 1]] });
-                }
-              }}
+              placeholder="Chọn danh mục..."
+              popupRender={(menu) => (
+                <>
+                  {menu}
+                  <Divider style={{ margin: '8px 0' }} />
+                  <Space style={{ padding: '0 8px 4px' }}>
+                    <Input
+                      placeholder="Thêm danh mục mới"
+                      value={customCategory}
+                      onChange={onCategoryNameChange}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    />
+                    <Button type="text" icon={<Plus size={16} />} onClick={addItem}>
+                      Thêm
+                    </Button>
+                  </Space>
+                </>
+              )}
             />
           </Form.Item>
         </div>
