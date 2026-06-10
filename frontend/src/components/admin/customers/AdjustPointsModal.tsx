@@ -44,7 +44,7 @@ export const AdjustPointsModal: React.FC<AdjustPointsModalProps> = ({
       onCancel={onCancel}
       confirmLoading={loading}
       width={500}
-      destroyOnClose
+      destroyOnHidden
       okText="Xác nhận"
       cancelText="Hủy"
     >

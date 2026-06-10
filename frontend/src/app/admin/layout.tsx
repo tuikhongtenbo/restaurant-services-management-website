@@ -14,7 +14,8 @@ import {
   LogOut,
   User as UserIcon,
   Menu as MenuIcon,
-  UserSquare2
+  UserSquare2,
+  KeyRound
 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -73,15 +74,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const userMenuItems = [
     {
       key: '1',
-      label: 'Cài đặt cá nhân',
-      icon: <Settings size={16} />,
-      onClick: () => router.push('/admin/settings'),
+      label: 'Thông tin cá nhân',
+      icon: <UserSquare2 size={16} />,
+      onClick: () => router.push('/admin/profile'),
     },
     {
       type: 'divider',
     },
     {
-      key: '2',
+      key: 'logout',
       label: <span className="text-red-500">Đăng xuất</span>,
       icon: <LogOut size={16} className="text-red-500" />,
       onClick: handleLogout,
