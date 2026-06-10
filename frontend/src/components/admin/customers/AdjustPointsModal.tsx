@@ -58,12 +58,24 @@ export const AdjustPointsModal: React.FC<AdjustPointsModalProps> = ({
           label="Số điểm thay đổi"
           rules={[
             { required: true, message: "Vui lòng nhập số điểm" },
-            { type: "number", message: "Số điểm không hợp lệ" }
+            { type: "number", message: "Số điểm không hợp lệ" },
+            {
+              validator: async (_, value) => {
+                if (value === undefined || value === null) return;
+                if (value === 0) throw new Error("Số điểm thay đổi phải khác 0");
+                if (value < 0 && Math.abs(value) > (customer?.currentPoints || 0)) {
+                  throw new Error(`Không thể trừ quá điểm hiện tại (${customer?.currentPoints || 0})`);
+                }
+              }
+            }
           ]}
         >
           <InputNumber
             className="w-full"
             placeholder="VD: 100 hoặc -50"
+            onKeyPress={(e) => {
+              if (!/[0-9\-]/.test(e.key)) e.preventDefault();
+            }}
           />
         </Form.Item>
         <Form.Item

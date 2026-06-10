@@ -46,11 +46,11 @@ export default function OrdersPage() {
       });
 
       const allOrders = res.data.data || [];
-      
+
       // 1. Lọc theo ngày dựa vào local timezone (bỏ qua timezone UTC của backend)
       const targetStart = selectedDate.startOf("day").valueOf();
       const targetEnd = selectedDate.endOf("day").valueOf();
-      
+
       let filteredOrders = allOrders.filter((ord) => {
         const d = dayjs(ord.openedAt).valueOf();
         return d >= targetStart && d <= targetEnd;
@@ -74,7 +74,7 @@ export default function OrdersPage() {
       setTotalElements(filteredOrders.length);
       const startIndex = (currentPage - 1) * pageSize;
       const endIndex = startIndex + pageSize;
-      
+
       setOrders(filteredOrders.slice(startIndex, endIndex));
     } catch (error: any) {
       message.error(error.message || "Lỗi tải danh sách đơn hàng");
@@ -166,21 +166,6 @@ export default function OrdersPage() {
         const cfg = statusConfig[status] || { label: "Không xác định", color: "default" };
         return <Tag color={cfg.color}>{cfg.label}</Tag>;
       },
-    },
-    {
-      title: "Thao tác",
-      key: "action",
-      width: 80,
-      align: "center" as const,
-      render: (_: any, record: Order) => (
-        <Tooltip title="Xem chi tiết">
-          <Button
-            type="text"
-            icon={<Eye size={18} />}
-            onClick={() => handleViewOrder(record)}
-          />
-        </Tooltip>
-      ),
     },
   ];
 

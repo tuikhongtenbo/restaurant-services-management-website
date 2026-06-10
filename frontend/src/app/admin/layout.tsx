@@ -32,7 +32,6 @@ const SIDEBAR_ITEMS = [
   { key: '/admin/customers', icon: <UserSquare2 size={18} />, label: <Link href="/admin/customers">Khách hàng</Link> },
   { key: '/admin/users', icon: <Users size={18} />, label: <Link href="/admin/users">Nhân sự</Link> },
   { key: '/admin/promotions', icon: <TicketPercent size={18} />, label: <Link href="/admin/promotions">Khuyến mãi</Link> },
-  { key: '/admin/settings', icon: <Settings size={18} />, label: <Link href="/admin/settings">Cài đặt</Link> },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -91,11 +90,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider 
-        trigger={null} 
-        collapsible 
-        collapsed={collapsed} 
-        theme="dark" 
+      <Sider
+        trigger={null}
+        collapsible
+        collapsed={collapsed}
+        theme="dark"
         width={250}
         style={{ overflow: 'auto', height: '100vh', position: 'fixed', left: 0, top: 0, bottom: 0, zIndex: 50 }}
       >
@@ -113,14 +112,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         />
       </Sider>
       <Layout style={{ marginLeft: collapsed ? 80 : 250, transition: 'all 0.2s ease' }}>
-        <Header 
-          style={{ 
-            padding: '0 24px', 
+        <Header
+          style={{
+            padding: '0 24px',
             background: colorBgContainer,
             position: 'sticky',
             top: 0,
             zIndex: 40,
-          }} 
+          }}
           className="flex justify-between items-center shadow-sm border-b border-gray-100"
         >
           <div className="flex items-center gap-4">
@@ -135,8 +134,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           <Dropdown menu={{ items: userMenuItems as any }} trigger={['hover']} placement="bottomRight">
             <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 pr-3 rounded-full border border-transparent hover:border-gray-200 transition-all">
-              <Avatar 
-                style={{ backgroundColor: '#e6f4ff', color: '#1677ff' }} 
+              <Avatar
+                style={{ backgroundColor: '#e6f4ff', color: '#1677ff' }}
                 icon={!currentUser && <UserIcon size={16} />}
               >
                 {currentUser && currentUser.fullName.charAt(0).toUpperCase()}

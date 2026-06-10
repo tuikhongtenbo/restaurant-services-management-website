@@ -53,7 +53,7 @@ export default function DashboardPage() {
       let startDate = now;
       let endDate = now;
       let dateFormat = "DD/MM";
-      
+
       // Khởi tạo các mốc thời gian trống để biểu đồ không bị đứt đoạn
       const dateMap: Record<string, number> = {};
 
@@ -97,7 +97,7 @@ export default function DashboardPage() {
           dateMap[dateKey] = inv.totalAmount;
         }
       });
-      
+
       // Filter Orders & Items for Counts
       const validOrders = allOrders.filter((ord) => {
         const d = dayjs(ord.closedAt || ord.openedAt);
@@ -226,13 +226,13 @@ export default function DashboardPage() {
           {/* Charts & Tables */}
           <div className="flex flex-col gap-5">
             {/* Chart Area */}
-            <Card 
-              className="rounded-xl border-zinc-200 shadow-sm w-full" 
+            <Card
+              className="rounded-xl border-zinc-200 shadow-sm w-full"
               title={
                 <div className="flex justify-between items-center w-full">
                   <span className="font-bold text-zinc-800">Biểu đồ Doanh thu</span>
                   <div className="flex gap-2">
-                    <DatePicker 
+                    <DatePicker
                       value={selectedDate}
                       onChange={(date) => date && setSelectedDate(date)}
                       picker={timeRange === "YEAR" ? "year" : timeRange === "MONTH" ? "month" : "date"}
@@ -263,31 +263,31 @@ export default function DashboardPage() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" />
-                    <XAxis 
-                      dataKey="date" 
-                      axisLine={false} 
-                      tickLine={false} 
-                      tick={{ fill: "#71717a", fontSize: 12 }} 
+                    <XAxis
+                      dataKey="date"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: "#71717a", fontSize: 12 }}
                       dy={10}
                     />
-                    <YAxis 
-                      axisLine={false} 
-                      tickLine={false} 
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
                       width={65}
                       tick={{ fill: "#71717a", fontSize: 12 }}
                       tickFormatter={(value) => `${value >= 1000000 ? value / 1000000 + 'tr' : value >= 1000 ? value / 1000 + 'k' : value}`}
                     />
-                    <Tooltip 
+                    <Tooltip
                       formatter={(value: any) => [formatPrice(Number(value)), "Doanh thu"]}
                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     />
-                    <Area 
-                      type="monotone" 
-                      dataKey="revenue" 
-                      stroke="#10b981" 
+                    <Area
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#10b981"
                       strokeWidth={3}
-                      fillOpacity={1} 
-                      fill="url(#colorRevenue)" 
+                      fillOpacity={1}
+                      fill="url(#colorRevenue)"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -295,14 +295,14 @@ export default function DashboardPage() {
             </Card>
 
             {/* Top Items Table */}
-            <Card 
-              className="rounded-xl border-zinc-200 shadow-sm w-full" 
+            <Card
+              className="rounded-xl border-zinc-200 shadow-sm w-full"
               title={
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-zinc-800">Top Món Bán Chạy Nhất</span>
                   <span className="text-sm font-normal text-zinc-500">Dữ liệu: {getTimeLabel()}</span>
                 </div>
-              } 
+              }
               bodyStyle={{ padding: 0 }}
             >
               <Table
@@ -317,12 +317,11 @@ export default function DashboardPage() {
                     width: 60,
                     align: 'center',
                     render: (rank) => (
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs mx-auto ${
-                        rank === 1 ? 'bg-amber-100 text-amber-600' : 
-                        rank === 2 ? 'bg-zinc-200 text-zinc-600' : 
-                        rank === 3 ? 'bg-orange-100 text-orange-800' : 
-                        'bg-zinc-50 text-zinc-400'
-                      }`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs mx-auto ${rank === 1 ? 'bg-amber-100 text-amber-600' :
+                          rank === 2 ? 'bg-zinc-200 text-zinc-600' :
+                            rank === 3 ? 'bg-orange-100 text-orange-800' :
+                              'bg-zinc-50 text-zinc-400'
+                        }`}>
                         {rank}
                       </div>
                     )
