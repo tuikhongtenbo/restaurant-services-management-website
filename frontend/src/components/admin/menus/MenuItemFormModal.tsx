@@ -35,7 +35,7 @@ export const MenuItemFormModal: React.FC<MenuItemFormModalProps> = ({
     if (open && initialData) {
       form.setFieldsValue({
         name: initialData.name,
-        category: initialData.category,
+        category: initialData.category ? [initialData.category] : [],
         description: initialData.description,
         imageUrl: initialData.imageUrl,
         price: initialData.price,
@@ -65,7 +65,7 @@ export const MenuItemFormModal: React.FC<MenuItemFormModalProps> = ({
       if (initialData) {
         const payload: UpdateMenuItemRequest = {
           name: values.name,
-          category: values.category,
+          category: Array.isArray(values.category) ? values.category[0] : values.category,
           description: values.description,
           imageUrl: values.imageUrl,
           price: values.price,
@@ -81,7 +81,7 @@ export const MenuItemFormModal: React.FC<MenuItemFormModalProps> = ({
       } else {
         const payload: CreateMenuItemRequest = {
           name: values.name,
-          category: values.category,
+          category: Array.isArray(values.category) ? values.category[0] : values.category,
           description: values.description,
           imageUrl: values.imageUrl,
           price: values.price,
@@ -103,7 +103,9 @@ export const MenuItemFormModal: React.FC<MenuItemFormModalProps> = ({
     }
   };
 
-  const categoryOptions = existingCategories.map((c) => ({ value: c }));
+  const categoryOptions = existingCategories
+    .filter((c) => c) // remove null/undefined
+    .map((c) => ({ value: c }));
 
   return (
     <Modal
@@ -129,12 +131,16 @@ export const MenuItemFormModal: React.FC<MenuItemFormModalProps> = ({
             label="Danh mục"
             rules={[{ required: true, message: "Chọn hoặc nhập danh mục" }]}
           >
-            <AutoComplete
+            <Select
+              mode="tags"
+              maxCount={1}
               options={categoryOptions}
-              placeholder="Món chính, Tráng miệng..."
-              filterOption={(inputValue, option) =>
-                option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
-              }
+              placeholder="Chọn hoặc nhập danh mục mới..."
+              onChange={(val: string[]) => {
+                if (val && val.length > 1) {
+                  form.setFieldsValue({ category: [val[val.length - 1]] });
+                }
+              }}
             />
           </Form.Item>
         </div>
