@@ -24,4 +24,15 @@ export const authService = {
       requireAuth: true, // Phải có token mới lấy được
     });
   },
+
+  /**
+   * Đổi mật khẩu (dành cho user đang đăng nhập)
+   */
+  async changePassword(data: Record<string, string>): Promise<ApiResponse<void>> {
+    return apiClient<ApiResponse<void>>("/auth/change-password", {
+      method: "PUT",
+      body: JSON.stringify(data),
+      requireAuth: true,
+    });
+  },
 };

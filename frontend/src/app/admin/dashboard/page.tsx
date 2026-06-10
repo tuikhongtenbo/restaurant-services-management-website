@@ -303,7 +303,7 @@ export default function DashboardPage() {
                   <span className="text-sm font-normal text-zinc-500">Dữ liệu: {getTimeLabel()}</span>
                 </div>
               }
-              bodyStyle={{ padding: 0 }}
+              styles={{ body: { padding: 0 } }}
             >
               <Table
                 dataSource={topItems}
@@ -318,9 +318,9 @@ export default function DashboardPage() {
                     align: 'center',
                     render: (rank) => (
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs mx-auto ${rank === 1 ? 'bg-amber-100 text-amber-600' :
-                          rank === 2 ? 'bg-zinc-200 text-zinc-600' :
-                            rank === 3 ? 'bg-orange-100 text-orange-800' :
-                              'bg-zinc-50 text-zinc-400'
+                        rank === 2 ? 'bg-zinc-200 text-zinc-600' :
+                          rank === 3 ? 'bg-orange-100 text-orange-800' :
+                            'bg-zinc-50 text-zinc-400'
                         }`}>
                         {rank}
                       </div>

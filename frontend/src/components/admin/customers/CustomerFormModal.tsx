@@ -48,7 +48,7 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
       onCancel={onCancel}
       confirmLoading={loading}
       width={600}
-      destroyOnClose
+      destroyOnHidden
       okText={initialValues ? "Cập nhật" : "Tạo mới"}
       cancelText="Hủy"
     >
