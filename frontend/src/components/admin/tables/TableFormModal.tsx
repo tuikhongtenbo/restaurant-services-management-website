@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Form, Input, InputNumber, AutoComplete, Switch, message } from "antd";
+import { Modal, Form, Input, InputNumber, Select, Switch, message, Divider, Space, Button } from "antd";
+import { Plus } from "lucide-react";
 import { Table, CreateTableRequest, UpdateTableRequest } from "@/types/table";
 import { tableService } from "@/services/table.service";
 
@@ -68,7 +69,28 @@ export const TableFormModal: React.FC<TableFormModalProps> = ({
     }
   };
 
-  const areaOptions = existingAreas.map((area) => ({ value: area }));
+  const [items, setItems] = useState<string[]>(existingAreas);
+  const [customArea, setCustomArea] = useState('');
+
+  useEffect(() => {
+    setItems(existingAreas);
+  }, [existingAreas]);
+
+  const onAreaNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomArea(event.target.value);
+  };
+
+  const addItem = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
+    e.preventDefault();
+    if (!customArea || items.includes(customArea)) return;
+    setItems([...items, customArea]);
+    form.setFieldsValue({ area: customArea });
+    setCustomArea('');
+  };
+
+  const areaOptions = items
+    .filter(a => a)
+    .map((area) => ({ value: area, label: area }));
 
   return (
     <Modal
@@ -114,12 +136,26 @@ export const TableFormModal: React.FC<TableFormModalProps> = ({
           rules={[{ required: true, message: "Vui lòng chọn hoặc nhập khu vực" }]}
           tooltip="Gõ tên khu vực mới nếu chưa có trong danh sách."
         >
-          <AutoComplete
+          <Select
             options={areaOptions}
-            placeholder="Chọn hoặc nhập tên khu vực mới..."
-            filterOption={(inputValue, option) =>
-              option!.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1
-            }
+            placeholder="Chọn khu vực..."
+            popupRender={(menu) => (
+              <>
+                {menu}
+                <Divider style={{ margin: '8px 0' }} />
+                <Space style={{ padding: '0 8px 4px' }}>
+                  <Input
+                    placeholder="Thêm khu vực mới"
+                    value={customArea}
+                    onChange={onAreaNameChange}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  />
+                  <Button type="text" icon={<Plus size={16} />} onClick={addItem}>
+                    Thêm
+                  </Button>
+                </Space>
+              </>
+            )}
           />
         </Form.Item>
 

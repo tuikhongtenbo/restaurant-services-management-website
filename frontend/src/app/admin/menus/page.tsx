@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
-import { Button, Tabs, Select, Spin, Empty, message, Input, Card } from "antd";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import { Button, Tabs, Select, Spin, Empty, message, Input, Card, Pagination } from "antd";
 import { Plus, RefreshCw, Search, UtensilsCrossed, EyeOff, PackageX } from "lucide-react";
 import { menuService } from "@/services/menu.service";
 import { MenuItem, MenuItemStatus } from "@/types/menu";
@@ -10,19 +10,19 @@ import { MenuItemFormModal } from "@/components/admin/menus/MenuItemFormModal";
 import { MenuItemDetailModal } from "@/components/admin/menus/MenuItemDetailModal";
 
 export default function MenusPage() {
-  const [items, setItems] = useState<MenuItem[]>([]);
+  const [allItems, setAllItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [totalItems, setTotalItems] = useState(0);
 
   // Filters
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [selectedStatus, setSelectedStatus] = useState<MenuItemStatus | "ALL">("ALL");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(20);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<string>("default");
 
-  // Categories extracted from data
-  const [categories, setCategories] = useState<string[]>([]);
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   // Modal states
   const [formOpen, setFormOpen] = useState(false);
@@ -35,38 +35,82 @@ export default function MenusPage() {
       if (showRefresh) setRefreshing(true);
       else setLoading(true);
 
-      const statusParam = selectedStatus === "ALL" ? undefined : selectedStatus;
-      const categoryParam = selectedCategory === "ALL" ? undefined : selectedCategory;
-
-      const res = await menuService.getItems({
-        category: categoryParam,
-        status: statusParam,
-        page: currentPage - 1,
-        size: pageSize,
-      });
-
-      const data = res.data;
-      setItems(data.content);
-      setTotalItems(data.totalElements);
-
-      // Extract unique categories from ALL items
-      if (categories.length === 0) {
-        const allRes = await menuService.getItems({ size: 200 });
-        const allCategories = [...new Set(allRes.data.content.map((i: MenuItem) => i.category))].sort();
-        setCategories(allCategories);
-      }
+      // Fetch all items at once (size 1000) for client-side processing
+      const res = await menuService.getItems({ size: 1000 });
+      setAllItems(res.data.content);
     } catch (error: any) {
       message.error(error.message || "Lỗi tải danh sách món ăn");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [selectedCategory, selectedStatus, currentPage, pageSize]);
+  }, []);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
+  // Derived state (calculated instantly)
+  const categories = useMemo(() => {
+    const cats = [...new Set(allItems.map((i) => i.category))].sort();
+    return cats;
+  }, [allItems]);
+
+  const stats = useMemo(() => {
+    return {
+      total: allItems.length,
+      available: allItems.filter((i) => i.status === "AVAILABLE").length,
+      outOfStock: allItems.filter((i) => i.status === "OUT_OF_STOCK").length,
+      hidden: allItems.filter((i) => i.status === "HIDDEN").length,
+    };
+  }, [allItems]);
+
+  // Filter & Sort
+  const filteredItems = useMemo(() => {
+    let result = [...allItems];
+
+    if (selectedCategory !== "ALL") {
+      result = result.filter((i) => i.category === selectedCategory);
+    }
+    if (selectedStatus !== "ALL") {
+      result = result.filter((i) => i.status === selectedStatus);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (i) => i.name.toLowerCase().includes(q) || i.category.toLowerCase().includes(q)
+      );
+    }
+
+    // Sort
+    if (sortBy === "price_asc") {
+      result.sort((a, b) => a.price - b.price);
+    } else if (sortBy === "price_desc") {
+      result.sort((a, b) => b.price - a.price);
+    } else if (sortBy === "name_asc") {
+      result.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === "name_desc") {
+      result.sort((a, b) => b.name.localeCompare(a.name));
+    } else {
+      // default: by sortOrder then name
+      result.sort((a, b) => {
+        const orderA = a.sortOrder || 0;
+        const orderB = b.sortOrder || 0;
+        if (orderA !== orderB) return orderA - orderB;
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    return result;
+  }, [allItems, selectedCategory, selectedStatus, searchQuery, sortBy]);
+
+  // Pagination
+  const pagedItems = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredItems.slice(start, start + pageSize);
+  }, [filteredItems, currentPage, pageSize]);
+
+  // Handlers
   const handleRefresh = () => fetchData(true);
 
   const handleItemClick = (item: MenuItem) => {
@@ -87,18 +131,12 @@ export default function MenusPage() {
 
   const handleFormSuccess = () => {
     setFormOpen(false);
-    setCategories([]); // Reset to re-fetch categories
-    fetchData(true);
+    fetchData(true); // Re-fetch all to get accurate state
   };
-
-  // Stats
-  const available = items.filter((i) => i.status === "AVAILABLE").length;
-  const outOfStock = items.filter((i) => i.status === "OUT_OF_STOCK").length;
-  const hidden = items.filter((i) => i.status === "HIDDEN").length;
 
   // Tab items for category
   const categoryTabs = [
-    { key: "ALL", label: `Tất cả (${totalItems})` },
+    { key: "ALL", label: `Tất cả` },
     ...categories.map((cat) => ({ key: cat, label: cat })),
   ];
 
@@ -119,17 +157,6 @@ export default function MenusPage() {
           <p className="text-zinc-500 mt-1">Quản lý danh sách món ăn, giá cả và trạng thái</p>
         </div>
         <div className="flex items-center gap-3">
-          <Select
-            value={selectedStatus}
-            onChange={(v) => { setSelectedStatus(v); setCurrentPage(1); }}
-            className="w-36"
-            options={[
-              { value: "ALL", label: "Tất cả TT" },
-              { value: "AVAILABLE", label: "Có sẵn" },
-              { value: "OUT_OF_STOCK", label: "Hết hàng" },
-              { value: "HIDDEN", label: "Ẩn" },
-            ]}
-          />
           <Button
             icon={<RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />}
             onClick={handleRefresh}
@@ -146,26 +173,63 @@ export default function MenusPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card size="small" className="bg-zinc-50 border-zinc-200">
           <div className="text-zinc-500 text-sm font-medium">Tổng món</div>
-          <div className="text-2xl font-bold mt-1 text-zinc-800">{totalItems}</div>
+          <div className="text-2xl font-bold mt-1 text-zinc-800">{stats.total}</div>
         </Card>
         <Card size="small" className="bg-emerald-50/50 border-emerald-100">
           <div className="text-emerald-600 text-sm font-medium flex items-center gap-1">
             <UtensilsCrossed size={14} /> Có sẵn
           </div>
-          <div className="text-2xl font-bold mt-1 text-emerald-700">{available}</div>
+          <div className="text-2xl font-bold mt-1 text-emerald-700">{stats.available}</div>
         </Card>
         <Card size="small" className="bg-rose-50/50 border-rose-100">
           <div className="text-rose-600 text-sm font-medium flex items-center gap-1">
             <PackageX size={14} /> Hết hàng
           </div>
-          <div className="text-2xl font-bold mt-1 text-rose-700">{outOfStock}</div>
+          <div className="text-2xl font-bold mt-1 text-rose-700">{stats.outOfStock}</div>
         </Card>
         <Card size="small" className="bg-zinc-100/50 border-zinc-200">
           <div className="text-zinc-500 text-sm font-medium flex items-center gap-1">
             <EyeOff size={14} /> Ẩn
           </div>
-          <div className="text-2xl font-bold mt-1 text-zinc-600">{hidden}</div>
+          <div className="text-2xl font-bold mt-1 text-zinc-600">{stats.hidden}</div>
         </Card>
+      </div>
+
+      {/* Filters Bar */}
+      <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-xl border border-zinc-200">
+        <Input
+          prefix={<Search size={16} className="text-zinc-400" />}
+          placeholder="Tìm kiếm món ăn..."
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="w-full md:w-64"
+        />
+        <Select
+          value={selectedStatus}
+          onChange={(v) => { setSelectedStatus(v); setCurrentPage(1); }}
+          className="w-36"
+          options={[
+            { value: "ALL", label: "Tất cả TT" },
+            { value: "AVAILABLE", label: "Có sẵn" },
+            { value: "OUT_OF_STOCK", label: "Hết hàng" },
+            { value: "HIDDEN", label: "Ẩn" },
+          ]}
+        />
+        <Select
+          value={sortBy}
+          onChange={(v) => { setSortBy(v); setCurrentPage(1); }}
+          className="w-48"
+          options={[
+            { value: "default", label: "Sắp xếp: Mặc định" },
+            { value: "price_asc", label: "Giá: Thấp đến Cao" },
+            { value: "price_desc", label: "Giá: Cao đến Thấp" },
+            { value: "name_asc", label: "Tên: A - Z" },
+            { value: "name_desc", label: "Tên: Z - A" },
+          ]}
+        />
       </div>
 
       {/* Category Tabs + Grid */}
@@ -177,46 +241,38 @@ export default function MenusPage() {
           className="px-4 pt-4"
         />
 
-        {items.length > 0 ? (
+        {pagedItems.length > 0 ? (
           <div className="p-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5">
-              {items.map((item) => (
+              {pagedItems.map((item) => (
                 <MenuItemCard key={item.id} item={item} onClick={handleItemClick} />
               ))}
             </div>
 
-            {/* Simple pagination info */}
-            {totalItems > pageSize && (
-              <div className="flex justify-center mt-6">
-                <div className="flex items-center gap-2">
-                  <Button
-                    disabled={currentPage <= 1}
-                    onClick={() => setCurrentPage((p) => p - 1)}
-                  >
-                    Trang trước
-                  </Button>
-                  <span className="text-sm text-zinc-600 px-3">
-                    Trang {currentPage} / {Math.ceil(totalItems / pageSize)}
-                  </span>
-                  <Button
-                    disabled={currentPage >= Math.ceil(totalItems / pageSize)}
-                    onClick={() => setCurrentPage((p) => p + 1)}
-                  >
-                    Trang sau
-                  </Button>
-                </div>
-              </div>
-            )}
+            {/* Ant Design Pagination */}
+            <div className="flex justify-center mt-8 mb-4">
+              <Pagination
+                current={currentPage}
+                pageSize={pageSize}
+                total={filteredItems.length}
+                onChange={(page, size) => {
+                  setCurrentPage(page);
+                  if (size && size !== pageSize) setPageSize(size);
+                }}
+                showSizeChanger
+                showTotal={(total, range) => `${range[0]}-${range[1]} của ${total} món`}
+              />
+            </div>
           </div>
         ) : (
           <div className="p-12">
             <Empty
               description={
-                <span className="text-zinc-500">Không có món ăn nào phù hợp.</span>
+                <span className="text-zinc-500">Không có món ăn nào phù hợp với bộ lọc.</span>
               }
             >
               <Button type="primary" onClick={handleCreateNew}>
-                Thêm món ăn đầu tiên
+                Thêm món ăn mới
               </Button>
             </Empty>
           </div>
@@ -228,7 +284,7 @@ export default function MenusPage() {
         open={detailOpen}
         item={selectedItem}
         onClose={() => setDetailOpen(false)}
-        onRefresh={() => { setCategories([]); fetchData(true); }}
+        onRefresh={() => fetchData(true)}
         onEdit={handleEdit}
       />
 

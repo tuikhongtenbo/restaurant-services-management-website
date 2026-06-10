@@ -141,6 +141,9 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
                 formatter={(value) => isPercent ? `${value}%` : `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                 parser={(value) => value!.replace(/%|\s?|(,*)/g, "") as any}
                 addonAfter={isPercent ? "%" : "VNĐ"}
+                onKeyPress={(e) => {
+                  if (!/[0-9]/.test(e.key)) e.preventDefault();
+                }}
               />
             </Form.Item>
           </Col>
@@ -160,6 +163,9 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
                 formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                 parser={(value) => value!.replace(/\s?|(,*)/g, "") as any}
                 placeholder="VD: 500,000"
+                onKeyPress={(e) => {
+                  if (!/[0-9]/.test(e.key)) e.preventDefault();
+                }}
               />
             </Form.Item>
           </Col>
@@ -190,6 +196,9 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
                 className="w-full"
                 min={1}
                 placeholder="Để trống nếu không giới hạn"
+                onKeyPress={(e) => {
+                  if (!/[0-9]/.test(e.key)) e.preventDefault();
+                }}
               />
             </Form.Item>
           </Col>
@@ -203,6 +212,9 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
                 className="w-full"
                 min={0}
                 placeholder="Để trống nếu không yêu cầu điểm"
+                onKeyPress={(e) => {
+                  if (!/[0-9]/.test(e.key)) e.preventDefault();
+                }}
               />
             </Form.Item>
           </Col>

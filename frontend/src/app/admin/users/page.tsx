@@ -84,7 +84,28 @@ export default function UsersPage() {
       });
 
       const data = res.data;
-      setUsers(data.content);
+      
+      const sortedContent = [...(data.content || [])].sort((a, b) => {
+        const roleOrder: Record<string, number> = { ADMIN: 1, MANAGER: 2, STAFF: 3 };
+        const getHighestRole = (user: any) => {
+          let highest = 4;
+          for (const role of (user.roles || [])) {
+            const rank = roleOrder[role] || 4;
+            if (rank < highest) highest = rank;
+          }
+          return highest;
+        };
+
+        const rankA = getHighestRole(a);
+        const rankB = getHighestRole(b);
+
+        if (rankA !== rankB) return rankA - rankB;
+
+        // Sắp xếp ID cũ lên trên, mới tạo xuống dưới (nhờ format EMP0000x)
+        return (a.employeeId || "").localeCompare(b.employeeId || "");
+      });
+
+      setUsers(sortedContent);
       setTotalElements(data.totalElements);
     } catch (error: any) {
       message.error(error.message || "Lỗi tải danh sách nhân viên");

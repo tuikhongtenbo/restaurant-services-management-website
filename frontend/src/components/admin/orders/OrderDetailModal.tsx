@@ -129,6 +129,20 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
     }
   };
 
+  const handleUpdateItemStatus = async (itemId: string, newStatus: OrderItemStatus) => {
+    try {
+      setActionLoading(true);
+      await orderService.updateItemStatus(itemId, newStatus);
+      message.success("Cập nhật trạng thái thành công.");
+      fetchOrderItems();
+      onRefresh();
+    } catch (error: any) {
+      message.error(error.message || "Lỗi cập nhật trạng thái.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleCloseOrder = async () => {
     if (!order) return;
     try {
@@ -189,10 +203,34 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
-      width: 120,
-      render: (status: OrderItemStatus) => {
+      width: 140,
+      render: (status: OrderItemStatus, record: OrderItem) => {
         const cfg = itemStatusConfig[status];
-        return <Tag color={cfg.color}>{cfg.label}</Tag>;
+        
+        // Nếu đơn đã đóng hoặc món đã hủy/phục vụ xong -> Chỉ hiện Tag
+        if (order.status !== "OPEN" || status === "CANCELLED" || status === "SERVED") {
+          return <Tag color={cfg.color}>{cfg.label}</Tag>;
+        }
+
+        // Logic giới hạn trạng thái tiếp theo
+        const statusOrder = ["PENDING", "PREPARING", "READY", "SERVED"];
+        const currentIndex = statusOrder.indexOf(status);
+
+        return (
+          <Select
+            value={status}
+            size="small"
+            disabled={actionLoading}
+            onChange={(newStatus) => handleUpdateItemStatus(record.id, newStatus as OrderItemStatus)}
+            className="w-full"
+          >
+            {statusOrder.map((s, idx) => (
+              <Select.Option key={s} value={s} disabled={idx < currentIndex}>
+                {itemStatusConfig[s as OrderItemStatus].label}
+              </Select.Option>
+            ))}
+          </Select>
+        );
       },
     },
     ...(order.status === "OPEN"
