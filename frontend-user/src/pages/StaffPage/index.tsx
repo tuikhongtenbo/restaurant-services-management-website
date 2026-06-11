@@ -10,6 +10,7 @@ import type { MenuItem } from "../../types/menu";
 import { useNavigate } from "react-router-dom";
 import HeroBackground from "../../component/layouts/overlay/overlay";
 import styles from "./index.module.css";
+import { voucherService, type VoucherResponse } from "../../services/voucherService";
 
 interface CartItem {
   menuItem: MenuItem;
@@ -30,7 +31,7 @@ function getStaffIdFromToken(): string | null {
 }
 
 export default function StaffPage() {
-  const { isAuthenticated, isStaff } = useAuth();
+  const { isAuthenticated, isStaff, isLoading } = useAuth();
   const navigate = useNavigate();
   const { menu, loading: menuLoading } = useMenu();
 
@@ -72,6 +73,8 @@ export default function StaffPage() {
   const [customerPhone, setCustomerPhone] = useState("");
   const [checkoutPreview, setCheckoutPreview] = useState<CheckoutResponse | null>(null);
   const [cashReceived, setCashReceived] = useState<number>(0);
+  const [voucherCodeInput, setVoucherCodeInput] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState<VoucherResponse | null>(null);
 
   // ─── State thao tác bàn ──────────────────────────────────────
   const [tableActionLoading, setTableActionLoading] = useState(false);
@@ -110,13 +113,14 @@ export default function StaffPage() {
   }, [reservationsDate]);
 
   useEffect(() => {
+    if (isLoading) return;
     if (!isAuthenticated || !isStaff) {
       navigate("/login");
       return;
     }
     loadTables();
     loadReservations();
-  }, [isAuthenticated, isStaff, navigate, loadTables, loadReservations]);
+  }, [isLoading, isAuthenticated, isStaff, navigate, loadTables, loadReservations]);
 
   // ════════════════════════════════════════════════════════════
   // HELPERS
@@ -135,6 +139,8 @@ export default function StaffPage() {
     setOrderSuccess(false);
     setInvoiceHtml(null);
     setLastInvoice(null);
+    setVoucherCodeInput("");
+    setAppliedVoucher(null);
     setActiveTab("order");
 
     if (isTableServing(table)) {
@@ -291,6 +297,7 @@ export default function StaffPage() {
     try {
       const preview = await invoiceService.previewCheckout({
         orderId: currentOrder.id,
+        voucherId: appliedVoucher?.id || undefined,
       });
       setCheckoutPreview(preview);
       setCashReceived(preview.totalAmount);
@@ -308,11 +315,72 @@ export default function StaffPage() {
       const preview = await invoiceService.previewCheckout({
         orderId: currentOrder.id,
         customerPhone: customerPhone || undefined,
+        voucherId: appliedVoucher?.id || undefined,
       });
       setCheckoutPreview(preview);
       setCashReceived(preview.totalAmount);
     } catch (err) {
       setSystemAlert({ title: "Lỗi", message: (err as Error).message });
+    }
+  };
+
+  const handleApplyVoucher = async () => {
+    if (!voucherCodeInput.trim()) {
+      setSystemAlert({ title: "Thông báo", message: "Vui lòng nhập mã voucher" });
+      return;
+    }
+    if (!currentOrder) return;
+    setCheckoutLoading(true);
+    try {
+      const v = await voucherService.getByCode(voucherCodeInput.trim());
+      setAppliedVoucher(v);
+      setSystemAlert({ title: "Thành công", message: "Áp dụng voucher thành công!" });
+      
+      const preview = await invoiceService.previewCheckout({
+        orderId: currentOrder.id,
+        customerPhone: customerPhone || undefined,
+        voucherId: v.id,
+      });
+      setCheckoutPreview(preview);
+      setCashReceived(preview.totalAmount);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Mã voucher không hợp lệ hoặc đã hết hạn";
+      setSystemAlert({ title: "Lỗi", message: msg });
+      setAppliedVoucher(null);
+      
+      try {
+        const preview = await invoiceService.previewCheckout({
+          orderId: currentOrder.id,
+          customerPhone: customerPhone || undefined,
+        });
+        setCheckoutPreview(preview);
+        setCashReceived(preview.totalAmount);
+      } catch (e) {
+        // Ignore
+      }
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
+  const handleRemoveVoucher = async () => {
+    if (!currentOrder) return;
+    setVoucherCodeInput("");
+    setAppliedVoucher(null);
+    setCheckoutLoading(true);
+    try {
+      const preview = await invoiceService.previewCheckout({
+        orderId: currentOrder.id,
+        customerPhone: customerPhone || undefined,
+        voucherId: undefined,
+      });
+      setCheckoutPreview(preview);
+      setCashReceived(preview.totalAmount);
+      setSystemAlert({ title: "Thông báo", message: "Đã huỷ áp dụng voucher" });
+    } catch (e) {
+      // Ignore
+    } finally {
+      setCheckoutLoading(false);
     }
   };
 
@@ -324,6 +392,7 @@ export default function StaffPage() {
         orderId: currentOrder.id,
         customerPhone: customerPhone || undefined,
         cashReceived: cashReceived,
+        voucherId: appliedVoucher?.id || undefined,
       });
       setLastInvoice(invoice);
 
@@ -355,6 +424,7 @@ export default function StaffPage() {
       const res = await invoiceService.createVnpayPayment({
         orderId: currentOrder.id,
         customerPhone: customerPhone || undefined,
+        voucherId: appliedVoucher?.id || undefined,
       });
       window.location.href = res.paymentUrl;
     } catch (err) {
@@ -1146,6 +1216,54 @@ export default function StaffPage() {
               {checkoutPreview.customer && (
                 <div style={{ marginTop: "8px", fontSize: "14px", color: "#22c55e" }}>
                   Khách hàng: {checkoutPreview.customer.fullName} - Điểm: {checkoutPreview.customer.currentPoints}
+                </div>
+              )}
+            </div>
+
+            {/* Form nhập Voucher */}
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{ display: "block", fontSize: "14px", color: "#a1a1aa", marginBottom: "8px" }}>
+                Mã Voucher
+              </label>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input
+                  type="text"
+                  value={voucherCodeInput}
+                  onChange={(e) => setVoucherCodeInput(e.target.value.toUpperCase())}
+                  placeholder="Nhập mã voucher..."
+                  disabled={appliedVoucher !== null || checkoutLoading}
+                  style={{
+                    flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #333",
+                    background: "#0a0a0a", color: "#fff"
+                  }}
+                />
+                {!appliedVoucher ? (
+                  <button
+                    onClick={handleApplyVoucher}
+                    disabled={checkoutLoading}
+                    style={{
+                      padding: "10px 16px", borderRadius: "6px", border: "none",
+                      background: "#eab308", color: "#000", cursor: "pointer", fontWeight: "bold"
+                    }}
+                  >
+                    Áp dụng
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleRemoveVoucher}
+                    disabled={checkoutLoading}
+                    style={{
+                      padding: "10px 16px", borderRadius: "6px", border: "none",
+                      background: "#ef4444", color: "#fff", cursor: "pointer", fontWeight: "bold"
+                    }}
+                  >
+                    Huỷ
+                  </button>
+                )}
+              </div>
+              {appliedVoucher && (
+                <div style={{ marginTop: "8px", fontSize: "14px", color: "#eab308" }}>
+                  Đã áp dụng: {appliedVoucher.code} - {appliedVoucher.description}
                 </div>
               )}
             </div>

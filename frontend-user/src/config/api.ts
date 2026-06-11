@@ -8,6 +8,8 @@ export const API_ENDPOINTS = {
     STAFF_LOGIN: `${API_BASE_URL}/api/auth/login`,
     REGISTER: `${API_BASE_URL}/api/auth/customer/register`,
     CHANGE_PASSWORD: `${API_BASE_URL}/api/auth/change-password`,
+    CUSTOMER_CHANGE_PASSWORD: `${API_BASE_URL}/api/auth/customer/change-password`,
+    CUSTOMER_UPDATE: `${API_BASE_URL}/api/auth/customer/update`,
     FORGOT_PASSWORD: `${API_BASE_URL}/api/auth/forgot-password`,
     REFRESH_TOKEN: `${API_BASE_URL}/api/auth/refresh-token`,
   },
@@ -62,6 +64,9 @@ export const API_ENDPOINTS = {
     GET_ALL: `${API_BASE_URL}/api/payments/invoices`,
     GET_BY_ID: (id: string) => `${API_BASE_URL}/api/payments/invoices/${id}`,
     PRINT: (id: string) => `${API_BASE_URL}/api/invoices/${id}/print`,
+  },
+  VOUCHERS: {
+    GET_BY_CODE: (code: string) => `${API_BASE_URL}/api/vouchers/code/${code}`,
   },
 };
 

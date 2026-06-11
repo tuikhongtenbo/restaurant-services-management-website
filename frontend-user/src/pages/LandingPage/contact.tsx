@@ -79,7 +79,7 @@ function Contact() {
               <span className={styles.icon}>
                 <ClockIcon />
               </span>
-              <p>10:30 am - 11:00 pm</p>
+              <p>10:00 am - 18:00 am</p>
             </div>
           </div>
 

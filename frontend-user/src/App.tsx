@@ -9,7 +9,7 @@ import BookingPage from "./pages/Booking/index.tsx";
 import StaffPage from "./pages/StaffPage/index.tsx";
 import { useState, useEffect, useRef } from "react";
 import PageLoader from "./component/layouts/pageLoader/index.tsx";
-import MenuPage from "./pages/MenuPage.tsx/index.tsx";
+import MenuPage from "./pages/MenuPage/index.tsx";
 import ProfilePage from "./pages/ProfilePage/index.tsx";
 import { VnpayReturnPage } from "./pages/VnpayReturnPage/index.tsx";
 import Chatbot from "./component/common/Chatbot/Chatbot.tsx";

@@ -11,14 +11,7 @@ const dishes = [
     image: "/images/pho.jpg",
     isMustTry: false,
   },
-  {
-    id: 2,
-    name: "Mỳ Quảng Gà",
-    description: "Gà Thả Vườn, Bánh Tráng, Rau Sống",
-    price: "45.000 VND",
-    image: "/images/myquang.jpg", // Đã sửa bỏ chữ "public" cho chuẩn Vite
-    isMustTry: true,
-  },
+
 ];
 
 function Hero() {

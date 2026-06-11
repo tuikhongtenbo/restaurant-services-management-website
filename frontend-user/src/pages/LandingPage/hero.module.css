@@ -89,6 +89,13 @@
   margin-top: 40px;
 }
 
+
+
+.rightContent {
+  margin-left:20%;
+  width: 120%;
+}
+
 /* --- Responsive cho Mobile --- */
 @media (max-width: 768px) {
   .borderBox {

@@ -25,7 +25,7 @@ function Footer() {
           </div>
           <div className={styles.content}>
             <h3>Giờ mở cửa</h3>
-            <p>10:30 am - 11:00 pm</p>
+            <p>10:00 am - 18:00 am</p>
           </div>
           <div className={styles.content}>
             <h3>Khám phá</h3>
