@@ -50,20 +50,6 @@ function Hero() {
             </fieldset>
           </div>
 
-          <div className={styles.rightContent}>
-            <div className={styles.cardGrid}>
-              {dishes.map((dish) => (
-                <DishCard
-                  key={dish.id}
-                  name={dish.name}
-                  description={dish.description}
-                  price={dish.price}
-                  image={dish.image}
-                  isMustTry={dish.isMustTry}
-                />
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </section>

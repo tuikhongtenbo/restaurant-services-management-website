@@ -1,18 +1,35 @@
 .hero {
   width: 100vw;
   height: 100vh;
-  overflow-x: hidden;
-  /* Đã xóa .hero::before và .overlay đi vì đã chuyển sang HeroBackground */
+  overflow: hidden;
+  position: relative;
 }
 
 /* --- Content Box --- */
 .container {
   width: 100%;
-  max-width: 1200px;
-  padding: 20px;
+  height: 100%; /* Ép container chiếm trọn 100vh chiều cao màn hình */
+  padding: 40px; /* Khoảng cách đệm an toàn tránh dính sát mép màn hình */
   box-sizing: border-box;
+  
   display: flex;
   justify-content: center;
+  align-items: center; /* Căn giữa khung viền theo chiều dọc */
+  position: relative;
+  z-index: 2; /* Đẩy nội dung nổi lên trên background overlay */
+}
+
+/* Khung lưới bao quanh vùng nội dung chính */
+.contentGrid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px; /* Độ rộng tối đa của khung viền, bạn có thể tăng lên 1400px nếu muốn rộng nữa */
+}
+
+.leftContent {
+  width: 100%;
 }
 
 /* Khung viền trắng bao quanh nội dung */
@@ -21,8 +38,6 @@
   padding: 60px 40px;
   text-align: center;
   width: 100%;
-  max-width: none;
-  min-width: 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -72,15 +87,6 @@
   color: #fff;
 }
 
-.contentGrid {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 60px;
-  width: 100%;
-  max-width: 1200px;
-  align-items: center;
-}
-
 .cardGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -89,17 +95,14 @@
   margin-top: 40px;
 }
 
-
-
-.rightContent {
-  margin-left:20%;
-  width: 120%;
-}
-
 /* --- Responsive cho Mobile --- */
 @media (max-width: 768px) {
+  .container {
+    padding: 20px; /* Giảm padding trên mobile để tăng không gian hiển thị */
+  }
+
   .borderBox {
-    padding: 30px 15px;
+    padding: 35px 20px;
   }
 
   .mainTitle {
@@ -113,5 +116,6 @@
 
   .description {
     font-size: 0.9rem;
+    line-height: 1.6;
   }
 }
