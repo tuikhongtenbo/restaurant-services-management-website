@@ -33,9 +33,6 @@ public interface ReservationService {
     // Đánh dấu khách đã đến nhận bàn; đồng thời chuyển trạng thái bàn được gán sang SERVING
     ReservationResponse arrived(UUID id);
 
-    // Đánh dấu khách không đến (No-Show); giải phóng bàn đã giữ chỗ về lại EMPTY
-    ReservationResponse noShow(UUID id);
-
     // Huỷ đơn đặt bàn; giải phóng bàn (nếu có) và lưu vết người huỷ cùng lý do
     ReservationResponse cancel(UUID id, UUID cancelledBy, String reason);
 

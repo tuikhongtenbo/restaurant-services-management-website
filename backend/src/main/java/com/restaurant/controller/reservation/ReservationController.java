@@ -80,11 +80,6 @@ public class ReservationController {
         return reservationService.arrived(id);
     }
 
-    @PutMapping("/{id}/no-show")
-    public ReservationResponse markAsNoShow(@PathVariable UUID id) {
-        return reservationService.noShow(id);
-    }
-
     @PutMapping("/{id}/cancel")
     public ReservationResponse cancelReservation(
             @PathVariable UUID id,

@@ -41,7 +41,7 @@ public class Reservation {
     @Column(length = 15)
     @Builder.Default
     private ReservationStatus status = ReservationStatus.PENDING;
-    // PENDING → CONFIRMED → ARRIVED hoặc NO_SHOW hoặc CANCELLED
+    // PENDING → CONFIRMED → ARRIVED hoặc CANCELLED
 
     @Enumerated(EnumType.STRING)
     @Column(length = 10)
@@ -83,7 +83,7 @@ public class Reservation {
 //   - partySize      : INT (> 0)
 //   - reservedAt     : TIMESTAMPTZ
 //   - note           : TEXT
-//   - status         : VARCHAR(15) [pending|confirmed|arrived|no_show|cancelled]
+//   - status         : VARCHAR(15) [pending|confirmed|arrived|cancelled]
 //   - source         : VARCHAR(10) [online|staff]
 //   - confirmedBy    : UUID, FK → users.id
 //   - cancelledBy    : UUID, FK → users.id

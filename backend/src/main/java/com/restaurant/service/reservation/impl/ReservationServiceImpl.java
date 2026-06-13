@@ -323,19 +323,6 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public ReservationResponse noShow(UUID id) {
-        Reservation r = findOrThrow(id);
-
-        if (r.getStatus() != ReservationStatus.CONFIRMED) {
-            throw new BusinessException("Chi danh dau NO_SHOW voi dat ban CONFIRMED.");
-        }
-
-        releaseTable(r);
-        r.setStatus(ReservationStatus.NO_SHOW);
-        return toResponse(reservationRepository.save(r));
-    }
-
-    @Override
     public ReservationResponse cancel(UUID id, UUID cancelledBy, String reason) {
         Reservation r = findOrThrow(id);
 
@@ -348,7 +335,9 @@ public class ReservationServiceImpl implements ReservationService {
 
         releaseTable(r);
         r.setStatus(ReservationStatus.CANCELLED);
-        r.setCancelledBy(cancelledBy);
+        if (cancelledBy != null) {
+            r.setCancelledBy(cancelledBy);
+        }
         r.setCancelReason(reason);
         return toResponse(reservationRepository.save(r));
     }
