@@ -1,7 +1,7 @@
 // frontend/src/types/reservation.ts
 
 /** Trạng thái đặt bàn — match backend ReservationStatus enum */
-export type ReservationStatus = 'PENDING' | 'REJECTED' | 'CONFIRMED' | 'ARRIVED' | 'NO_SHOW' | 'CANCELLED';
+export type ReservationStatus = 'PENDING' | 'REJECTED' | 'CONFIRMED' | 'ARRIVED' | 'CANCELLED';
 
 /**
  * Thông tin đặt bàn — match backend ReservationResponse DTO

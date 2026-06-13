@@ -142,9 +142,12 @@ export const ReservationFormModal: React.FC<ReservationFormModalProps> = ({
           <Form.Item
             name="customerName"
             label="Tên khách hàng"
-            rules={[{ required: true, message: "Vui lòng nhập tên" }]}
+            rules={[
+              { required: true, message: "Vui lòng nhập tên" },
+              { max: 100, message: "Tên không được vượt quá 100 ký tự" }
+            ]}
           >
-            <Input placeholder="Nguyễn Văn A" />
+            <Input placeholder="Nguyễn Văn A" maxLength={100} />
           </Form.Item>
 
           <Form.Item

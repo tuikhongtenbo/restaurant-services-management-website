@@ -10,20 +10,24 @@ import { authService } from "@/services/auth.service";
 import { Reservation, ReservationStatus, ReservationCalendar } from "@/types/reservation";
 import { ReservationFormModal } from "@/components/admin/reservations/ReservationFormModal";
 import { ReservationCancelModal } from "@/components/admin/reservations/ReservationCancelModal";
+import { tableService } from "@/services/table.service";
 
 export default function ReservationsPage() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<Reservation[]>([]);
   const [total, setTotal] = useState(0);
-  
+
   // Filters
   const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
   const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  
+
   // Calendar Stats
   const [stats, setStats] = useState<ReservationCalendar | null>(null);
+
+  // Tables Map for displaying Table Number
+  const [tables, setTables] = useState<Record<string, string>>({});
 
   // Auth State
   const [staffId, setStaffId] = useState<string | undefined>(undefined);
@@ -36,17 +40,22 @@ export default function ReservationsPage() {
 
   // Initialize
   useEffect(() => {
-    authService.getCurrentUser().then(res => setStaffId(res.data.id)).catch(() => {});
+    authService.getCurrentUser().then(res => setStaffId(res.data.id)).catch(() => { });
+    tableService.getTables({ size: 100 }).then(res => {
+      const tableMap: Record<string, string> = {};
+      res.data.content.forEach(t => tableMap[t.id] = t.number);
+      setTables(tableMap);
+    }).catch(console.error);
   }, []);
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const dateStr = selectedDate.format("YYYY-MM-DD");
-      
+
       // Fetch both list and calendar stats in parallel
       const statusParam = selectedStatus === "ALL" ? undefined : (selectedStatus as ReservationStatus);
-      
+
       const [listRes, calendarRes] = await Promise.all([
         reservationService.getReservations({
           date: dateStr,
@@ -93,15 +102,7 @@ export default function ReservationsPage() {
     }
   };
 
-  const handleNoShow = async (id: string) => {
-    try {
-      await reservationService.markAsNoShow(id);
-      message.success("Đã đánh dấu khách không đến.");
-      fetchData();
-    } catch (error: any) {
-      message.error(error.message || "Lỗi thao tác.");
-    }
-  };
+
 
   const handleDelete = async (id: string) => {
     try {
@@ -117,7 +118,6 @@ export default function ReservationsPage() {
     PENDING: "processing",
     CONFIRMED: "warning", // Yellow/Orange
     ARRIVED: "success",
-    NO_SHOW: "default",
     CANCELLED: "error",
     REJECTED: "error",
   };
@@ -126,7 +126,6 @@ export default function ReservationsPage() {
     PENDING: "Chờ duyệt",
     CONFIRMED: "Đã duyệt",
     ARRIVED: "Đã đến",
-    NO_SHOW: "Không đến",
     CANCELLED: "Đã hủy",
     REJECTED: "Từ chối",
   };
@@ -172,6 +171,12 @@ export default function ReservationsPage() {
       render: (val: string) => val ? <span className="text-zinc-600 text-sm truncate max-w-[150px] inline-block" title={val}>{val}</span> : <span className="text-zinc-300">-</span>
     },
     {
+      title: "Bàn",
+      dataIndex: "tableId",
+      key: "tableId",
+      render: (val: string) => val && tables[val] ? <Tag color="blue">Bàn {tables[val]}</Tag> : <span className="text-zinc-400 italic text-sm">Chưa xếp</span>
+    },
+    {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
@@ -193,16 +198,38 @@ export default function ReservationsPage() {
             </Popconfirm>
           )}
 
-          {record.status === "CONFIRMED" && (
-            <>
-              <Popconfirm title="Khách đã đến quán?" onConfirm={() => handleArrived(record.id)}>
-                <Button className="bg-emerald-500 hover:bg-emerald-600 border-none" type="primary" size="small" icon={<MapPin size={14} />}>Đã đến</Button>
-              </Popconfirm>
-              <Popconfirm title="Đánh dấu khách không đến?" onConfirm={() => handleNoShow(record.id)}>
-                <Button size="small" icon={<XCircle size={14} />}>Vắng mặt</Button>
-              </Popconfirm>
-            </>
-          )}
+          {record.status === "CONFIRMED" && (() => {
+            const reservedTime = dayjs(record.reservedAt);
+            const now = dayjs();
+            const thirtyMinsBefore = reservedTime.subtract(30, 'minute');
+            const thirtyMinsAfter = reservedTime.add(30, 'minute');
+
+            const canArrive = now.isAfter(thirtyMinsBefore) && now.isBefore(thirtyMinsAfter);
+
+            let arriveTooltip = "";
+            if (now.isBefore(thirtyMinsBefore)) arriveTooltip = "Chỉ được check-in trước giờ hẹn tối đa 30 phút";
+            else if (now.isAfter(thirtyMinsAfter)) arriveTooltip = "Đã quá hạn 30 phút, đơn đang chờ hệ thống tự hủy";
+
+            return (
+              <Tooltip title={arriveTooltip}>
+                <Popconfirm 
+                  title="Khách đã đến quán?" 
+                  onConfirm={() => handleArrived(record.id)}
+                  disabled={!canArrive}
+                >
+                  <Button 
+                    className={canArrive ? "bg-emerald-500 hover:bg-emerald-600 border-none" : ""} 
+                    type="primary" 
+                    size="small" 
+                    icon={<MapPin size={14} />}
+                    disabled={!canArrive}
+                  >
+                    Đã đến
+                  </Button>
+                </Popconfirm>
+              </Tooltip>
+            );
+          })()}
 
           {(record.status === "PENDING" || record.status === "CONFIRMED") && (
             <>
@@ -215,7 +242,7 @@ export default function ReservationsPage() {
             </>
           )}
 
-          {(record.status === "CANCELLED" || record.status === "NO_SHOW") && (
+          {record.status === "CANCELLED" && (
             <Popconfirm title="Xóa vĩnh viễn?" onConfirm={() => handleDelete(record.id)}>
               <Button size="small" danger type="text" icon={<XCircle size={16} />} />
             </Popconfirm>
@@ -234,17 +261,17 @@ export default function ReservationsPage() {
           <p className="text-zinc-500 mt-1">Theo dõi và quản lý lịch hẹn của khách hàng</p>
         </div>
         <div className="flex items-center gap-3">
-          <DatePicker 
-            value={selectedDate} 
-            onChange={(d) => { if(d) { setSelectedDate(d); setCurrentPage(1); } }} 
+          <DatePicker
+            value={selectedDate}
+            onChange={(d) => { if (d) { setSelectedDate(d); setCurrentPage(1); } }}
             format="DD/MM/YYYY"
             allowClear={false}
             className="w-40"
             size="large"
           />
-          <Button 
-            type="primary" 
-            size="large" 
+          <Button
+            type="primary"
+            size="large"
             icon={<Plus size={18} />}
             onClick={() => { setEditingReservation(undefined); setFormOpen(true); }}
           >
@@ -291,7 +318,7 @@ export default function ReservationsPage() {
           ]}
           className="px-4 pt-4"
         />
-        
+
         <Table
           columns={columns}
           dataSource={data}
