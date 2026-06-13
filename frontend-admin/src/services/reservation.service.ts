@@ -111,16 +111,6 @@ export const reservationService = {
     });
   },
 
-  /**
-   * PUT /api/reservations/{id}/no-show
-   * Đánh dấu khách không đến
-   */
-  async markAsNoShow(id: string): Promise<Reservation> {
-    return apiClient<Reservation>(`/reservations/${id}/no-show`, {
-      method: "PUT",
-      requireAuth: true,
-    });
-  },
 
   /**
    * PUT /api/reservations/{id}/cancel
@@ -139,6 +129,18 @@ export const reservationService = {
       body: JSON.stringify(data),
       headers,
       requireAuth: true,
+    });
+  },
+
+  /**
+   * GET /api/public/reservations/available-dates?partySize={partySize}
+   * Lấy danh sách ngày còn trống trong 30 ngày tới
+   */
+  async getAvailableDates(partySize: number): Promise<string[]> {
+    const query = new URLSearchParams({ partySize: String(partySize) }).toString();
+    return apiClient<string[]>(`/public/reservations/available-dates?${query}`, {
+      method: "GET",
+      requireAuth: false,
     });
   },
 
