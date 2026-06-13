@@ -5,8 +5,14 @@ target/
 !**/src/test/**/target/
 AGENTS.md
 CLAUDE.md
+<<<<<<< HEAD
 LOGIC_INCONSISTENCY_REPORT.md
 
+=======
+BUSINESS_LOGIC.md
+LOGIC_INCONSISTENCY_REPORT.md
+RESERVATION_ANALYSIS.md
+>>>>>>> 7e16f1dbd7f3e21482e9009c8d49e3af59a0704d
 ### STS ###
 .apt_generated
 .classpath

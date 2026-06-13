@@ -5,6 +5,5 @@ public enum ReservationStatus {
     REJECTED,   // Đã từ chối
     CONFIRMED,  // Đã xác nhận
     ARRIVED,    // Khách đã đến
-    NO_SHOW,    // Khách không đến
-    CANCELLED   // Đã hủy
+    CANCELLED   // Đã hủy (hoặc khách không đến)
 }
