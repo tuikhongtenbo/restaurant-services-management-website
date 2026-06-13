@@ -38,29 +38,30 @@ public class OrderServiceImpl implements OrderService {
     // QUERY: Lấy danh sách order, có thể filter theo status và ngày
     // ─────────────────────────────────────────────────────────────────────────
     @Override
+    @Transactional(readOnly = true)
     public PageResponse<List<OrderResponse>> getOrders(OrderStatus status, LocalDate date, Pageable pageable) {
         // Logic: Nếu có cả status và date → filter theo cả hai
-        //        Nếu chỉ có status → filter theo status
-        //        Nếu chỉ có date   → filter theo khoảng thời gian trong ngày
-        //        Nếu không có gì   → lấy tất cả
+        // Nếu chỉ có status → filter theo status
+        // Nếu chỉ có date → filter theo khoảng thời gian trong ngày
+        // Nếu không có gì → lấy tất cả
         Page<Order> page;
 
         if (status != null && date != null) {
             OffsetDateTime from = date.atStartOfDay().atOffset(ZoneOffset.UTC);
-            OffsetDateTime to   = date.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC);
+            OffsetDateTime to = date.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC);
             page = orderRepository.findByStatusAndOpenedAtBetween(status, from, to, pageable);
         } else if (status != null) {
             page = orderRepository.findByStatus(status, pageable);
         } else if (date != null) {
             OffsetDateTime from = date.atStartOfDay().atOffset(ZoneOffset.UTC);
-            OffsetDateTime to   = date.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC);
+            OffsetDateTime to = date.plusDays(1).atStartOfDay().atOffset(ZoneOffset.UTC);
             page = orderRepository.findByOpenedAtBetween(from, to, pageable);
         } else {
             page = orderRepository.findAll(pageable);
         }
 
         List<Order> orders = page.getContent();
-        
+
         // Fix N+1 Query: Fetch all tables for the current page in one go
         List<UUID> tableIds = orders.stream().map(Order::getTableId).distinct().collect(Collectors.toList());
         java.util.Map<UUID, String> tableNumberMap = tableRepository.findAllById(tableIds).stream()
@@ -98,10 +99,10 @@ public class OrderServiceImpl implements OrderService {
 
     // ─────────────────────────────────────────────────────────────────────────
     // CREATE: Tạo order mới
-    //  1. Kiểm tra bàn có tồn tại không
-    //  2. Kiểm tra bàn phải đang trống (EMPTY) — nếu không → ném BusinessException
-    //  3. Tạo Order mới và lưu vào DB
-    //  4. Cập nhật trạng thái bàn → SERVING (đang phục vụ)
+    // 1. Kiểm tra bàn có tồn tại không
+    // 2. Kiểm tra bàn phải đang trống (EMPTY) — nếu không → ném BusinessException
+    // 3. Tạo Order mới và lưu vào DB
+    // 4. Cập nhật trạng thái bàn → SERVING (đang phục vụ)
     // ─────────────────────────────────────────────────────────────────────────
     @Override
     @Transactional
@@ -110,7 +111,8 @@ public class OrderServiceImpl implements OrderService {
         Table table = tableRepository.findById(request.getTableId())
                 .orElseThrow(() -> new ResourceNotFoundException("Table", "id", request.getTableId()));
 
-        // Bước 2: Kiểm tra trạng thái bàn — EMPTY hoặc SERVING (đã check-in đặt bàn) chưa có order OPEN
+        // Bước 2: Kiểm tra trạng thái bàn — EMPTY hoặc SERVING (đã check-in đặt bàn)
+        // chưa có order OPEN
         if (table.getStatus() == TableStatus.EMPTY) {
             // ok
         } else if (table.getStatus() == TableStatus.SERVING
@@ -165,8 +167,8 @@ public class OrderServiceImpl implements OrderService {
 
     // ─────────────────────────────────────────────────────────────────────────
     // CLOSE: Đóng order sau khi thanh toán xong
-    //  1. Cập nhật Order → status = PAID, closedAt = now()
-    //  2. Trả bàn về trạng thái CLEANING (chờ dọn dẹp)
+    // 1. Cập nhật Order → status = PAID, closedAt = now()
+    // 2. Trả bàn về trạng thái CLEANING (chờ dọn dẹp)
     // ─────────────────────────────────────────────────────────────────────────
     @Override
     @Transactional
@@ -190,8 +192,8 @@ public class OrderServiceImpl implements OrderService {
 
     // ─────────────────────────────────────────────────────────────────────────
     // PRIVATE HELPER: Map Order entity → OrderResponse DTO
-    //  - Lấy tableNumber từ TableRepository để hiển thị số bàn
-    //  - Tính subtotal từ danh sách items (unitPrice × quantity, bỏ qua CANCELLED)
+    // - Lấy tableNumber từ TableRepository để hiển thị số bàn
+    // - Tính subtotal từ danh sách items (unitPrice × quantity, bỏ qua CANCELLED)
     // ─────────────────────────────────────────────────────────────────────────
     private OrderResponse mapToResponse(Order order) {
         String tableNumber = tableRepository.findById(order.getTableId())
@@ -203,15 +205,15 @@ public class OrderServiceImpl implements OrderService {
     private OrderResponse mapToResponse(Order order, String tableNumber) {
 
         // Tính subtotal: tổng (unitPrice × quantity) của các item chưa bị huỷ
-        BigDecimal subtotal = order.getItems() == null ? BigDecimal.ZERO :
-                order.getItems().stream()
+        BigDecimal subtotal = order.getItems() == null ? BigDecimal.ZERO
+                : order.getItems().stream()
                         .filter(item -> item.getStatus() != com.restaurant.common.enums.OrderItemStatus.CANCELLED)
                         .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // Map từng item sang OrderItemResponse
-        List<OrderItemResponse> itemResponses = order.getItems() == null ? List.of() :
-                order.getItems().stream()
+        List<OrderItemResponse> itemResponses = order.getItems() == null ? List.of()
+                : order.getItems().stream()
                         .map(item -> OrderItemResponse.builder()
                                 .id(item.getId())
                                 .itemId(item.getItemId())
@@ -230,7 +232,7 @@ public class OrderServiceImpl implements OrderService {
         return OrderResponse.builder()
                 .id(order.getId())
                 .tableId(order.getTableId())
-                .tableNumber(tableNumber)   // Bổ sung từ Giai đoạn 2
+                .tableNumber(tableNumber) // Bổ sung từ Giai đoạn 2
                 .status(order.getStatus())
                 .guestCount(order.getGuestCount())
                 .items(itemResponses)

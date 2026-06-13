@@ -91,6 +91,7 @@ public class AuthServiceImpl implements AuthService {
     //  - userId được lấy từ JWT token đã xác thực trong SecurityContext
     // ─────────────────────────────────────────────────────────────────────────
     @Override
+    @Transactional(readOnly = true)
     public UserResponse getCurrentUser(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException("User not found"));
