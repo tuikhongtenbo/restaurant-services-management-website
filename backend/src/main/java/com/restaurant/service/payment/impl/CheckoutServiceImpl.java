@@ -18,7 +18,6 @@ import com.restaurant.model.Customer;
 import com.restaurant.model.Invoice;
 import com.restaurant.model.Order;
 import com.restaurant.model.OrderItem;
-import com.restaurant.model.Table;
 import com.restaurant.model.Voucher;
 import com.restaurant.repository.*;
 import com.restaurant.service.payment.CheckoutService;

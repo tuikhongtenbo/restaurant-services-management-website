@@ -21,8 +21,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Page<User> findAll(Pageable pageable);
 
     Optional<User> findByEmployeeId(String employeeId);
+
     boolean existsByEmail(String email);
+
     boolean existsByEmployeeId(String employeeId);
+
     Page<User> findByRoles_Name(String roleName, Pageable pageable);
+
     Page<User> findByStatus(UserStatus status, Pageable pageable);
 }

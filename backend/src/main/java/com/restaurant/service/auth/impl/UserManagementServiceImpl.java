@@ -41,6 +41,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     //  NOTE: role và status không filter đồng thời — role được ưu tiên trước
     // ─────────────────────────────────────────────────────────────────────────
     @Override
+    @Transactional(readOnly = true)
     public Page<UserResponse> getUsers(String role, String status, Pageable pageable) {
         if (role != null) {
             // Filter theo tên role — chuyển toUpperCase để đồng nhất với dữ liệu DB
@@ -189,8 +190,8 @@ public class UserManagementServiceImpl implements UserManagementService {
     @Transactional
     public void resetUserPassword(UUID id) {
         User user = findUserOrThrow(id);
-        // Lấy 8 ký tự đầu của UUID để làm mật khẩu tạm thời (đủ ngẫu nhiên)
-        String temporaryPassword = UUID.randomUUID().toString().substring(0, 8);
+        // Set mật khẩu mặc định khi reset
+        String temporaryPassword = "123456";
         user.setPasswordHash(passwordEncoder.encode(temporaryPassword));
         user.setFailedAttempts(0);
         userRepository.save(user);
