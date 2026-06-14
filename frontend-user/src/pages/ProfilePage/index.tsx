@@ -52,16 +52,28 @@ export default function ProfilePage() {
   };
 
   const getDisplayRole = () => {
-    switch (userType) {
-      case "CUSTOMER": return "Khách hàng";
-      case "STAFF": return "Nhân viên";
-      case "ADMIN": return "Quản trị viên";
-      case "MANAGER": return "Quản lý";
-      case "KITCHEN_STAFF": return "Nhân viên bếp";
-      case "CASHIER": return "Thu ngân";
-      case "WAITER": return "Phục vụ";
-      default: return "Khách hàng";
+    if (userType === "CUSTOMER") return "Khách hàng";
+
+    if (user?.roles && user.roles.length > 0) {
+      const roleMap: Record<string, string> = {
+        "STAFF": "Nhân viên",
+        "ADMIN": "Quản trị viên",
+        "MANAGER": "Quản lý",
+        "KITCHEN_STAFF": "Nhân viên bếp",
+        "CASHIER": "Thu ngân",
+        "WAITER": "Phục vụ",
+        "CUSTOMER": "Khách hàng"
+      };
+      
+      const rolesToDisplay = user.roles.map(r => {
+        const cleanRole = r.toUpperCase().replace("ROLE_", "");
+        return roleMap[cleanRole] || cleanRole;
+      });
+      return rolesToDisplay.join(", ");
     }
+
+    if (isStaff) return "Nhân viên";
+    return "Khách hàng";
   };
 
   const getAvatarChar = () => {
@@ -189,7 +201,7 @@ export default function ProfilePage() {
           <div className={styles.actions}>
             {isEditing ? (
               <>
-                <button className={styles.actionBtn} onClick={handleSave} style={{ backgroundColor: "var(--color-primary-green)", color: "black" }}>
+                <button className={styles.actionBtn} onClick={handleSave} style={{ backgroundColor: "var(--color-primary-green)", color: "white" }}>
                   💾 Lưu thay đổi
                 </button>
                 <button className={styles.actionBtn} onClick={cancelEditing}>
