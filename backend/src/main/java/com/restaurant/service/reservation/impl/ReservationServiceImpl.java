@@ -40,58 +40,61 @@ public class ReservationServiceImpl implements ReservationService {
 
     // ------------------------------------------------------------------ constants
 
-    private static final int       RESERVATION_DURATION_HOURS = 3;
-    private static final int       ASSIGN_BEFORE_MINUTES      = 30;
-    private static final int       AUTO_CANCEL_MINUTES        = 30;
-    private static final int       SLOT_INTERVAL_MINUTES      = 30;
-    private static final int       BOOKING_HORIZON_DAYS       = 30;
-    private static final LocalTime OPEN_TIME                  = LocalTime.of(10, 0);
-    private static final LocalTime CLOSE_TIME                 = LocalTime.of(21, 0);
-    private static final ZoneId    RESTAURANT_ZONE            = ZoneId.of("Asia/Ho_Chi_Minh");
+    private static final int RESERVATION_DURATION_HOURS = 3;
+    private static final int ASSIGN_BEFORE_MINUTES = 30;
+    private static final int AUTO_CANCEL_MINUTES = 30;
+    private static final int SLOT_INTERVAL_MINUTES = 30;
+    private static final int BOOKING_HORIZON_DAYS = 30;
+    private static final LocalTime OPEN_TIME = LocalTime.of(10, 0);
+    private static final LocalTime CLOSE_TIME = LocalTime.of(21, 0);
+    private static final ZoneId RESTAURANT_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
     /**
      * Trạng thái "đang chiếm slot" — dùng thống nhất ở mọi chỗ.
      * PENDING không block vì chưa confirmed.
      */
-    private static final Set<ReservationStatus> BLOCKING_STATUSES =
-            Set.of(ReservationStatus.CONFIRMED, ReservationStatus.ARRIVED);
+    private static final Set<ReservationStatus> BLOCKING_STATUSES = Set.of(ReservationStatus.CONFIRMED,
+            ReservationStatus.ARRIVED);
 
-    // ------------------------------------------------------------------ dependencies
+    // ------------------------------------------------------------------
+    // dependencies
 
     private final ReservationRepository reservationRepository;
-    private final TableRepository       tableRepository;
+    private final TableRepository tableRepository;
 
-    // ================================================================== private helpers
+    // ================================================================== private
+    // helpers
 
     /**
      * Kiểm tra nhà hàng còn đủ capacity cho partySize vào wantedTime không.
      *
      * Logic:
-     *   - Lấy tất cả bàn active có capacity >= partySize → capableTables
-     *   - Đếm số reservation BLOCKING trong cửa sổ ±RESERVATION_DURATION_HOURS:
-     *       + Đã gán bàn: chỉ tính nếu bàn đó thuộc capableTables
-     *       + Chưa gán bàn: vẫn tính là chiếm 1 bàn (đã CONFIRMED, chắc chắn sẽ được gán)
-     *   - Nếu số reservation blocking < số bàn capable → còn chỗ
+     * - Lấy tất cả bàn active có capacity >= partySize → capableTables
+     * - Đếm số reservation BLOCKING trong cửa sổ ±RESERVATION_DURATION_HOURS:
+     * + Đã gán bàn: chỉ tính nếu bàn đó thuộc capableTables
+     * + Chưa gán bàn: vẫn tính là chiếm 1 bàn (đã CONFIRMED, chắc chắn sẽ được gán)
+     * - Nếu số reservation blocking < số bàn capable → còn chỗ
      */
     /**
      * Kiểm tra còn bàn phù hợp cho partySize vào wantedTime không.
      *
      * Thuật toán simulate gán bàn:
-     *   1. Pool = tất cả bàn active.
-     *   2. Reservation BLOCKING đã có tableId → xoá bàn đó khỏi pool.
-     *   3. Reservation BLOCKING chưa có tableId → greedy assign bàn nhỏ nhất vừa đủ
-     *      trong pool (sắp xếp partySize tăng dần để bàn nhỏ fill trước, tránh lãng phí bàn lớn).
-     *   4. Pool còn bàn nào capacity >= partySize mới → còn chỗ.
+     * 1. Pool = tất cả bàn active.
+     * 2. Reservation BLOCKING đã có tableId → xoá bàn đó khỏi pool.
+     * 3. Reservation BLOCKING chưa có tableId → greedy assign bàn nhỏ nhất vừa đủ
+     * trong pool (sắp xếp partySize tăng dần để bàn nhỏ fill trước, tránh lãng phí
+     * bàn lớn).
+     * 4. Pool còn bàn nào capacity >= partySize mới → còn chỗ.
      */
     private boolean hasCapacity(Integer partySize, OffsetDateTime wantedTime, UUID excludeReservationId) {
         List<Table> allTables = tableRepository.findByIsActiveTrueAndDeletedAtIsNull();
-        if (allTables.isEmpty()) return false;
+        if (allTables.isEmpty())
+            return false;
 
         List<Reservation> blocking = reservationRepository
                 .findByReservedAtBetween(
                         wantedTime.minusHours(RESERVATION_DURATION_HOURS),
-                        wantedTime.plusHours(RESERVATION_DURATION_HOURS)
-                )
+                        wantedTime.plusHours(RESERVATION_DURATION_HOURS))
                 .stream()
                 .filter(r -> excludeReservationId == null || !excludeReservationId.equals(r.getId()))
                 .filter(r -> BLOCKING_STATUSES.contains(r.getStatus()))
@@ -112,12 +115,10 @@ public class ReservationServiceImpl implements ReservationService {
         blocking.stream()
                 .filter(r -> r.getTableId() == null)
                 .sorted(Comparator.comparingInt(Reservation::getPartySize))
-                .forEach(r ->
-                    availablePool.stream()
-                            .filter(t -> t.getCapacity() >= r.getPartySize())
-                            .min(Comparator.comparingInt(Table::getCapacity))
-                            .ifPresent(availablePool::remove)
-                );
+                .forEach(r -> availablePool.stream()
+                        .filter(t -> t.getCapacity() >= r.getPartySize())
+                        .min(Comparator.comparingInt(Table::getCapacity))
+                        .ifPresent(availablePool::remove));
 
         // Step 3: còn bàn nào chứa được partySize mới không
         return availablePool.stream().anyMatch(t -> t.getCapacity() >= partySize);
@@ -125,8 +126,8 @@ public class ReservationServiceImpl implements ReservationService {
 
     /**
      * Validate thời gian đặt bàn:
-     *   1. Không được trong quá khứ.
-     *   2. Phải nằm trong giờ mở cửa (OPEN_TIME → CLOSE_TIME).
+     * 1. Không được trong quá khứ.
+     * 2. Phải nằm trong giờ mở cửa (OPEN_TIME → CLOSE_TIME).
      */
     private void validateReservationTime(OffsetDateTime reservedAt) {
         OffsetDateTime now = OffsetDateTime.now(RESTAURANT_ZONE);
@@ -139,13 +140,13 @@ public class ReservationServiceImpl implements ReservationService {
         if (time.isBefore(OPEN_TIME) || time.isAfter(CLOSE_TIME)) {
             throw new BusinessException(
                     "Thoi gian dat ban phai trong gio hoat dong ("
-                    + OPEN_TIME + " - " + CLOSE_TIME + ")."
-            );
+                            + OPEN_TIME + " - " + CLOSE_TIME + ").");
         }
     }
 
     private void releaseTable(Reservation reservation) {
-        if (reservation.getTableId() == null) return;
+        if (reservation.getTableId() == null)
+            return;
 
         tableRepository.findById(reservation.getTableId())
                 .ifPresent(table -> {
@@ -214,9 +215,13 @@ public class ReservationServiceImpl implements ReservationService {
         return toResponse(findOrThrow(id));
     }
 
-    // ------------------------------------------------------------------ create / confirm
+    // ------------------------------------------------------------------ create /
+    // confirm
 
-    /** Tạo reservation ở trạng thái PENDING. Chỉ validate thời gian; capacity check ở bước confirm. */
+    /**
+     * Tạo reservation ở trạng thái PENDING. Chỉ validate thời gian; capacity check
+     * ở bước confirm.
+     */
     @Override
     public ReservationResponse createReservation(CreateReservationRequest request, UUID staffId) {
         validateReservationTime(request.getReservedAt());
@@ -239,9 +244,9 @@ public class ReservationServiceImpl implements ReservationService {
      * Confirm một reservation PENDING.
      *
      * Kiểm tra theo thứ tự:
-     *   1. Trạng thái phải là PENDING.
-     *   2. Giờ đặt không được là quá khứ / ngoài giờ mở cửa.
-     *   3. Nhà hàng còn đủ capacity cho partySize trong khung giờ đó.
+     * 1. Trạng thái phải là PENDING.
+     * 2. Giờ đặt không được là quá khứ / ngoài giờ mở cửa.
+     * 3. Nhà hàng còn đủ capacity cho partySize trong khung giờ đó.
      *
      * Nếu không đủ capacity → tự động CANCELLED và ném BusinessException.
      */
@@ -269,14 +274,15 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setTableId(tableId);
         reservation.setStatus(ReservationStatus.CONFIRMED);
         reservation.setConfirmedBy(staffId);
-        
+
         table.setStatus(TableStatus.RESERVED);
         tableRepository.save(table);
 
         return toResponse(reservationRepository.save(reservation));
     }
 
-    // ------------------------------------------------------------------ update / lifecycle
+    // ------------------------------------------------------------------ update /
+    // lifecycle
 
     @Override
     public ReservationResponse update(UUID id, UpdateReservationRequest request) {
@@ -286,7 +292,7 @@ public class ReservationServiceImpl implements ReservationService {
             throw new BusinessException("Chi cho phep sua dat ban o trang thai PENDING hoac CONFIRMED.");
         }
 
-        Integer        newPartySize  = request.getPartySize()  != null ? request.getPartySize()  : r.getPartySize();
+        Integer newPartySize = request.getPartySize() != null ? request.getPartySize() : r.getPartySize();
         OffsetDateTime newReservedAt = request.getReservedAt() != null ? request.getReservedAt() : r.getReservedAt();
 
         validateReservationTime(newReservedAt);
@@ -295,11 +301,16 @@ public class ReservationServiceImpl implements ReservationService {
             throw new BusinessException("Khung gio moi khong con du cho " + newPartySize + " nguoi.");
         }
 
-        if (request.getCustomerName()  != null) r.setCustomerName(request.getCustomerName());
-        if (request.getCustomerPhone() != null) r.setCustomerPhone(request.getCustomerPhone());
-        if (request.getPartySize()     != null) r.setPartySize(request.getPartySize());
-        if (request.getReservedAt()    != null) r.setReservedAt(request.getReservedAt());
-        if (request.getNote()          != null) r.setNote(request.getNote());
+        if (request.getCustomerName() != null)
+            r.setCustomerName(request.getCustomerName());
+        if (request.getCustomerPhone() != null)
+            r.setCustomerPhone(request.getCustomerPhone());
+        if (request.getPartySize() != null)
+            r.setPartySize(request.getPartySize());
+        if (request.getReservedAt() != null)
+            r.setReservedAt(request.getReservedAt());
+        if (request.getNote() != null)
+            r.setNote(request.getNote());
 
         return toResponse(reservationRepository.save(r));
     }
@@ -372,27 +383,27 @@ public class ReservationServiceImpl implements ReservationService {
         reservationRepository.delete(reservation);
     }
 
-    // ------------------------------------------------------------------ scheduled jobs
+    // ------------------------------------------------------------------ scheduled
+    // jobs
 
     @Scheduled(fixedRate = 60_000)
     @Override
     public void autoAssignTables() {
-        OffsetDateTime now  = OffsetDateTime.now(RESTAURANT_ZONE);
+        OffsetDateTime now = OffsetDateTime.now(RESTAURANT_ZONE);
         OffsetDateTime soon = now.plusMinutes(ASSIGN_BEFORE_MINUTES);
 
-        reservationRepository.findUnassignedUpcoming(now, soon).forEach(reservation ->
-            tableRepository.findAll().stream()
-                    .filter(Table::getIsActive)
-                    .filter(t -> t.getStatus() == TableStatus.EMPTY)
-                    .filter(t -> t.getCapacity() >= reservation.getPartySize())
-                    .min(Comparator.comparingInt(t -> t.getCapacity() - reservation.getPartySize()))
-                    .ifPresent(table -> {
-                        table.setStatus(TableStatus.RESERVED);
-                        reservation.setTableId(table.getId());
-                        reservationRepository.save(reservation);
-                        tableRepository.save(table);
-                    })
-        );
+        reservationRepository.findUnassignedUpcoming(now, soon)
+                .forEach(reservation -> tableRepository.findAll().stream()
+                        .filter(Table::getIsActive)
+                        .filter(t -> t.getStatus() == TableStatus.EMPTY)
+                        .filter(t -> t.getCapacity() >= reservation.getPartySize())
+                        .min(Comparator.comparingInt(t -> t.getCapacity() - reservation.getPartySize()))
+                        .ifPresent(table -> {
+                            table.setStatus(TableStatus.RESERVED);
+                            reservation.setTableId(table.getId());
+                            reservationRepository.save(reservation);
+                            tableRepository.save(table);
+                        }));
 
         reservationRepository.findAssignedUpcoming(now, soon).forEach(reservation -> {
             tableRepository.findById(reservation.getTableId()).ifPresent(table -> {
@@ -432,21 +443,22 @@ public class ReservationServiceImpl implements ReservationService {
                 .date(date)
                 .reservations(all.stream().map(this::toResponse).toList())
                 .totalReservations(all.size())
-                .pending  ((int) all.stream().filter(r -> r.getStatus() == ReservationStatus.PENDING  ).count())
+                .pending((int) all.stream().filter(r -> r.getStatus() == ReservationStatus.PENDING).count())
                 .confirmed((int) all.stream().filter(r -> r.getStatus() == ReservationStatus.CONFIRMED).count())
-                .arrived  ((int) all.stream().filter(r -> r.getStatus() == ReservationStatus.ARRIVED  ).count())
+                .arrived((int) all.stream().filter(r -> r.getStatus() == ReservationStatus.ARRIVED).count())
                 .cancelled((int) all.stream().filter(r -> r.getStatus() == ReservationStatus.CANCELLED).count())
                 .build();
     }
 
-    // ------------------------------------------------------------------ booking suggestion
+    // ------------------------------------------------------------------ booking
+    // suggestion
 
     /**
      * Gợi ý lịch đặt bàn dựa theo các ngày khách rảnh.
      *
      * Khách cung cấp:
-     *   - preferredDates : danh sách ngày khách có thể đến
-     *   - partySize      : số người
+     * - preferredDates : danh sách ngày khách có thể đến
+     * - partySize : số người
      *
      * Kết quả: mỗi ngày còn slot trống được trả về kèm danh sách giờ có thể đặt.
      * Ngày nào không còn slot nào phù hợp sẽ bị loại khỏi kết quả.
@@ -457,10 +469,10 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     @Transactional(readOnly = true)
     public List<BookingSuggestionResponse> suggestBookingSlots(List<LocalDate> preferredDates,
-                                                               Integer partySize) {
-        LocalDate      today   = LocalDate.now(RESTAURANT_ZONE);
-        LocalDate      horizon = today.plusDays(BOOKING_HORIZON_DAYS);
-        OffsetDateTime now     = OffsetDateTime.now(RESTAURANT_ZONE);
+            Integer partySize) {
+        LocalDate today = LocalDate.now(RESTAURANT_ZONE);
+        LocalDate horizon = today.plusDays(BOOKING_HORIZON_DAYS);
+        OffsetDateTime now = OffsetDateTime.now(RESTAURANT_ZONE);
 
         return preferredDates.stream()
                 .filter(date -> !date.isBefore(today) && date.isBefore(horizon))
@@ -471,8 +483,8 @@ public class ReservationServiceImpl implements ReservationService {
 
                     List<LocalTime> slots = Stream
                             .iterate(OPEN_TIME,
-                                     time -> !time.isAfter(lastSlot),
-                                     time -> time.plusMinutes(SLOT_INTERVAL_MINUTES))
+                                    time -> !time.isAfter(lastSlot),
+                                    time -> time.plusMinutes(SLOT_INTERVAL_MINUTES))
                             .map(time -> date.atTime(time).atZone(RESTAURANT_ZONE).toOffsetDateTime())
                             .filter(wantedTime -> wantedTime.isAfter(now))
                             .filter(wantedTime -> hasCapacity(partySize, wantedTime, null))
