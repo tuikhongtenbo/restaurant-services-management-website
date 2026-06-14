@@ -50,7 +50,7 @@ public class PaymentController {
      * Preview checkout - tính toán trước khi thanh toán
      */
     @PostMapping("/checkout")
-    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER','STAFF')")
+    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER')")
     public ResponseEntity<ApiResponse<CheckoutResponse>> previewCheckout(
             @Valid @RequestBody CheckoutRequest request) {
         CheckoutResponse response = checkoutService.previewCheckout(request);
@@ -62,7 +62,7 @@ public class PaymentController {
      * Thanh toán tiền mặt
      */
     @PostMapping("/cash")
-    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER','STAFF')")
+    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER')")
     public ResponseEntity<ApiResponse<InvoiceResponse>> processCashPayment(
             @Valid @RequestBody CheckoutRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
@@ -76,7 +76,7 @@ public class PaymentController {
      * Tạo hóa đơn PENDING và URL redirect VNPay sandbox/prod.
      */
     @PostMapping("/vnpay/create")
-    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER','STAFF')")
+    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER')")
     public ResponseEntity<ApiResponse<PaymentResponse>> createVnpayPayment(
             @Valid @RequestBody VnpayCreateRequest request,
             HttpServletRequest httpRequest,
@@ -142,7 +142,7 @@ public class PaymentController {
      * Danh sách hóa đơn (có filter theo ngày)
      */
     @GetMapping("/invoices")
-    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER','STAFF')")
+    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER')")
     public ResponseEntity<ApiResponse<com.restaurant.common.utils.PageResponse<List<com.restaurant.dto.response.order.InvoiceResponse>>>> getInvoices(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime from,
             @RequestParam(required = false) UUID cashierId,
@@ -157,7 +157,7 @@ public class PaymentController {
      * Chi tiết hóa đơn
      */
     @GetMapping("/invoices/{id}")
-    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER','STAFF')")
+    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER')")
     public ResponseEntity<ApiResponse<com.restaurant.dto.response.order.InvoiceResponse>> getInvoiceById(@PathVariable UUID id) {
         com.restaurant.dto.response.order.InvoiceResponse response = invoiceService.getById(id);
         return ResponseEntity.ok(ApiResponse.success("Chi tiết hóa đơn", response));

@@ -32,7 +32,7 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, UUID> {
         LocalDateTime end
     );
 
-    @Query("SELECT m FROM MenuItem m WHERE m.promoPrice IS NOT NULL AND m.promoStart IS NOT NULL AND m.promoEnd IS NOT NULL AND m.promoStart <= CURRENT_TIMESTAMP AND m.promoEnd >= CURRENT_TIMESTAMP AND m.status = 'AVAILABLE'")
+    @Query("SELECT m FROM MenuItem m WHERE m.promoPrice IS NOT NULL AND m.promoStart IS NOT NULL AND m.promoEnd IS NOT NULL AND m.promoStart <= CURRENT_TIMESTAMP AND m.promoEnd >= CURRENT_TIMESTAMP")
     List<MenuItem> findActivePromotionalItems();
 
     Page<MenuItem> findByStatusAndDeletedAtIsNullOrderBySortOrderAsc(MenuItemStatus status, Pageable pageable);

@@ -31,5 +31,13 @@ public interface TableRepository extends JpaRepository<Table, UUID> {
 
     Page<Table> findByIsActiveTrueAndDeletedAtIsNull(Pageable pageable);
 
-    Page<Table> findByIsActiveTrueAndArea(String area, Pageable pageable);
+    // HỖ TRỢ FILTER THEO TRẠNG THÁI: Tìm kiếm phân trang bàn theo trạng thái (status) - không xóa mềm
+    Page<Table> findByIsActiveTrueAndStatusAndDeletedAtIsNull(TableStatus status, Pageable pageable);
+
+    Page<Table> findByIsActiveTrueAndAreaAndStatusAndDeletedAtIsNull(String area, TableStatus status, Pageable pageable);
+
+    Page<Table> findByIsActiveTrueAndAreaAndDeletedAtIsNull(String area, Pageable pageable);
+
+    // Lấy danh sách bàn trống để tìm kiếm bàn phù hợp với sức chứa - không xóa mềm
+    List<Table> findByIsActiveTrueAndStatusAndDeletedAtIsNull(TableStatus status);
 }

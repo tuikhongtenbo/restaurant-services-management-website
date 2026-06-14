@@ -5,8 +5,6 @@ import com.restaurant.common.enums.UserType;
 import com.restaurant.common.exceptions.BusinessException;
 import com.restaurant.dto.request.auth.CustomerLoginRequest;
 import com.restaurant.dto.request.auth.CustomerRegisterRequest;
-import com.restaurant.dto.request.auth.ChangePasswordRequest;
-import com.restaurant.dto.request.auth.UpdateCustomerRequest;
 import com.restaurant.dto.response.auth.AuthResponse;
 import com.restaurant.dto.response.auth.CustomerResponse;
 import com.restaurant.model.Customer;
@@ -127,45 +125,6 @@ public class CustomerAuthServiceImpl implements CustomerAuthService {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new BusinessException("Customer not found"));
         return buildCustomerResponse(customer);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // UPDATE: Cập nhật thông tin khách hàng đang đăng nhập
-    // ─────────────────────────────────────────────────────────────────────────
-    @Override
-    @Transactional
-    public CustomerResponse updateCustomerInfo(UUID customerId, UpdateCustomerRequest request) {
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new BusinessException("Customer not found"));
-
-        if (!customer.getPhone().equals(request.getPhone())) {
-            if (customerRepository.existsByPhone(request.getPhone())) {
-                throw new BusinessException("Phone number is already used by another account");
-            }
-        }
-
-        customer.setFullName(request.getFullName());
-        customer.setPhone(request.getPhone());
-        customerRepository.save(customer);
-
-        return buildCustomerResponse(customer);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // UPDATE: Đổi mật khẩu cho khách hàng đang đăng nhập
-    // ─────────────────────────────────────────────────────────────────────────
-    @Override
-    @Transactional
-    public void changePassword(UUID customerId, ChangePasswordRequest request) {
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new BusinessException("Customer not found"));
-
-        if (!passwordEncoder.matches(request.getCurrentPassword(), customer.getPasswordHash())) {
-            throw new BusinessException("Current password is incorrect");
-        }
-
-        customer.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
-        customerRepository.save(customer);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

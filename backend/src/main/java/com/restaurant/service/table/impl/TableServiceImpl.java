@@ -3,7 +3,6 @@ package com.restaurant.service.table.impl;
 import com.restaurant.common.enums.OrderStatus;
 import com.restaurant.common.enums.ReservationStatus;
 import com.restaurant.common.enums.TableStatus;
-import com.restaurant.common.enums.OrderStatus;
 import com.restaurant.common.exceptions.BusinessException;
 import com.restaurant.dto.request.table.CreateTableRequest;
 import com.restaurant.dto.request.table.OpenTableRequest;
@@ -18,7 +17,6 @@ import com.restaurant.service.table.TableService;
 import com.restaurant.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,12 +38,18 @@ public class TableServiceImpl implements TableService {
     private static final ZoneId RESTAURANT_ZONE            = ZoneId.of("Asia/Ho_Chi_Minh");
     private static final int    RESERVATION_DURATION_HOURS = 3;
 
+    /**
+     * Trạng thái thực sự chiếm bàn — đồng bộ với ReservationServiceImpl.
+     * PENDING không block vì chưa được xác nhận.
+     */
     private static final Set<ReservationStatus> BLOCKING_STATUSES =
             Set.of(ReservationStatus.CONFIRMED, ReservationStatus.ARRIVED);
 
     private final TableRepository       tableRepository;
     private final ReservationRepository reservationRepository;
     private final OrderRepository orderRepository;
+
+    // ------------------------------------------------------------------ helpers
 
     private Table findOrThrow(UUID id) {
         Table table = tableRepository.findById(id)
@@ -54,18 +58,6 @@ public class TableServiceImpl implements TableService {
             throw new BusinessException("Ban da duoc xoa: " + id);
         }
         return table;
-    }
-
-    private boolean isTableServing(UUID tableId) {
-        return orderRepository.existsByTableIdAndStatus(tableId, OrderStatus.OPEN);
-    }
-
-    private boolean isTableReserved(UUID tableId) {
-        return reservationRepository.existsByTableIdAndStatus(tableId, ReservationStatus.CONFIRMED);
-    }
-
-    private boolean isNotSoftDeleted(Table table) {
-        return table.getIsActive();
     }
 
     private TableResponse toResponse(Table table) {
@@ -81,6 +73,16 @@ public class TableServiceImpl implements TableService {
                 .build();
     }
 
+    /**
+     * Simulate gán bàn để tìm pool bàn thực sự còn trống tại một thời điểm.
+     *
+     * Thuật toán (đồng bộ với ReservationServiceImpl#hasCapacity):
+     *   1. Pool = tất cả bàn active đang EMPTY.
+     *   2. Reservation BLOCKING đã có tableId → xoá bàn đó khỏi pool.
+     *   3. Reservation BLOCKING chưa có tableId → greedy assign bàn nhỏ nhất vừa đủ
+     *      trong pool (sắp xếp partySize tăng dần), xoá bàn đó khỏi pool.
+     *   4. Trả về pool còn lại — đây là bàn thực sự tự do cho walk-in.
+     */
     private List<Table> simulateAvailablePool(OffsetDateTime around) {
         List<Reservation> blocking = reservationRepository
                 .findByReservedAtBetween(
@@ -91,17 +93,19 @@ public class TableServiceImpl implements TableService {
                 .filter(r -> BLOCKING_STATUSES.contains(r.getStatus()))
                 .toList();
 
-        // Lấy tất cả các bàn thực sự trống (isActive = true)
-        List<Table> pool = tableRepository.findAll().stream()
-                .filter(Table::getIsActive)
+        // Step 1: pool ban đầu = tất cả bàn EMPTY active và chưa bị xóa
+        List<Table> pool = tableRepository.findByIsActiveTrueAndStatusAndDeletedAtIsNull(TableStatus.EMPTY)
+                .stream()
                 .collect(Collectors.toCollection(java.util.ArrayList::new));
 
+        // Step 2: xoá bàn đã được gán cụ thể
         Set<UUID> assignedTableIds = blocking.stream()
                 .filter(r -> r.getTableId() != null)
                 .map(r -> r.getTableId())
                 .collect(Collectors.toSet());
         pool.removeIf(t -> assignedTableIds.contains(t.getId()));
 
+        // Step 3: simulate gán bàn cho reservation chưa có tableId
         blocking.stream()
                 .filter(r -> r.getTableId() == null)
                 .sorted(Comparator.comparingInt(r -> r.getPartySize()))
@@ -115,26 +119,21 @@ public class TableServiceImpl implements TableService {
         return pool;
     }
 
+    // ================================================================== public API
+
     @Override
     @Transactional(readOnly = true)
     public Page<TableResponse> getTables(String area, TableStatus status, Pageable pageable) {
-        // Do dữ liệu status là ảo nên phải filter bằng Java
-        List<Table> allTables = tableRepository.findAll();
-        
-        List<TableResponse> filtered = allTables.stream()
-                .filter(this::isNotSoftDeleted)
-                .filter(t -> area == null || area.isBlank() || area.equals(t.getArea()))
-                .filter(t -> status == null || getCurrentStatus(t) == status)
-                .map(this::toResponse)
-                .collect(Collectors.toList());
-
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), filtered.size());
-        
-        if (start > filtered.size()) {
-            return new PageImpl<>(List.of(), pageable, filtered.size());
+        if (area != null && !area.isBlank() && status != null) {
+            return tableRepository.findByIsActiveTrueAndAreaAndStatusAndDeletedAtIsNull(area, status, pageable).map(this::toResponse);
         }
-        return new PageImpl<>(filtered.subList(start, end), pageable, filtered.size());
+        if (area != null && !area.isBlank()) {
+            return tableRepository.findByIsActiveTrueAndAreaAndDeletedAtIsNull(area, pageable).map(this::toResponse);
+        }
+        if (status != null) {
+            return tableRepository.findByIsActiveTrueAndStatusAndDeletedAtIsNull(status, pageable).map(this::toResponse);
+        }
+        return tableRepository.findByIsActiveTrueAndDeletedAtIsNull(pageable).map(this::toResponse);
     }
 
     @Override
@@ -153,6 +152,7 @@ public class TableServiceImpl implements TableService {
                 .number(request.getNumber())
                 .capacity(request.getCapacity())
                 .area(request.getArea())
+                .status(TableStatus.EMPTY)
                 .isActive(true)
                 .build();
 
@@ -175,15 +175,11 @@ public class TableServiceImpl implements TableService {
         return toResponse(tableRepository.save(table));
     }
 
-    private TableStatus getCurrentStatus(Table table) {
-        return table.getStatus() != null ? table.getStatus() : TableStatus.EMPTY;
-    }
-
     @Override
     public void deleteTable(UUID id) {
         Table table = findOrThrow(id);
 
-        if (getCurrentStatus(table) == TableStatus.SERVING) {
+        if (table.getStatus() == TableStatus.SERVING) {
             throw new BusinessException("Khong the xoa ban dang co khach");
         }
 
@@ -192,12 +188,21 @@ public class TableServiceImpl implements TableService {
         tableRepository.save(table);
     }
 
+    /**
+     * Mở bàn cho khách walk-in.
+     *
+     * Điều kiện hợp lệ:
+     *   1. Bàn phải đang EMPTY.
+     *   2. Bàn không được nằm trong danh sách bị giữ bởi reservation CONFIRMED/ARRIVED
+     *      trong cửa sổ ±RESERVATION_DURATION_HOURS quanh thời điểm hiện tại
+     *      (tức bàn này phải có mặt trong kết quả getAvailableTables).
+     */
     @Override
     public TableResponse openTable(UUID id, OpenTableRequest request, UUID waiterId) {
         Table table = findOrThrow(id);
 
-        if (getCurrentStatus(table) != TableStatus.EMPTY) {
-            throw new BusinessException("Ban " + table.getNumber() + " khong trong");
+        if (table.getStatus() != TableStatus.EMPTY) {
+            throw new BusinessException("Ban " + table.getNumber() + " khong trong (dang " + table.getStatus() + ")");
         }
 
         OffsetDateTime now           = OffsetDateTime.now(RESTAURANT_ZONE);
@@ -209,7 +214,12 @@ public class TableServiceImpl implements TableService {
             );
         }
 
-        table.setStatus(TableStatus.SERVING); // Chuyển sang bận
+        // Temporarily disabled until Order module is implemented.
+        if (orderRepository.existsByTableIdAndStatus(table.getId(), OrderStatus.OPEN)) {
+            throw new BusinessException("Ban da co order dang mo");
+        }
+
+        table.setStatus(TableStatus.SERVING);
         tableRepository.save(table);
 
         return toResponse(table);
@@ -219,24 +229,27 @@ public class TableServiceImpl implements TableService {
     public TableResponse closeTable(UUID id) {
         Table table = findOrThrow(id);
 
-        if (getCurrentStatus(table) == TableStatus.SERVING) {
+        if (table.getStatus() != TableStatus.SERVING) {
+            throw new BusinessException("Ban khong trong trang thai SERVING");
+        }
+
+        // Temporarily disabled until Order module is implemented.
+        if (orderRepository.existsByTableIdAndStatus(table.getId(), OrderStatus.OPEN)) {
             throw new BusinessException("Ban van con hoa don chua thanh toan");
         }
 
-        table.setStatus(TableStatus.EMPTY); // Trả lại thành bàn trống
+        table.setStatus(TableStatus.EMPTY);
         return toResponse(tableRepository.save(table));
     }
 
     @Override
     @Transactional(readOnly = true)
     public TableLayoutResponse getLayout() {
-        List<Table> all = tableRepository.findAll().stream()
-                .filter(this::isNotSoftDeleted)
-                .collect(Collectors.toList());
+        List<Table> all = tableRepository.findByIsActiveTrueAndDeletedAtIsNull();
 
-        long available = all.stream().filter(t -> getCurrentStatus(t) == TableStatus.EMPTY).count();
-        long occupied  = all.stream().filter(t -> getCurrentStatus(t) == TableStatus.SERVING).count();
-        long cleaning  = all.stream().filter(t -> getCurrentStatus(t) == TableStatus.CLEANING).count();
+        long available = all.stream().filter(t -> t.getStatus() == TableStatus.EMPTY).count();
+        long occupied  = all.stream().filter(t -> t.getStatus() == TableStatus.SERVING).count();
+        long cleaning  = all.stream().filter(t -> t.getStatus() == TableStatus.CLEANING).count();
 
         return TableLayoutResponse.builder()
                 .tables(all.stream().map(this::toResponse).toList())
@@ -247,6 +260,13 @@ public class TableServiceImpl implements TableService {
                 .build();
     }
 
+    /**
+     * Trả về danh sách bàn còn trống cho khách walk-in tại một thời điểm cụ thể.
+     *
+     * Dùng simulateAvailablePool để tính đúng pool bàn tự do sau khi đã trừ đi
+     * cả reservation đã gán bàn lẫn reservation CONFIRMED chưa gán (sẽ chiếm bàn).
+     * Kết quả lọc theo capacity và sắp xếp vừa đủ chỗ ưu tiên trước.
+     */
     @Override
     @Transactional(readOnly = true)
     public List<TableResponse> getAvailableTables(Integer capacity, LocalDateTime dateTime) {

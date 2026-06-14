@@ -64,9 +64,8 @@ public class ReservationController {
     @PutMapping("/{id}/confirm")
     public ReservationResponse confirmReservation(
             @PathVariable UUID id,
-            @RequestBody @Valid com.restaurant.dto.request.reservation.ConfirmReservationRequest request,
             @RequestHeader("X-Staff-ID") UUID staffId) {
-        return reservationService.confirmReservation(id, request.getTableId(), staffId);
+        return reservationService.confirmReservation(id, staffId);
     }
 
     @PutMapping("/{id}")
@@ -87,14 +86,6 @@ public class ReservationController {
             @RequestBody CancelReservationRequest request,
             @RequestHeader(value = "X-Staff-ID", required = false) UUID staffId) {
         return reservationService.cancel(id, staffId, request.getReason());
-    }
-
-    @PutMapping("/{id}/reject")
-    public ReservationResponse rejectReservation(
-            @PathVariable UUID id,
-            @RequestBody CancelReservationRequest request,
-            @RequestHeader(value = "X-Staff-ID", required = false) UUID staffId) {
-        return reservationService.reject(id, staffId, request.getReason());
     }
 
     /**

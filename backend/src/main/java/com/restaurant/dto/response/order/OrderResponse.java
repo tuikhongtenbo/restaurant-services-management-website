@@ -3,8 +3,6 @@ package com.restaurant.dto.response.order;
 import com.restaurant.common.enums.OrderStatus;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -13,8 +11,6 @@ import java.util.UUID;
 // Response don hang
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class OrderResponse {
     private UUID id;
     private UUID tableId;

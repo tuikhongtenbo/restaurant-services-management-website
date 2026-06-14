@@ -79,7 +79,6 @@ public class OrderServiceImpl implements OrderService {
     // QUERY: Lấy một order theo id
     // ─────────────────────────────────────────────────────────────────────────
     @Override
-    @Transactional(readOnly = true)
     public OrderResponse getById(UUID id) {
         // Logic: Tìm order theo id, nếu không tìm thấy → ném ResourceNotFoundException
         Order order = orderRepository.findById(id)
@@ -91,7 +90,6 @@ public class OrderServiceImpl implements OrderService {
     // QUERY: Lấy order đang mở của một bàn (status = OPEN)
     // ─────────────────────────────────────────────────────────────────────────
     @Override
-    @Transactional(readOnly = true)
     public OrderResponse getOpenOrderByTable(UUID tableId) {
         // Logic: Tìm order có tableId khớp và status = OPEN
         Order order = orderRepository.findByTableIdAndStatus(tableId, OrderStatus.OPEN)
@@ -113,7 +111,8 @@ public class OrderServiceImpl implements OrderService {
         Table table = tableRepository.findById(request.getTableId())
                 .orElseThrow(() -> new ResourceNotFoundException("Table", "id", request.getTableId()));
 
-        // Bước 2: Kiểm tra trạng thái bàn — EMPTY hoặc SERVING (đã check-in đặt bàn) chưa có order OPEN
+        // Bước 2: Kiểm tra trạng thái bàn — EMPTY hoặc SERVING (đã check-in đặt bàn)
+        // chưa có order OPEN
         if (table.getStatus() == TableStatus.EMPTY) {
             // ok
         } else if (table.getStatus() == TableStatus.SERVING

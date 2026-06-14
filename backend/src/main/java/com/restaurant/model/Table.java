@@ -34,17 +34,13 @@ public class Table {
     // nullable=false → NOT NULL trong DB, bắt buộc phải có
     private Integer capacity;  // Sức chứa: 2, 4, 6, 8...
 
+    @Enumerated(EnumType.STRING)   // Lưu text "EMPTY" vào DB thay vì số 0,1,2
+    @Column(length = 10)
+    @Builder.Default               // Giữ giá trị default khi dùng Builder
+    private TableStatus status = TableStatus.EMPTY;  // Mặc định: bàn trống
+
     @Column(name = "area", length = 50)
     private String area;  // Vị trí bàn: Tang_1, Tang_2, San_vuon, Phong_VIP
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", length = 20)
-    @Builder.Default
-    private TableStatus status = TableStatus.EMPTY;
-
-    public TableStatus getStatus() {
-        return status != null ? status : TableStatus.EMPTY;
-    }
 
     @Column(name = "is_active")
     @Builder.Default

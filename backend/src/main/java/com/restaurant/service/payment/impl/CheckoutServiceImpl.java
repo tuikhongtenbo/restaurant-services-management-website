@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -140,13 +139,11 @@ public class CheckoutServiceImpl implements CheckoutService {
     // ─────────────────────────────────────────────────────────────────────────
     @Override
     public InvoiceResponse processCashPayment(CheckoutRequest request, UUID cashierId) {
-        cancelPendingInvoice(request.getOrderId());
+        assertNoPendingInvoice(request.getOrderId());
         CheckoutResponse preview = previewCheckout(request);
 
-        // Bước 2: Kiểm tra tiền khách đưa (nếu null thì tự động lấy bằng totalAmount)
-        if (request.getCashReceived() == null) {
-            request.setCashReceived(preview.getTotalAmount());
-        } else if (request.getCashReceived().compareTo(preview.getTotalAmount()) < 0) {
+        // Bước 2: Kiểm tra tiền khách đưa
+        if (request.getCashReceived() == null || request.getCashReceived().compareTo(preview.getTotalAmount()) < 0) {
             throw new BusinessException("Số tiền nhận không đủ. Cần: " + preview.getTotalAmount());
         }
 
@@ -332,28 +329,22 @@ public class CheckoutServiceImpl implements CheckoutService {
         });
     }
 
-    /** Cash: Huỷ bỏ invoice VNPay đang chờ nếu khách đổi ý sang tiền mặt */
-    private void cancelPendingInvoice(UUID orderId) {
+    /** Cash không được chạy khi order đang chờ VNPay */
+    private void assertNoPendingInvoice(UUID orderId) {
         invoiceRepository.findByOrderId(orderId).ifPresent(inv -> {
             if (inv.getStatus() == InvoiceStatus.PENDING) {
-                inv.setStatus(InvoiceStatus.VOIDED);
-                inv.setVoidReason("Khách đổi ý sang thanh toán tiền mặt");
-                invoiceRepository.save(inv);
-            } else if (inv.getStatus() == InvoiceStatus.PAID) {
-                throw new BusinessException("Order đã được thanh toán");
+                throw new BusinessException("Order đang chờ thanh toán VNPay");
             }
         });
     }
 
-    /** Tính tiền cho tất cả các món không bị huỷ (CANCELLED) */
+    /** Chỉ tính tiền món đã SERVED */
     private List<OrderItem> getServedItems(UUID orderId) {
-        List<OrderItem> items = orderItemRepository.findByOrder_Id(orderId).stream()
-                .filter(item -> item.getStatus() != OrderItemStatus.CANCELLED)
-                .collect(Collectors.toList());
-        if (items.isEmpty()) {
-            throw new BusinessException("Không có món nào hợp lệ để thanh toán");
+        List<OrderItem> servedItems = orderItemRepository.findByOrder_IdAndStatus(orderId, OrderItemStatus.SERVED);
+        if (servedItems.isEmpty()) {
+            throw new BusinessException("Không có món nào đã phục vụ để thanh toán");
         }
-        return items;
+        return servedItems;
     }
 
     private BigDecimal calculateSubtotal(List<OrderItem> servedItems) {
