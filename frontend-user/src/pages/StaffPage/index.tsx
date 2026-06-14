@@ -57,6 +57,7 @@ export default function StaffPage() {
 
   // ─── State đặt bàn ───────────────────────────────────────────
   const [reservationsDate, setReservationsDate] = useState(new Date().toISOString().split("T")[0]);
+  const [showAllReservations, setShowAllReservations] = useState(false);
   const [allReservations, setAllReservations] = useState<ReservationResponse[]>([]);
   const [pendingReservations, setPendingReservations] = useState<ReservationResponse[]>([]);
   const [calendar, setCalendar] = useState<ReservationCalendarResponse | null>(null);
@@ -99,7 +100,7 @@ export default function StaffPage() {
     setReservationsLoading(true);
     try {
       const [allRes, cal] = await Promise.all([
-        reservationService.getReservations(reservationsDate),
+        reservationService.getReservations(showAllReservations ? undefined : reservationsDate),
         reservationService.getCalendar(reservationsDate),
       ]);
       setAllReservations(allRes);
@@ -110,7 +111,7 @@ export default function StaffPage() {
     } finally {
       setReservationsLoading(false);
     }
-  }, [reservationsDate]);
+  }, [reservationsDate, showAllReservations]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -1040,11 +1041,21 @@ export default function StaffPage() {
               <div className={styles.sectionHeader}>
                 <h2 className={styles.sectionTitle}>📅 Quản lý Đặt Bàn</h2>
                 <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                  <button
+                    className={styles.refreshBtn}
+                    onClick={() => setShowAllReservations(true)}
+                    style={{ background: showAllReservations ? "#d4af37" : "transparent", color: showAllReservations ? "#000" : "#d4af37", border: "1px solid #d4af37" }}
+                  >
+                    Tất cả
+                  </button>
                   <input
                     type="date"
                     className={styles.datePicker}
                     value={reservationsDate}
-                    onChange={(e) => setReservationsDate(e.target.value)}
+                    onChange={(e) => {
+                      setReservationsDate(e.target.value);
+                      setShowAllReservations(false);
+                    }}
                   />
                   <button className={styles.refreshBtn} onClick={loadReservations} disabled={reservationsLoading}>
                     🔄 Làm mới
@@ -1089,7 +1100,7 @@ export default function StaffPage() {
                   <div className={styles.reservationSection}>
                     <h3 className={styles.cartTitle}>Danh sách đặt bàn</h3>
                     {allReservations.length === 0 ? (
-                      <div className={styles.emptyCart}>Không có đơn đặt bàn nào trong ngày này</div>
+                      <div className={styles.emptyCart}>Không có đơn đặt bàn nào</div>
                     ) : (
                       <div className={styles.reservationList}>
                         {allReservations.map((res) => (
