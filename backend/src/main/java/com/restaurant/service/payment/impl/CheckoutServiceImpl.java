@@ -140,7 +140,7 @@ public class CheckoutServiceImpl implements CheckoutService {
     // ─────────────────────────────────────────────────────────────────────────
     @Override
     public InvoiceResponse processCashPayment(CheckoutRequest request, UUID cashierId) {
-        assertNoPendingInvoice(request.getOrderId());
+        cancelPendingInvoice(request.getOrderId());
         CheckoutResponse preview = previewCheckout(request);
 
         // Bước 2: Kiểm tra tiền khách đưa (nếu null thì tự động lấy bằng totalAmount)
@@ -332,11 +332,15 @@ public class CheckoutServiceImpl implements CheckoutService {
         });
     }
 
-    /** Cash không được chạy khi order đang chờ VNPay */
-    private void assertNoPendingInvoice(UUID orderId) {
+    /** Cash: Huỷ bỏ invoice VNPay đang chờ nếu khách đổi ý sang tiền mặt */
+    private void cancelPendingInvoice(UUID orderId) {
         invoiceRepository.findByOrderId(orderId).ifPresent(inv -> {
             if (inv.getStatus() == InvoiceStatus.PENDING) {
-                throw new BusinessException("Order đang chờ thanh toán VNPay");
+                inv.setStatus(InvoiceStatus.VOIDED);
+                inv.setVoidReason("Khách đổi ý sang thanh toán tiền mặt");
+                invoiceRepository.save(inv);
+            } else if (inv.getStatus() == InvoiceStatus.PAID) {
+                throw new BusinessException("Order đã được thanh toán");
             }
         });
     }
@@ -434,7 +438,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         orderRepository.save(order);
 
         tableRepository.findById(order.getTableId()).ifPresent(table -> {
-            // table is already inactive, computeStatus will return CLEANING
+            table.setStatus(TableStatus.CLEANING);
             tableRepository.save(table);
         });
     }

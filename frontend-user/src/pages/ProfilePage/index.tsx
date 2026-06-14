@@ -1,12 +1,50 @@
 import styles from "./index.module.css";
+import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { authService } from "../../services/authService";
 import { useNavigate } from "react-router-dom";
 import HeroBackground from "../../component/layouts/overlay/overlay";
 import Header from "../../component/layouts/Header/Header";
 
 export default function ProfilePage() {
-  const { user, userType, logout } = useAuth();
+  const { user, token, userType, logout, isLoading, setAuth, isCustomer } = useAuth();
   const navigate = useNavigate();
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFullName, setEditFullName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [updateError, setUpdateError] = useState<string | null>(null);
+
+  const startEditing = () => {
+    setEditFullName(user?.fullName || "");
+    setEditPhone(user?.phone || "");
+    setIsEditing(true);
+    setUpdateError(null);
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+  };
+
+  const handleSave = async () => {
+    if (!editFullName.trim() || !editPhone.trim()) {
+      setUpdateError("Họ tên và số điện thoại không được để trống.");
+      return;
+    }
+    try {
+      setUpdateError(null);
+      const updatedUser = await authService.updateCustomerInfo({
+        fullName: editFullName,
+        phone: editPhone,
+      });
+      if (token) {
+        setAuth(token, updatedUser);
+      }
+      setIsEditing(false);
+    } catch (error: any) {
+      setUpdateError(error.response?.data?.message || "Có lỗi xảy ra khi cập nhật thông tin");
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -14,22 +52,46 @@ export default function ProfilePage() {
   };
 
   const getDisplayRole = () => {
-    switch (userType) {
-      case "CUSTOMER": return "Khách hàng";
-      case "STAFF": return "Nhân viên";
-      case "ADMIN": return "Quản trị viên";
-      case "MANAGER": return "Quản lý";
-      case "KITCHEN_STAFF": return "Nhân viên bếp";
-      case "CASHIER": return "Thu ngân";
-      case "WAITER": return "Phục vụ";
-      default: return "Khách hàng";
+    if (userType === "CUSTOMER") return "Khách hàng";
+
+    if (user?.roles && user.roles.length > 0) {
+      const roleMap: Record<string, string> = {
+        "STAFF": "Nhân viên",
+        "ADMIN": "Quản trị viên",
+        "MANAGER": "Quản lý",
+        "KITCHEN_STAFF": "Nhân viên bếp",
+        "CASHIER": "Thu ngân",
+        "WAITER": "Phục vụ",
+        "CUSTOMER": "Khách hàng"
+      };
+      
+      const rolesToDisplay = user.roles.map(r => {
+        const cleanRole = r.toUpperCase().replace("ROLE_", "");
+        return roleMap[cleanRole] || cleanRole;
+      });
+      return rolesToDisplay.join(", ");
     }
+
+    if (isStaff) return "Nhân viên";
+    return "Khách hàng";
   };
 
   const getAvatarChar = () => {
     if (!user) return "U";
     return user.fullName ? user.fullName.charAt(0).toUpperCase() : "U";
   };
+
+  if (isLoading) {
+    return (
+      <div className={styles.container}>
+        <HeroBackground />
+        <Header />
+        <div style={{ textAlign: "center", padding: "50px", color: "white" }}>
+          Đang tải thông tin...
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
@@ -67,9 +129,24 @@ export default function ProfilePage() {
             <h2 className={styles.sectionTitle}>Thông tin tài khoản</h2>
 
             <div className={styles.infoGrid}>
+              {updateError && (
+                <div style={{ color: "var(--color-primary-orange)", marginBottom: "15px", gridColumn: "1 / -1" }}>
+                  {updateError}
+                </div>
+              )}
+
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>👤 Họ và tên</span>
-                <span className={styles.infoValue}>{user.fullName || "—"}</span>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editFullName}
+                    onChange={(e) => setEditFullName(e.target.value)}
+                    style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", color: "black" }}
+                  />
+                ) : (
+                  <span className={styles.infoValue}>{user.fullName || "—"}</span>
+                )}
               </div>
 
               <div className={styles.infoItem}>
@@ -77,12 +154,19 @@ export default function ProfilePage() {
                 <span className={styles.infoValue}>{user.email || "—"}</span>
               </div>
 
-              {user.phone && (
-                <div className={styles.infoItem}>
-                  <span className={styles.infoLabel}>📞 Số điện thoại</span>
-                  <span className={styles.infoValue}>{user.phone}</span>
-                </div>
-              )}
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>📞 Số điện thoại</span>
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", color: "black" }}
+                  />
+                ) : (
+                  <span className={styles.infoValue}>{user.phone || "—"}</span>
+                )}
+              </div>
 
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>🔑 Vai trò</span>
@@ -114,20 +198,39 @@ export default function ProfilePage() {
 
           <div className={styles.divider} />
 
-          {/* Hành động */}
           <div className={styles.actions}>
-            <button
-              className={styles.actionBtn}
-              onClick={() => navigate("/changePass")}
-            >
-              🔒 Đổi mật khẩu
-            </button>
-            <button
-              className={`${styles.actionBtn} ${styles.logoutBtn}`}
-              onClick={handleLogout}
-            >
-              🚪 Đăng xuất
-            </button>
+            {isEditing ? (
+              <>
+                <button className={styles.actionBtn} onClick={handleSave} style={{ backgroundColor: "var(--color-primary-green)", color: "white" }}>
+                  💾 Lưu thay đổi
+                </button>
+                <button className={styles.actionBtn} onClick={cancelEditing}>
+                  ❌ Hủy
+                </button>
+              </>
+            ) : (
+              <>
+                {isCustomer && (
+                  <button className={styles.actionBtn} onClick={startEditing}>
+                    ✏️ Sửa thông tin
+                  </button>
+                )}
+                {isCustomer && (
+                  <button
+                    className={styles.actionBtn}
+                    onClick={() => navigate("/changePass")}
+                  >
+                    🔒 Đổi mật khẩu
+                  </button>
+                )}
+                <button
+                  className={`${styles.actionBtn} ${styles.logoutBtn}`}
+                  onClick={handleLogout}
+                >
+                  🚪 Đăng xuất
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -1,29 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../../component/common/button/button";
 import { Input } from "../../component/common/input/input";
 import HeroBackground from "../../component/layouts/overlay/overlay";
 import styles from "./index.module.css";
-import { Link } from "react-router";
-import {
-  getEmailError,
-  getPasswordError,
-  passwordsMatch,
-} from "../../utils/validation";
+import { Link, useNavigate } from "react-router";
+import { getPasswordError, passwordsMatch } from "../../utils/validation";
+import { useAuth } from "../../context/AuthContext";
+import { authService } from "../../services/authService";
 
 export default function ChangePassPage() {
-  const [email, setEmail] = useState("");
+  const { isAuthenticated, isCustomer, isLoading } = useAuth();
+  const navigate = useNavigate();
+
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNew, setConfirmNew] = useState("");
 
-  const [emailError, setEmailError] = useState<string | null>(null);
-
   const [newError, setNewError] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
 
-  const handleEmailBlur = () => {
-    setEmailError(getEmailError(email));
-  };
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || !isCustomer)) {
+      navigate("/login");
+    }
+  }, [isLoading, isAuthenticated, isCustomer, navigate]);
 
   const handleNewBlur = () => {
     setNewError(getPasswordError(newPassword));
@@ -37,18 +39,32 @@ export default function ChangePassPage() {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const emErr = getEmailError(email);
     const nwErr = getPasswordError(newPassword);
     const cfErr = passwordsMatch(newPassword, confirmNew)
       ? null
       : "Mật khẩu xác nhận không trùng";
-    setEmailError(emErr);
     setNewError(nwErr);
     setConfirmError(cfErr);
-    if (!emErr && !nwErr && !cfErr) {
-      console.log("change pass submit", { email });
+    setSubmitError(null);
+    setSubmitSuccess(null);
+
+    if (!nwErr && !cfErr) {
+      try {
+        await authService.changeCustomerPassword({
+          currentPassword: oldPassword,
+          newPassword: newPassword,
+        });
+        setSubmitSuccess("Đổi mật khẩu thành công!");
+        setOldPassword("");
+        setNewPassword("");
+        setConfirmNew("");
+      } catch (error: any) {
+        setSubmitError(
+          error.response?.data?.message || "Có lỗi xảy ra khi đổi mật khẩu"
+        );
+      }
     }
   };
   return (
@@ -97,17 +113,11 @@ export default function ChangePassPage() {
             <h2 className={styles.formTitle}>Đăng nhập</h2>{" "}
             {/* Trong ảnh ghi Login, nhưng form giống Sign Up */}
             <form onSubmit={handleSubmit}>
-              <Input
-                label="Email"
-                type="email"
-                placeholder="ex@gmail.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onBlur={handleEmailBlur}
-                error={!!emailError}
-              />
-              {emailError && (
-                <p className={styles.errorMessage}>{emailError}</p>
+              {submitError && (
+                <p className={styles.errorMessage} style={{ marginBottom: 15 }}>{submitError}</p>
+              )}
+              {submitSuccess && (
+                <p style={{ color: "var(--color-primary-green)", marginBottom: 15, fontSize: "0.875rem" }}>{submitSuccess}</p>
               )}
 
               <Input

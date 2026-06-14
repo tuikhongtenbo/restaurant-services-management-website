@@ -49,6 +49,7 @@ export interface User {
   email: string;
   phone?: string;
   status: string;
+  roles?: string[];
   tier?: string;
   totalSpent?: number;
   currentPoints?: number;

@@ -9,6 +9,7 @@ import type {
   BackendResponse,
   AuthData,
 } from "../types/auth";
+import type { User } from "../types/auth";
 import { ApiClient, getAuthHeaders } from "../utils/apiClient";
 
 export const authService = {
@@ -68,6 +69,33 @@ export const authService = {
       );
     } catch (error) {
       console.error("Change password error:", error);
+      throw error;
+    }
+  },
+
+  async changeCustomerPassword(data: ChangePasswordRequest): Promise<void> {
+    try {
+      await ApiClient.put<void>(
+        API_ENDPOINTS.AUTH.CUSTOMER_CHANGE_PASSWORD,
+        data,
+        getAuthHeaders(),
+      );
+    } catch (error) {
+      console.error("Change customer password error:", error);
+      throw error;
+    }
+  },
+
+  async updateCustomerInfo(data: { fullName: string; phone: string }): Promise<User> {
+    try {
+      const response = await ApiClient.put<BackendResponse<User>>(
+        API_ENDPOINTS.AUTH.CUSTOMER_UPDATE,
+        data,
+        getAuthHeaders(),
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Update customer info error:", error);
       throw error;
     }
   },

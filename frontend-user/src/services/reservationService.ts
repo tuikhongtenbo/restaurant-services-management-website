@@ -87,15 +87,87 @@ export const reservationService = {
     }
   },
 
-  async cancelReservation(id: string): Promise<void> {
+  async cancelReservation(id: string, reason?: string): Promise<void> {
     try {
-      await ApiClient.post<void>(
-        API_ENDPOINTS.RESERVATION.CANCEL(id),
+      const token = localStorage.getItem("authToken");
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      const staffId = localStorage.getItem("staffId");
+      if (staffId) {
+        headers["X-Staff-ID"] = staffId;
+      }
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(API_ENDPOINTS.RESERVATION.CANCEL(id), {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ reason: reason || "Đã hủy bởi nhân viên" }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Lỗi khi huỷ đặt bàn");
+      }
+    } catch (error) {
+      console.error("Cancel Reservation Error:", error);
+      throw error;
+    }
+  },
+
+  async rejectReservation(id: string, reason: string): Promise<void> {
+    try {
+      const token = localStorage.getItem("authToken");
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      const staffId = localStorage.getItem("staffId");
+      if (staffId) {
+        headers["X-Staff-ID"] = staffId;
+      }
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(API_ENDPOINTS.RESERVATION.REJECT(id), {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ reason }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || "Lỗi khi từ chối đặt bàn");
+      }
+    } catch (error) {
+      console.error("Reject Reservation Error:", error);
+      throw error;
+    }
+  },
+
+  async arrivedReservation(id: string): Promise<void> {
+    try {
+      await ApiClient.put<void>(
+        API_ENDPOINTS.RESERVATION.ARRIVED(id),
         {},
         getAuthHeaders(),
       );
     } catch (error) {
-      console.error("Cancel Reservation Error:", error);
+      console.error("Arrived Reservation Error:", error);
+      throw error;
+    }
+  },
+
+  async noShowReservation(id: string): Promise<void> {
+    try {
+      await ApiClient.put<void>(
+        API_ENDPOINTS.RESERVATION.NO_SHOW(id),
+        {},
+        getAuthHeaders(),
+      );
+    } catch (error) {
+      console.error("No Show Reservation Error:", error);
       throw error;
     }
   },

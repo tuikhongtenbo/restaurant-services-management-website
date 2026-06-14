@@ -104,12 +104,14 @@ function Header() {
                   >
                     👤 Thông tin tài khoản
                   </button>
-                  <button
-                    className={styles.dropdownItem}
-                    onClick={() => { setDropdownOpen(false); navigate("/changePass"); }}
-                  >
-                    🔒 Đổi mật khẩu
-                  </button>
+                  {!isStaff && (
+                    <button
+                      className={styles.dropdownItem}
+                      onClick={() => { setDropdownOpen(false); navigate("/changePass"); }}
+                    >
+                      🔒 Đổi mật khẩu
+                    </button>
+                  )}
                   <div className={styles.dropdownDivider} />
                   <button
                     className={`${styles.dropdownItem} ${styles.logoutItem}`}

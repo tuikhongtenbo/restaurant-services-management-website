@@ -11,14 +11,7 @@ const dishes = [
     image: "/images/pho.jpg",
     isMustTry: false,
   },
-  {
-    id: 2,
-    name: "Mỳ Quảng Gà",
-    description: "Gà Thả Vườn, Bánh Tráng, Rau Sống",
-    price: "45.000 VND",
-    image: "/images/myquang.jpg", // Đã sửa bỏ chữ "public" cho chuẩn Vite
-    isMustTry: true,
-  },
+
 ];
 
 function Hero() {
@@ -57,20 +50,6 @@ function Hero() {
             </fieldset>
           </div>
 
-          <div className={styles.rightContent}>
-            <div className={styles.cardGrid}>
-              {dishes.map((dish) => (
-                <DishCard
-                  key={dish.id}
-                  name={dish.name}
-                  description={dish.description}
-                  price={dish.price}
-                  image={dish.image}
-                  isMustTry={dish.isMustTry}
-                />
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </section>

@@ -113,8 +113,13 @@ public class OrderServiceImpl implements OrderService {
         Table table = tableRepository.findById(request.getTableId())
                 .orElseThrow(() -> new ResourceNotFoundException("Table", "id", request.getTableId()));
 
-        // Bước 2: Kiểm tra trạng thái bàn — không được có hóa đơn đang mở
-        if (orderRepository.existsByTableIdAndStatus(table.getId(), OrderStatus.OPEN)) {
+        // Bước 2: Kiểm tra trạng thái bàn — EMPTY hoặc SERVING (đã check-in đặt bàn) chưa có order OPEN
+        if (table.getStatus() == TableStatus.EMPTY) {
+            // ok
+        } else if (table.getStatus() == TableStatus.SERVING
+                && !orderRepository.existsByTableIdAndStatus(table.getId(), OrderStatus.OPEN)) {
+            // Khách đặt bàn đã arrived, chưa mở order
+        } else {
             throw new BusinessException("Bàn đang không trống, không thể tạo đơn mới!");
         }
 
@@ -127,7 +132,7 @@ public class OrderServiceImpl implements OrderService {
         Order saved = orderRepository.save(order);
 
         // Bước 4: Cập nhật bàn sang trạng thái SERVING
-        table.setIsActive(false);
+        table.setStatus(TableStatus.SERVING);
         tableRepository.save(table);
 
         return mapToResponse(saved);
@@ -148,12 +153,12 @@ public class OrderServiceImpl implements OrderService {
         // Cập nhật trạng thái bàn tương ứng
         if (status == OrderStatus.CANCELLED) {
             tableRepository.findById(order.getTableId()).ifPresent(table -> {
-                table.setIsActive(true);
+                table.setStatus(TableStatus.EMPTY);
                 tableRepository.save(table);
             });
         } else if (status == OrderStatus.PAID) {
             tableRepository.findById(order.getTableId()).ifPresent(table -> {
-                // table is already inactive, computeStatus will return CLEANING
+                table.setStatus(TableStatus.CLEANING);
                 tableRepository.save(table);
             });
         }
@@ -179,7 +184,7 @@ public class OrderServiceImpl implements OrderService {
 
         // Bước 2: Tìm bàn tương ứng và chuyển sang CLEANING để nhân viên dọn dẹp
         tableRepository.findById(order.getTableId()).ifPresent(table -> {
-            // table is already inactive, computeStatus will return CLEANING
+            table.setStatus(TableStatus.CLEANING);
             tableRepository.save(table);
         });
 

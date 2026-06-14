@@ -39,8 +39,11 @@ public interface ReservationService {
     // Tác vụ tự động: quét và gán bàn trống tối ưu cho các đơn CONFIRMED sắp đến giờ
     void autoAssignTables();
 
-    // Tác vụ tự động: huỷ các đơn CONFIRMED quá giờ hẹn mà khách không check-in
-    void autoCancelExpired();
+    // Tác vụ tự động: chuyển các đơn CONFIRMED quá giờ hẹn mà khách không check-in sang NO_SHOW
+    void autoNoShowExpired();
+
+    // Từ chối đơn đặt bàn PENDING
+    ReservationResponse reject(UUID id, UUID staffId, String reason);
 
     // Lấy thông tin tổng hợp đặt bàn trong ngày, bóc tách theo từng trạng thái (dùng cho Dashboard/Calendar)
     ReservationCalendarResponse getCalendar(LocalDate date);

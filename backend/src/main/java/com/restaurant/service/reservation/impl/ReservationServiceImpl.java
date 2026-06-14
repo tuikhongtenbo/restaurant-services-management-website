@@ -149,8 +149,10 @@ public class ReservationServiceImpl implements ReservationService {
 
         tableRepository.findById(reservation.getTableId())
                 .ifPresent(table -> {
-                    table.setIsActive(true);
-                    tableRepository.save(table);
+                    if (table.getStatus() == TableStatus.RESERVED) {
+                        table.setStatus(TableStatus.EMPTY);
+                        tableRepository.save(table);
+                    }
                 });
         reservation.setTableId(null);
         reservationRepository.save(reservation);
@@ -256,7 +258,7 @@ public class ReservationServiceImpl implements ReservationService {
         Table table = tableRepository.findById(tableId)
                 .orElseThrow(() -> new BusinessException("Ban khong ton tai."));
 
-        if (!table.getIsActive()) {
+        if (!table.getIsActive() || table.getStatus() != TableStatus.EMPTY) {
             throw new BusinessException("Ban nay khong con trong hoac khong hoat dong.");
         }
 
@@ -268,7 +270,7 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setStatus(ReservationStatus.CONFIRMED);
         reservation.setConfirmedBy(staffId);
         
-        table.setIsActive(false);
+        table.setStatus(TableStatus.RESERVED);
         tableRepository.save(table);
 
         return toResponse(reservationRepository.save(reservation));
@@ -316,9 +318,13 @@ public class ReservationServiceImpl implements ReservationService {
         Table table = tableRepository.findById(r.getTableId())
                 .orElseThrow(() -> new BusinessException("Khong tim thay ban da gan cho dat ban."));
 
-        // Không cần set status vì đã compute dựa vào order và reservation
-        // Bàn vẫn đang có isActive = false từ lúc confirm
-        // Khi tạo order mới, backend sẽ tự động nhận diện SERVING
+        if (!OffsetDateTime.now(RESTAURANT_ZONE).toLocalDate().equals(r.getReservedAt().toLocalDate())) {
+            throw new BusinessException("Chỉ được check-in vào đúng ngày khách đã đặt bàn.");
+        }
+
+        // Cập nhật trạng thái bàn sang SERVING
+        table.setStatus(TableStatus.SERVING);
+        tableRepository.save(table);
 
         r.setStatus(ReservationStatus.ARRIVED);
         return toResponse(reservationRepository.save(r));
@@ -345,6 +351,21 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
+    public ReservationResponse reject(UUID id, UUID staffId, String reason) {
+        Reservation r = findOrThrow(id);
+
+        if (r.getStatus() != ReservationStatus.PENDING) {
+            throw new BusinessException("Chi cho phep tu choi dat ban dang PENDING.");
+        }
+
+        releaseTable(r);
+        r.setStatus(ReservationStatus.REJECTED);
+        r.setCancelledBy(staffId);
+        r.setCancelReason(reason);
+        return toResponse(reservationRepository.save(r));
+    }
+
+    @Override
     public void delete(UUID id) {
         Reservation reservation = findOrThrow(id);
         releaseTable(reservation);
@@ -362,28 +383,38 @@ public class ReservationServiceImpl implements ReservationService {
         reservationRepository.findUnassignedUpcoming(now, soon).forEach(reservation ->
             tableRepository.findAll().stream()
                     .filter(Table::getIsActive)
+                    .filter(t -> t.getStatus() == TableStatus.EMPTY)
                     .filter(t -> t.getCapacity() >= reservation.getPartySize())
                     .min(Comparator.comparingInt(t -> t.getCapacity() - reservation.getPartySize()))
                     .ifPresent(table -> {
-                        table.setIsActive(false);
+                        table.setStatus(TableStatus.RESERVED);
                         reservation.setTableId(table.getId());
                         reservationRepository.save(reservation);
                         tableRepository.save(table);
                     })
         );
+
+        reservationRepository.findAssignedUpcoming(now, soon).forEach(reservation -> {
+            tableRepository.findById(reservation.getTableId()).ifPresent(table -> {
+                if (table.getIsActive() && table.getStatus() != TableStatus.RESERVED) {
+                    table.setStatus(TableStatus.RESERVED);
+                    tableRepository.save(table);
+                }
+            });
+        });
     }
 
     @Scheduled(fixedRate = 60_000)
     @Override
-    public void autoCancelExpired() {
-        OffsetDateTime cutoff = OffsetDateTime.now(RESTAURANT_ZONE).minusMinutes(AUTO_CANCEL_MINUTES);
+    public void autoNoShowExpired() {
+        OffsetDateTime cutoff = OffsetDateTime.now(RESTAURANT_ZONE).minusMinutes(30);
 
         reservationRepository
                 .findByStatusAndReservedAtBefore(ReservationStatus.CONFIRMED, cutoff)
                 .forEach(r -> {
                     releaseTable(r);
-                    r.setStatus(ReservationStatus.CANCELLED);
-                    r.setCancelReason("He thong tu dong huy: qua " + AUTO_CANCEL_MINUTES + " phut so voi lich hen.");
+                    r.setStatus(ReservationStatus.NO_SHOW);
+                    r.setCancelReason("He thong tu dong: Khach khong den sau 30 phut.");
                     reservationRepository.save(r);
                 });
     }

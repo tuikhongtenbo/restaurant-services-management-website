@@ -84,7 +84,7 @@ export const MenuBook: React.FC = () => {
                   : item.price.toLocaleString() + "đ"}
               </span>
             </div>
-            <p className={styles.desc}>{item.description}</p>
+            
           </div>
         ))}
       </div>

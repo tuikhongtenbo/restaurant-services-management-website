@@ -24,7 +24,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 function decodeUserTypeFromToken(token: string): UserType | null {
   try {
     const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.userType || null;
+    let role = payload.userType || payload.role || null;
+    if (typeof role === "string") {
+      role = role.toUpperCase().replace("ROLE_", "");
+    }
+    return role as UserType;
   } catch {
     return null;
   }
