@@ -360,8 +360,8 @@ public class ReservationServiceImpl implements ReservationService {
         OffsetDateTime soon = now.plusMinutes(ASSIGN_BEFORE_MINUTES);
 
         reservationRepository.findUnassignedUpcoming(now, soon).forEach(reservation ->
-            tableRepository.findByIsActiveTrueAndStatusAndDeletedAtIsNull(TableStatus.EMPTY)
-                    .stream()
+            tableRepository.findAll().stream()
+                    .filter(Table::getIsActive)
                     .filter(t -> t.getCapacity() >= reservation.getPartySize())
                     .min(Comparator.comparingInt(t -> t.getCapacity() - reservation.getPartySize()))
                     .ifPresent(table -> {

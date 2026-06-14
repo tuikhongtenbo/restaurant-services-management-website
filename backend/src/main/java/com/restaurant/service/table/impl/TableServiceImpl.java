@@ -90,7 +90,7 @@ public class TableServiceImpl implements TableService {
                 .id(table.getId())
                 .number(table.getNumber())
                 .capacity(table.getCapacity())
-                .status(table.getStatus() != null ? table.getStatus().name() : TableStatus.EMPTY.name())
+                .status(computeStatus(table).name())
                 .area(table.getArea())
                 .isActive(table.getIsActive())
                 .updatedAt(table.getUpdatedAt())
@@ -108,9 +108,9 @@ public class TableServiceImpl implements TableService {
                 .filter(r -> BLOCKING_STATUSES.contains(r.getStatus()))
                 .toList();
 
-        // Step 1: pool ban đầu = tất cả bàn EMPTY active và chưa bị xóa
-        List<Table> pool = tableRepository.findByIsActiveTrueAndStatusAndDeletedAtIsNull(TableStatus.EMPTY)
-                .stream()
+        // Lấy tất cả các bàn thực sự trống (isActive = true)
+        List<Table> pool = tableRepository.findAll().stream()
+                .filter(Table::getIsActive)
                 .collect(Collectors.toCollection(java.util.ArrayList::new));
 
         Set<UUID> assignedTableIds = blocking.stream()
@@ -135,16 +135,23 @@ public class TableServiceImpl implements TableService {
     @Override
     @Transactional(readOnly = true)
     public Page<TableResponse> getTables(String area, TableStatus status, Pageable pageable) {
-        if (area != null && !area.isBlank() && status != null) {
-            return tableRepository.findByIsActiveTrueAndAreaAndStatusAndDeletedAtIsNull(area, status, pageable).map(this::toResponse);
+        // Do dữ liệu status là ảo nên phải filter bằng Java
+        List<Table> allTables = tableRepository.findAll();
+        
+        List<TableResponse> filtered = allTables.stream()
+                .filter(this::isNotSoftDeleted)
+                .filter(t -> area == null || area.isBlank() || area.equals(t.getArea()))
+                .filter(t -> status == null || computeStatus(t) == status)
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), filtered.size());
+        
+        if (start > filtered.size()) {
+            return new PageImpl<>(List.of(), pageable, filtered.size());
         }
-        if (area != null && !area.isBlank()) {
-            return tableRepository.findByIsActiveTrueAndAreaAndDeletedAtIsNull(area, pageable).map(this::toResponse);
-        }
-        if (status != null) {
-            return tableRepository.findByIsActiveTrueAndStatusAndDeletedAtIsNull(status, pageable).map(this::toResponse);
-        }
-        return tableRepository.findByIsActiveTrueAndDeletedAtIsNull(pageable).map(this::toResponse);
+        return new PageImpl<>(filtered.subList(start, end), pageable, filtered.size());
     }
 
     @Override
@@ -240,7 +247,9 @@ public class TableServiceImpl implements TableService {
     @Override
     @Transactional(readOnly = true)
     public TableLayoutResponse getLayout() {
-        List<Table> all = tableRepository.findByIsActiveTrueAndDeletedAtIsNull();
+        List<Table> all = tableRepository.findAll().stream()
+                .filter(this::isNotSoftDeleted)
+                .collect(Collectors.toList());
 
         long available = all.stream().filter(t -> computeStatus(t) == TableStatus.OPEN).count();
         long occupied  = all.stream().filter(t -> computeStatus(t) == TableStatus.SERVING).count();
