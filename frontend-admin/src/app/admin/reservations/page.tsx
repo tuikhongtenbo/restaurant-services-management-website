@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { Button, DatePicker, Tabs, Table, Tag, Popconfirm, message, Tooltip, Space, Card } from "antd";
-import { Plus, Check, MapPin, XCircle, Edit, Calendar as CalendarIcon, Clock, Users, Phone, X } from "lucide-react";
+import { Button, DatePicker, Tabs, Table, Tag, Popconfirm, message, Tooltip, Space, Card, Input } from "antd";
+import { Plus, Check, MapPin, XCircle, Edit, Calendar as CalendarIcon, Clock, Users, Phone, X, Search } from "lucide-react";
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
 import { reservationService } from "@/services/reservation.service";
@@ -18,10 +18,7 @@ export default function ReservationsPage() {
   const [total, setTotal] = useState(0);
 
   // Filters
-  const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
   const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
 
   // Calendar Stats
   const [stats, setStats] = useState<ReservationCalendar | null>(null);
@@ -51,19 +48,17 @@ export default function ReservationsPage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const dateStr = selectedDate.format("YYYY-MM-DD");
 
       // Fetch both list and calendar stats in parallel
       const statusParam = selectedStatus === "ALL" ? undefined : (selectedStatus as ReservationStatus);
 
       const [listRes, calendarRes] = await Promise.all([
         reservationService.getReservations({
-          date: dateStr,
           status: statusParam,
-          page: currentPage - 1, // Spring API is 0-indexed
-          size: pageSize,
+          page: 0,
+          size: 10000,
         }),
-        reservationService.getCalendar(dateStr)
+        reservationService.getCalendar(dayjs().format("YYYY-MM-DD"))
       ]);
 
       setData(listRes.content);
@@ -74,7 +69,7 @@ export default function ReservationsPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, selectedStatus, currentPage, pageSize]);
+  }, [selectedStatus]);
 
   useEffect(() => {
     fetchData();
@@ -135,6 +130,42 @@ export default function ReservationsPage() {
       title: "Thời gian",
       dataIndex: "reservedAt",
       key: "reservedAt",
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }: any) => (
+        <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+          <DatePicker
+            value={selectedKeys[0] ? dayjs(selectedKeys[0] as string) : null}
+            onChange={(d) => setSelectedKeys(d ? [d.format("YYYY-MM-DD")] : [])}
+            style={{ marginBottom: 8, display: 'block' }}
+            format="DD/MM/YYYY"
+          />
+          <Space>
+            <Button
+              type="primary"
+              onClick={() => confirm()}
+              icon={<Search size={14} />}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Lọc
+            </Button>
+            <Button
+              onClick={() => {
+                clearFilters && clearFilters();
+                confirm();
+              }}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Xóa
+            </Button>
+          </Space>
+        </div>
+      ),
+      filterIcon: (filtered: boolean) => (
+        <CalendarIcon size={16} style={{ color: filtered ? '#1677ff' : undefined }} />
+      ),
+      onFilter: (value: any, record: Reservation) =>
+        dayjs(record.reservedAt).format("YYYY-MM-DD") === value,
       render: (val: string) => (
         <div className="flex flex-col">
           <span className="font-semibold text-zinc-900">{dayjs(val).format("HH:mm")}</span>
@@ -145,6 +176,43 @@ export default function ReservationsPage() {
     {
       title: "Khách hàng",
       key: "customer",
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }: any) => (
+        <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+          <Input
+            placeholder="Tìm số điện thoại"
+            value={selectedKeys[0]}
+            onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+            onPressEnter={() => confirm()}
+            style={{ marginBottom: 8, display: 'block' }}
+          />
+          <Space>
+            <Button
+              type="primary"
+              onClick={() => confirm()}
+              icon={<Search size={14} />}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Tìm
+            </Button>
+            <Button
+              onClick={() => {
+                clearFilters && clearFilters();
+                confirm();
+              }}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Xóa
+            </Button>
+          </Space>
+        </div>
+      ),
+      filterIcon: (filtered: boolean) => (
+        <Search size={16} style={{ color: filtered ? '#1677ff' : undefined }} />
+      ),
+      onFilter: (value: any, record: Reservation) =>
+        record.customerPhone.toLowerCase().includes((value as string).toLowerCase()),
       render: (_: any, record: Reservation) => (
         <div className="flex flex-col">
           <span className="font-semibold">{record.customerName}</span>
@@ -212,15 +280,15 @@ export default function ReservationsPage() {
 
             return (
               <Tooltip title={arriveTooltip}>
-                <Popconfirm 
-                  title="Khách đã đến quán?" 
+                <Popconfirm
+                  title="Khách đã đến quán?"
                   onConfirm={() => handleArrived(record.id)}
                   disabled={!canArrive}
                 >
-                  <Button 
-                    className={canArrive ? "bg-emerald-500 hover:bg-emerald-600 border-none" : ""} 
-                    type="primary" 
-                    size="small" 
+                  <Button
+                    className={canArrive ? "bg-emerald-500 hover:bg-emerald-600 border-none" : ""}
+                    type="primary"
+                    size="small"
                     icon={<MapPin size={14} />}
                     disabled={!canArrive}
                   >
@@ -261,14 +329,6 @@ export default function ReservationsPage() {
           <p className="text-zinc-500 mt-1">Theo dõi và quản lý lịch hẹn của khách hàng</p>
         </div>
         <div className="flex items-center gap-3">
-          <DatePicker
-            value={selectedDate}
-            onChange={(d) => { if (d) { setSelectedDate(d); setCurrentPage(1); } }}
-            format="DD/MM/YYYY"
-            allowClear={false}
-            className="w-40"
-            size="large"
-          />
           <Button
             type="primary"
             size="large"
@@ -308,7 +368,7 @@ export default function ReservationsPage() {
       <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden">
         <Tabs
           activeKey={selectedStatus}
-          onChange={(key) => { setSelectedStatus(key); setCurrentPage(1); }}
+          onChange={(key) => setSelectedStatus(key)}
           items={[
             { key: "ALL", label: "Tất cả" },
             { key: "PENDING", label: "Chờ duyệt" },
@@ -325,10 +385,6 @@ export default function ReservationsPage() {
           rowKey="id"
           loading={loading}
           pagination={{
-            current: currentPage,
-            pageSize: pageSize,
-            total: total,
-            onChange: (p, s) => { setCurrentPage(p); setPageSize(s); },
             showSizeChanger: true,
             showTotal: (total) => `Tổng ${total} đơn`
           }}

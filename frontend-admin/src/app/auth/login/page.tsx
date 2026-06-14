@@ -12,7 +12,7 @@ export default function LoginPage() {
             <div className="z-10 w-full max-w-md px-4">
                 <div className="mb-8 text-center">
                     <h1 className="text-4xl font-extrabold tracking-tight text-zinc-900 mb-2">
-                        Restaurent <span className="text-blue-600">Management</span>
+                        Restaurant <span className="text-blue-600">Management</span>
                     </h1>
                     <p className="text-zinc-600">Trang quản lí dành cho Admin/ Manager</p>
                 </div>

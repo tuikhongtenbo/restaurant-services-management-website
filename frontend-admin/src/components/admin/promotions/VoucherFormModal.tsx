@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { Modal, Form, Input, Select, InputNumber, DatePicker, Switch, Row, Col } from "antd";
+import { Modal, Form, Input, Select, InputNumber, DatePicker, Switch, Row, Col, Space } from "antd";
 import dayjs from "dayjs";
 import { Voucher, VoucherDiscountType, CustomerTier } from "@/types/voucher";
 
@@ -48,7 +48,7 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      
+
       // Transform dateRange to validFrom and validUntil
       const payload = { ...values };
       if (values.dateRange && values.dateRange.length === 2) {
@@ -73,7 +73,7 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
       onCancel={onCancel}
       confirmLoading={loading}
       width={700}
-      destroyOnClose
+      destroyOnHidden
       okText={initialValues ? "Cập nhật" : "Tạo mới"}
       cancelText="Hủy"
     >
@@ -89,8 +89,8 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
               ]}
               normalize={(value) => (value || "").toUpperCase().replace(/\s/g, "")}
             >
-              <Input 
-                placeholder="VD: SUMMER2026" 
+              <Input
+                placeholder="VD: SUMMER2026"
                 disabled={!!initialValues} // Disable editing code after creation
                 maxLength={20}
               />
@@ -125,7 +125,7 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
               label="Mức giảm giá"
               rules={[
                 { required: true, message: "Vui lòng nhập mức giảm" },
-                { 
+                {
                   validator: async (_, value) => {
                     if (value === undefined || value === null) return;
                     if (value <= 0) throw new Error("Mức giảm phải lớn hơn 0");
@@ -134,17 +134,23 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
                 }
               ]}
             >
-              <InputNumber
-                className="w-full"
-                min={1}
-                max={isPercent ? 100 : undefined}
-                formatter={(value) => isPercent ? `${value}%` : `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                parser={(value) => value!.replace(/%|\s?|(,*)/g, "") as any}
-                addonAfter={isPercent ? "%" : "VNĐ"}
-                onKeyPress={(e) => {
-                  if (!/[0-9]/.test(e.key)) e.preventDefault();
-                }}
-              />
+              <Space.Compact style={{ width: '100%' }}>
+                <InputNumber
+                  style={{ width: 'calc(100% - 60px)' }}
+                  min={1}
+                  max={isPercent ? 100 : undefined}
+                  formatter={(value) => isPercent ? `${value}%` : `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                  parser={(value) => value!.replace(/%|\s?|(,*)/g, "") as any}
+                  onKeyPress={(e) => {
+                    if (!/[0-9]/.test(e.key)) e.preventDefault();
+                  }}
+                />
+                <Input
+                  style={{ width: '60px', textAlign: 'center', pointerEvents: 'none', backgroundColor: '#fafafa', color: '#000' }}
+                  disabled
+                  value={isPercent ? "%" : "VNĐ"}
+                />
+              </Space.Compact>
             </Form.Item>
           </Col>
         </Row>
@@ -226,8 +232,8 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
               name="dateRange"
               label="Thời hạn sử dụng"
             >
-              <DatePicker.RangePicker 
-                showTime 
+              <DatePicker.RangePicker
+                showTime
                 className="w-full"
                 format="DD/MM/YYYY HH:mm"
                 placeholder={["Bắt đầu", "Kết thúc"]}
