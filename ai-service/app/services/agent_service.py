@@ -46,41 +46,36 @@ class AgentService:
         
         self.system_instruction = (
             "Bạn là trợ lý ảo chuyên nghiệp của nhà hàng Artiste. Hãy hỗ trợ khách hàng lịch sự, rõ ràng và hiệu quả.\n\n"
-            "=== BẢNG TRA CỨU NGÀY (DÙNG ĐỂ GỌI TOOL) ===\n"
+            "<system_info>\n"
+            "THÔNG TIN NGÀY GIỜ HIỆN TẠI (DÙNG ĐỂ GỌI TOOL, TUYỆT ĐỐI KHÔNG HIỂN THỊ CHO KHÁCH):\n"
             f"{generate_date_mapping()}\n"
+            "</system_info>\n\n"
             "1. TRA CỨU LỊCH TRỐNG ('check_available_slots'):\n"
-            "- Tự động tra bảng trên để chuyển đổi 'tối mai', 'thứ 5 tuần sau' thành 'YYYY-MM-DD'.\n"
-            "- CHÚ Ý TỐI QUAN TRỌNG: Bạn BẮT BUỘC phải copy y nguyên và liệt kê ĐẦY ĐỦ TẤT CẢ các khung giờ nhận được từ kết quả của tool vào câu trả lời cuối cùng để khách hàng thấy. TUYỆT ĐỐI KHÔNG trả lời chung chung kiểu 'Tôi hy vọng thông tin hữu ích'.\n\n"
+            "- Tự động tra bảng trên để chuyển đổi 'tối mai', 'thứ 5 tuần sau' thành 'YYYY-MM-DD'.\n\n"
             "2. GỢI Ý SET MÓN ('suggest_set_menu'):\n"
-            "- Khi khách hàng nhờ gợi ý set ăn, gợi ý món theo ngân sách (VD: 200k, 500k), gọi công cụ này.\n"
-            "- Công cụ này sẽ tự động tính toán, bạn chỉ cần gán đúng biến budget là con số tiền (ví dụ: 200000).\n"
-            "- TUYỆT ĐỐI không dùng tool xem menu cho việc gợi ý set ăn.\n\n"
+            "- Khi khách nhờ gợi ý set ăn, gọi công cụ này. CHÚ Ý: '1000k' tức là budget 1000000; '500k' là 500000.\n\n"
             "3. ĐẶT BÀN ('create_restaurant_booking'):\n"
-            "- BẮT BUỘC phải có đủ 4 thông tin: Tên, SĐT, Số người, Ngày giờ.\n"
-            "- NẾU KHÁCH CHƯA CHO TÊN HOẶC SĐT: TUYỆT ĐỐI KHÔNG GỌI TOOL. KHÔNG TỰ BỊA TÊN/SĐT (như 'Khách hàng', '0123456789'). Hãy lịch sự hỏi lại khách.\n"
-            "- Dùng 'BẢNG TRA CỨU NGÀY' ở trên để chuyển ngày khách nói sang 'YYYY-MM-DD'.\n"
-            "- Cách đổi giờ: '15h' = 15:00:00; '3h chiều' = 15:00:00; '3 rưỡi chiều' = 15:30:00; '7h tối' = 19:00:00.\n"
-            "- Sau đó nối ngày và giờ lại thành chuẩn ISO 8601 CÓ MÚI GIỜ (VD: 2026-06-18T15:00:00+07:00) để gọi tool.\n"
-            "- Khi đặt bàn thành công, KHÔNG ĐƯỢC nhắc khách kiểm tra bằng ID. BẮT BUỘC thông báo chính xác câu sau: \"Nhân viên sẽ gọi xác nhận với khách hàng trong khoảng thời gian sớm nhất\".\n\n"
+            "- BẮT BUỘC có đủ: Tên, SĐT, Số người, Ngày giờ.\n"
+            "- Nếu thiếu Tên/SĐT, TUYỆT ĐỐI KHÔNG gọi tool. Hỏi lại khách.\n"
+            "- Chuyển giờ: '15h' = 15:00:00; '7h tối' = 19:00:00.\n"
+            "- Nối ngày và giờ thành ISO 8601 CÓ MÚI GIỜ (VD: 2026-06-18T15:00:00+07:00).\n\n"
             "4. XEM MENU / THỰC ĐƠN:\n"
-            "- Khi khách yêu cầu xem menu, thực đơn, hãy gọi tool 'get_restaurant_menu_for_suggestion'.\n"
-            "- BẮT BUỘC phải đọc kết quả tool và in ra màn hình CHI TIẾT toàn bộ danh sách các món ăn, danh mục và giá tiền. KHÔNG ĐƯỢC TÓM TẮT hay nói chung chung.\n\n"
+            "- KHI KHÁCH YÊU CẦU XEM MENU HOẶC THỰC ĐƠN: BẮT BUỘC gọi tool 'get_restaurant_menu_for_suggestion'.\n\n"
             "5. CHÀO HỎI:\n"
-            "- Khi khách chào hỏi ('Xin chào', 'chào', 'hello',...), bạn CHỈ ĐƯỢC PHÉP in ra chính xác từng chữ của câu sau (tuyệt đối không tự sửa hay viết sai chính tả): \"Tôi là trợ lý ảo của nhà hàng, rất hân hạnh được hỗ trợ quý khách\".\n\n"
-            "6. NGOÀI PHẠM VI:\n"
-            "- Nếu khách nhắn một câu không liên quan đến nhà hàng, đặt bàn hay thực đơn, BẮT BUỘC trả lời: \"Xin lỗi, phần này ngoài phạm vi của tôi. Xin quý khách hãy hỏi các vấn đề liên quan đến nhà hàng\".\n\n"
-            "QUY TẮC:\n"
-            "- Phản hồi Tiếng Việt thân thiện, ngắn gọn.\n"
-            "- Luôn sử dụng Function Calling khi cần gọi công cụ.\n"
-            "- Khi không gọi công cụ, TUYỆT ĐỐI CHỈ trả về văn bản thuần túy (plain text), KHÔNG bao bọc trong định dạng JSON.\n"
-            "- Luôn hiển thị chi tiết kết quả nhận được từ công cụ cho khách hàng."
+            "- Nếu khách chào, trả lời chính xác: \"Tôi là trợ lý ảo của nhà hàng, rất hân hạnh được hỗ trợ quý khách.\"\n\n"
+            "6. NGOÀI PHẠM VI & XÃ GIAO:\n"
+            "- Bắt buộc: \"Xin lỗi, phần này ngoài phạm vi của tôi. Xin quý khách hãy hỏi các vấn đề liên quan đến nhà hàng\" nếu khách hỏi ngoài lề.\n"
+            "- KHÔNG ĐƯỢC gọi tool tra cứu lịch trống hay bất kỳ tool nào nếu khách chỉ chat các từ vô nghĩa (như 'alo', 'allo', 'test', 'ê'). Hãy trả lời: 'Xin chào, tôi là trợ lý ảo của nhà hàng. Tôi có thể giúp gì cho quý khách?'\n\n"
+            "QUY TẮC QUAN TRỌNG NHẤT:\n"
+            "- Không bao giờ hiển thị phần <system_info> cho khách.\n"
+            "- Tuyệt đối KHÔNG trả về JSON cho khách."
         )
 
     def execute_chat(self, user_message: str) -> str:
-        # Xử lý nhanh các câu chào hỏi cơ bản để tránh LLM sinh lỗi chính tả
+        # Xử lý nhanh các câu chào hỏi cơ bản để tránh LLM sinh lỗi chính tả hoặc ảo giác gọi tool
         msg_lower = user_message.strip().lower()
-        if msg_lower in ["xin chào", "chào", "hello", "hi", "chào bạn", "xin chào nè", "chào quán", "chào shop", "chào ad"]:
-            return "Tôi là trợ lý ảo của nhà hàng, rất hân hạnh được hỗ trợ quý khách."
+        if msg_lower in ["xin chào", "chào", "hello", "hi", "chào bạn", "xin chào nè", "chào quán", "chào shop", "chào ad", "alo", "allo", "ê", "test"]:
+            return "Xin chào, tôi là trợ lý ảo của nhà hàng Artiste. Tôi có thể giúp gì cho quý khách (ví dụ: đặt bàn, xem menu, gợi ý món ăn)?"
             
         # Bắt buộc đặt SystemMessage ở đầu mảng để làm kim chỉ nam cho toàn bộ cuộc hội thoại
         messages = [
@@ -94,6 +89,9 @@ class AgentService:
         
         # Nếu Llama 3 quyết định cần phải dùng đến công cụ (Function Calling)
         if ai_msg.tool_calls:
+            bypass_2nd_turn = False
+            last_tool_output = ""
+            
             for tool_call in ai_msg.tool_calls:
                 tool_name = tool_call["name"]
                 tool_args = tool_call["args"]
@@ -102,24 +100,26 @@ class AgentService:
                     # Kích hoạt chạy Tool tương ứng (gọi sang Java API công khai)
                     chosen_tool = self.tools_map[tool_name]
                     tool_output = chosen_tool.invoke(tool_args)
+                    last_tool_output = str(tool_output)
                     
-                    # Ném kết quả trả về từ Java vào mảng tin nhắn dưới dạng ToolMessage
+                    if tool_name in ["get_restaurant_menu_for_suggestion", "suggest_set_menu"]:
+                        bypass_2nd_turn = True
+                        
                     messages.append(ToolMessage(
-                        content=str(tool_output), 
+                        content=last_tool_output, 
                         tool_call_id=tool_call["id"]
                     ))
-            
-            # Lượt 2: Llama 3 nhìn lại chỉ dẫn hệ thống ban đầu + kết quả thực tế từ Tool để rep khách
+                    
+            if bypass_2nd_turn:
+                # Bỏ qua LLM sinh chữ lần 2, trả về trực tiếp kết quả đã format sẵn của Tool (cho xem menu/set món)
+                return last_tool_output
+                
+            # Lượt 2: Cho Llama 3 nhìn lại kết quả của các Tool giao tiếp (Booking, Check Slots) để phản hồi
             final_ai_msg = self.llm.invoke(messages)
             response_text = final_ai_msg.content
             
             if response_text.startswith("assistant\n\n"):
                 response_text = response_text[11:]
-                
-            # Ép cứng việc nối kết quả Tool vào đuôi câu trả lời do Llama 3 8B hay tóm tắt lười
-            if "tool_name" in locals() and "tool_output" in locals():
-                if tool_name in ["check_available_slots", "suggest_set_menu", "get_restaurant_menu_for_suggestion"]:
-                    response_text += f"\n\n{tool_output}"
                 
             return response_text
             

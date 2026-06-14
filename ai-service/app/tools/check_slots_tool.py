@@ -16,21 +16,16 @@ def check_available_slots(target_date: str, party_size: int) -> str:
             "partySize": party_size
         }
         
-        headers = {}
-        if settings.STAFF_TOKEN:
-            headers["Authorization"] = f"Bearer {settings.STAFF_TOKEN}"
-            
-        # Gọi sang endpoint nội bộ dành cho staff
-        response = requests.get(f"{settings.JAVA_BASE_URL}/api/reservations/available-slots", params=params, headers=headers)
+        # Gọi sang endpoint công khai
+        response = requests.get(f"{settings.JAVA_BASE_URL}/api/public/reservations/available-times", params=params)
         
         if response.status_code == 200:
             slots = response.json()
             if not slots or len(slots) == 0:
-                return "Kết quả: Ngày này hiện tại đã hết sạch bàn trống phù hợp."
+                return "Kết quả: Đã hết bàn trống. Hãy báo khách xin lỗi và gợi ý chọn ngày khác."
             
-            # Ép danh sách giờ thành chuỗi gạch đầu dòng
-            bullet_slots = "\n".join([f"- {s}" for s in slots])
-            return f"Kết quả: Dưới đây là các khung giờ còn trống:\n{bullet_slots}"
-        return f"Không thể tra cứu lịch trống. API trả về mã lỗi {response.status_code}."
+            bullet_slots = ", ".join(slots)
+            return f"Kết quả: Còn các giờ {bullet_slots}. Hãy báo cho khách và hỏi xem họ muốn đặt lúc mấy giờ."
+        return "Lỗi API. Hãy báo khách: 'Xin lỗi, hệ thống tra cứu lịch trống hiện đang bảo trì. Vui lòng gọi hotline 0903 123 456 để được hỗ trợ.'"
     except Exception as e:
-        return f"Lỗi kết nối khi check slot: {str(e)}"
+        return "Lỗi API. Hãy báo khách: 'Xin lỗi, hệ thống tra cứu lịch trống hiện đang bảo trì. Vui lòng gọi hotline 0903 123 456 để được hỗ trợ.'"

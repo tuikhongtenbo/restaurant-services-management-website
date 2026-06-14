@@ -413,7 +413,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .findByStatusAndReservedAtBefore(ReservationStatus.CONFIRMED, cutoff)
                 .forEach(r -> {
                     releaseTable(r);
-                    r.setStatus(ReservationStatus.NO_SHOW);
+                    r.setStatus(ReservationStatus.CANCELLED);
                     r.setCancelReason("He thong tu dong: Khach khong den sau 30 phut.");
                     reservationRepository.save(r);
                 });
