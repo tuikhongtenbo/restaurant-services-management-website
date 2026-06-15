@@ -62,8 +62,7 @@ export default function StaffPage() {
   const [pendingReservations, setPendingReservations] = useState<ReservationResponse[]>([]);
   const [calendar, setCalendar] = useState<ReservationCalendarResponse | null>(null);
   const [reservationsLoading, setReservationsLoading] = useState(false);
-  const [reservationToConfirm, setReservationToConfirm] = useState<ReservationResponse | null>(null);
-  const [selectedTableForRes, setSelectedTableForRes] = useState<string>("");
+
 
   // ─── State hoá đơn ───────────────────────────────────────────
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -447,13 +446,7 @@ export default function StaffPage() {
   // ════════════════════════════════════════════════════════════
   // HANDLER: Xác nhận đặt bàn (gửi X-Staff-ID)
   // ════════════════════════════════════════════════════════════
-  const handleConfirmReservation = (res: ReservationResponse) => {
-    setReservationToConfirm(res);
-    setSelectedTableForRes("");
-  };
-
-  const handleConfirmSave = async () => {
-    if (!reservationToConfirm || !selectedTableForRes) return;
+  const handleConfirmReservation = async (res: ReservationResponse) => {
     const staffId = getStaffIdFromToken();
     if (!staffId) {
       setSystemAlert({ title: "Lỗi", message: "Không lấy được ID nhân viên, vui lòng đăng nhập lại." });
@@ -461,11 +454,10 @@ export default function StaffPage() {
     }
     setTableActionLoading(true);
     try {
-      await reservationService.confirmReservation(reservationToConfirm.id, staffId, selectedTableForRes);
+      await reservationService.confirmReservation(res.id, staffId, "");
       await loadReservations();
       await loadTables();
-      setReservationToConfirm(null);
-      setSystemAlert({ title: "Thành công", message: "Đã xác nhận đặt bàn và gán bàn!" });
+      setSystemAlert({ title: "Thành công", message: "Đã xác nhận đặt bàn thành công!" });
     } catch (err) {
       setSystemAlert({ title: "Lỗi", message: "Lỗi khi duyệt: " + (err as Error).message });
     } finally {
@@ -1364,73 +1356,6 @@ export default function StaffPage() {
         </div>
       )}
 
-      {/* ── Modal Chọn Bàn để Xác nhận Đặt bàn ───────────────────── */}
-      {reservationToConfirm && (
-        <div
-          style={{
-            position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)",
-            zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-          onClick={() => setReservationToConfirm(null)}
-        >
-          <div
-            style={{
-              background: "#1e1e1e", border: "1px solid #333", borderRadius: "12px", padding: "24px",
-              maxWidth: "400px", width: "90%", color: "#fff",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 style={{ margin: "0 0 16px 0", fontSize: "18px", color: "#d4af37" }}>
-              Xác nhận Đặt Bàn
-            </h3>
-            <p style={{ margin: "0 0 16px 0", fontSize: "14px", color: "#a1a1aa" }}>
-              Chọn một bàn trống cho <strong>{reservationToConfirm.partySize}</strong> khách (KH: {reservationToConfirm.customerName}):
-            </p>
-            <select
-              value={selectedTableForRes}
-              onChange={(e) => setSelectedTableForRes(e.target.value)}
-              style={{
-                width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #333",
-                background: "#2a2a2a", color: "#fff", marginBottom: "24px", outline: "none"
-              }}
-            >
-              <option value="">-- Chọn bàn --</option>
-              {tables
-                .filter((t) => isTableEmpty(t) && t.capacity >= reservationToConfirm.partySize)
-                .sort((a, b) => a.capacity - b.capacity)
-                .map((t) => (
-                  <option key={t.id} value={t.id}>
-                    Bàn {t.number} (Sức chứa: {t.capacity})
-                  </option>
-                ))}
-            </select>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
-              <button
-                style={{
-                  background: "transparent", color: "#a1a1aa", border: "1px solid #333", borderRadius: "6px",
-                  padding: "8px 24px", cursor: "pointer", fontWeight: 600,
-                }}
-                onClick={() => setReservationToConfirm(null)}
-              >
-                Huỷ
-              </button>
-              <button
-                style={{
-                  background: selectedTableForRes ? "#22c55e" : "#555",
-                  color: "#fff", border: "none", borderRadius: "6px",
-                  padding: "8px 24px", cursor: selectedTableForRes ? "pointer" : "not-allowed",
-                  fontWeight: 600,
-                }}
-                onClick={handleConfirmSave}
-                disabled={!selectedTableForRes}
-              >
-                Lưu & Xác nhận
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ── Modal Thông báo hệ thống ────────────────────────────────── */}
       {systemAlert && (
