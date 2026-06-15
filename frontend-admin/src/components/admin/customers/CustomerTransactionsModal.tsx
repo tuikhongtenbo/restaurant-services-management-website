@@ -19,7 +19,7 @@ export const CustomerTransactionsModal: React.FC<CustomerTransactionsModalProps>
 }) => {
   const [transactions, setTransactions] = useState<PointTransaction[]>([]);
   const [loading, setLoading] = useState(false);
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -102,7 +102,7 @@ export const CustomerTransactionsModal: React.FC<CustomerTransactionsModalProps>
       onCancel={onCancel}
       footer={null}
       width={700}
-      destroyOnClose
+      destroyOnHidden
     >
       <div className="mt-4">
         <Table
