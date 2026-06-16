@@ -10,7 +10,7 @@ const INITIAL_MESSAGES: Message[] = [
   { role: 'bot', text: 'Chào mừng bạn đã đến với nhà hàng Artiste! 👋' },
   { 
     role: 'bot', 
-    text: 'Thông tin liên hệ của chúng tôi:\n📍 123 Trần Hưng Đạo, Quận 1, Hồ Chí Minh\n📞 (+84) 123 456 789\n✉️ hello@artiste.vn\n⏰ Giờ mở cửa: 10:30 am - 11:00 pm'
+    text: 'Thông tin liên hệ của chúng tôi:\n📍 123 Trần Hưng Đạo, Quận 1, Hồ Chí Minh\n📞 (+84) 123 456 789\n✉️ hello@artiste.vn\n⏰ Giờ mở cửa: 10:00 am - 18:00 am'
   }
 ];
 

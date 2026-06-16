@@ -36,7 +36,6 @@ export default function ProfilePage() {
       const updatedUser = await authService.updateCustomerInfo({
         fullName: editFullName,
         phone: editPhone,
-        email: user?.email || "",
       });
       if (token) {
         setAuth(token, updatedUser);

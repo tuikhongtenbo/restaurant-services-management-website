@@ -9,7 +9,7 @@ export const API_ENDPOINTS = {
     REGISTER: `${API_BASE_URL}/api/auth/customer/register`,
     CHANGE_PASSWORD: `${API_BASE_URL}/api/auth/change-password`,
     CUSTOMER_CHANGE_PASSWORD: `${API_BASE_URL}/api/auth/customer/change-password`,
-    CUSTOMER_UPDATE: `${API_BASE_URL}/api/customers/change-profile`,
+    CUSTOMER_UPDATE: `${API_BASE_URL}/api/auth/customer/update`,
     FORGOT_PASSWORD: `${API_BASE_URL}/api/auth/forgot-password`,
     REFRESH_TOKEN: `${API_BASE_URL}/api/auth/refresh-token`,
   },

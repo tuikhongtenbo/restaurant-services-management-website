@@ -117,7 +117,7 @@ export default function ChangePassPage() {
                 <p className={styles.errorMessage} style={{ marginBottom: 15 }}>{submitError}</p>
               )}
               {submitSuccess && (
-                <p style={{ color: "var(--color-primary-green)", marginBottom: 15, fontSize: "0.875rem" }}>{submitSuccess}</p>
+                <p style={{ color: "#4caf50", marginBottom: 15, fontSize: "0.875rem" }}>{submitSuccess}</p>
               )}
 
               <Input
