@@ -4,6 +4,8 @@ import com.restaurant.common.enums.UserType;
 import com.restaurant.common.utils.ApiResponse;
 import com.restaurant.dto.request.auth.CustomerLoginRequest;
 import com.restaurant.dto.request.auth.CustomerRegisterRequest;
+import com.restaurant.dto.request.auth.ChangePasswordRequest;
+import com.restaurant.dto.request.auth.UpdateCustomerRequest;
 import com.restaurant.dto.response.auth.AuthResponse;
 import com.restaurant.dto.response.auth.CustomerResponse;
 import com.restaurant.security.CustomUserDetails;
@@ -61,5 +63,31 @@ public class CustomerAuthController {
             @AuthenticationPrincipal CustomUserDetails principal) {
         CustomerResponse customerResponse = customerAuthService.getCurrentCustomer(principal.getId());
         return ResponseEntity.ok(ApiResponse.success(customerResponse));
+    }
+
+    /**
+     * PUT /api/auth/customer/change-password
+     * Đổi mật khẩu khách hàng.
+     */
+    @PutMapping("/change-password")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        customerAuthService.changePassword(principal.getId(), request);
+        return ResponseEntity.ok(ApiResponse.success("Password changed successfully", null));
+    }
+
+    /**
+     * PUT /api/auth/customer/update
+     * Cập nhật thông tin khách hàng.
+     */
+    @PutMapping("/update")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<CustomerResponse>> updateCustomerInfo(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @Valid @RequestBody UpdateCustomerRequest request) {
+        CustomerResponse response = customerAuthService.updateCustomerInfo(principal.getId(), request);
+        return ResponseEntity.ok(ApiResponse.success("Profile updated successfully", response));
     }
 }
