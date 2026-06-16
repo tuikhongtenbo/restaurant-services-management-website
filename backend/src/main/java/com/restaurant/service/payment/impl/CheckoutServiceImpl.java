@@ -139,7 +139,6 @@ public class CheckoutServiceImpl implements CheckoutService {
     // ─────────────────────────────────────────────────────────────────────────
     @Override
     public InvoiceResponse processCashPayment(CheckoutRequest request, UUID cashierId) {
-        assertNoPendingInvoice(request.getOrderId());
         CheckoutResponse preview = previewCheckout(request);
 
         // Bước 2: Kiểm tra tiền khách đưa
@@ -147,9 +146,33 @@ public class CheckoutServiceImpl implements CheckoutService {
             throw new BusinessException("Số tiền nhận không đủ. Cần: " + preview.getTotalAmount());
         }
 
-        // Bước 3: Tạo invoice và side effects
+        // Bước 3: Tạo hoặc cập nhật invoice thành PAID và CASH
         Customer customer = findCustomer(request.getCustomerPhone());
-        Invoice invoice = buildInvoice(request, preview, cashierId, customer, PaymentMethod.CASH, InvoiceStatus.PAID);
+        
+        Optional<Invoice> existingPending = invoiceRepository.findByOrderId(request.getOrderId())
+                .filter(inv -> inv.getStatus() == InvoiceStatus.PENDING);
+
+        Invoice invoice;
+        if (existingPending.isPresent()) {
+            invoice = existingPending.get();
+            invoice.setCashierId(cashierId);
+            invoice.setSubtotal(preview.getSubtotal());
+            invoice.setVoucherId(request.getVoucherId());
+            invoice.setDiscountAmount(preview.getVoucherDiscount());
+            invoice.setPointsUsed(preview.getPointsUsed());
+            invoice.setPointsDeducted(preview.getPointsDeducted());
+            invoice.setVatRate(preview.getVatRate());
+            invoice.setVatAmount(preview.getVatAmount());
+            invoice.setTotalAmount(preview.getTotalAmount());
+            invoice.setPaymentMethod(PaymentMethod.CASH);
+            invoice.setCustomerId(customer != null ? customer.getId() : null);
+            invoice.setCustomerPhone(request.getCustomerPhone());
+            invoice.setPointsEarned(preview.getPointsEarned());
+            invoice.setStatus(InvoiceStatus.PAID);
+            invoice.setPaidAt(OffsetDateTime.now());
+        } else {
+            invoice = buildInvoice(request, preview, cashierId, customer, PaymentMethod.CASH, InvoiceStatus.PAID);
+        }
         invoice = invoiceRepository.save(invoice);
 
         applyPaymentSideEffects(invoice, preview, customer, cashierId, request.getVoucherId());
@@ -329,14 +352,6 @@ public class CheckoutServiceImpl implements CheckoutService {
         });
     }
 
-    /** Cash không được chạy khi order đang chờ VNPay */
-    private void assertNoPendingInvoice(UUID orderId) {
-        invoiceRepository.findByOrderId(orderId).ifPresent(inv -> {
-            if (inv.getStatus() == InvoiceStatus.PENDING) {
-                throw new BusinessException("Order đang chờ thanh toán VNPay");
-            }
-        });
-    }
 
     /** Chỉ tính tiền món đã SERVED */
     private List<OrderItem> getServedItems(UUID orderId) {
