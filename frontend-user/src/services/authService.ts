@@ -86,7 +86,7 @@ export const authService = {
     }
   },
 
-  async updateCustomerInfo(data: { fullName: string; phone: string }): Promise<User> {
+  async updateCustomerInfo(data: { fullName: string; phone: string; email: string }): Promise<User> {
     try {
       const response = await ApiClient.put<BackendResponse<User>>(
         API_ENDPOINTS.AUTH.CUSTOMER_UPDATE,
