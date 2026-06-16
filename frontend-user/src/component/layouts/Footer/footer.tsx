@@ -29,9 +29,9 @@ function Footer() {
           </div>
           <div className={styles.content}>
             <h3>Khám phá</h3>
-            <p>Về chúng tôi</p>
-            <p>Thực đơn</p>
-            <p>Đặt bàn</p>
+            <p onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>Về chúng tôi</p>
+            <p onClick={() => window.location.href="/menu"}>Thực đơn</p>
+            <p onClick={() => window.location.href="/booking"}>Đặt bàn</p>
           </div>
           <div className={styles.content}>
             <h3>Theo dõi chúng tôi</h3>
