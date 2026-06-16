@@ -11,6 +11,10 @@ def create_restaurant_booking(customer_name: str, customer_phone: str, party_siz
     if customer_name.lower() in ["", "khách", "khách hàng", "khach", "user", "người dùng"] or customer_phone in ["", "0123456789", "123456789", "0123", "0000"]:
         return "LỖI: Bạn đang tự bịa Tên hoặc SĐT. Hãy dừng việc gọi tool và lịch sự yêu cầu khách hàng cung cấp Tên và Số điện thoại thật."
         
+    # Thêm múi giờ +07:00 nếu chưa có để tránh lỗi OffsetDateTime bên Java
+    if len(reserved_at) == 19:
+        reserved_at += "+07:00"
+
     payload = {
         "customerName": customer_name,
         "customerPhone": customer_phone,

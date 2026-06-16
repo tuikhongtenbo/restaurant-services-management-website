@@ -942,7 +942,7 @@ export default function StaffPage() {
                             <option value="PREPARING">Đang nấu (PREPARING)</option>
                             <option value="READY">Đã xong (READY)</option>
                             <option value="SERVED">Đã phục vụ (SERVED)</option>
-                            <option value="CANCELLED">Đã hủy (CANCELLED)</option>
+                           
                           </select>
                         </div>
                         {item.note && <div className={styles.cartItemNote}>📝 {item.note}</div>}
