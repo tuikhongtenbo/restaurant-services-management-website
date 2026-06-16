@@ -50,7 +50,7 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
       const values = await form.validateFields();
 
       const payload = { ...values };
-      
+
       // Ensure numeric fields are properly formatted as numbers, not strings
       if (payload.discountValue) {
         payload.discountValue = Number(String(payload.discountValue).replace(/%/g, '').replace(/,/g, ''));
@@ -154,7 +154,7 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
                   min={1}
                   max={isPercent ? 100 : undefined}
                   formatter={(value) => isPercent ? `${value}%` : `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                  parser={(value) => value!.replace(/%|\s?|(,*)/g, "") as any}
+                  parser={(value) => value!.replace(/%/g, "").replace(/,/g, "") as any}
                   onKeyPress={(e) => {
                     if (!/[0-9]/.test(e.key)) e.preventDefault();
                   }}
@@ -177,11 +177,11 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
               rules={[{ type: "number", min: 0, message: "Giá trị không hợp lệ" }]}
             >
               <InputNumber
-                className="w-full"
+                style={{ width: '100px' }}
                 min={0}
                 step={10000}
                 formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                parser={(value) => value!.replace(/\s?|(,*)/g, "") as any}
+                parser={(value) => value!.replace(/,/g, "") as any}
                 placeholder="VD: 500,000"
                 onKeyPress={(e) => {
                   if (!/[0-9]/.test(e.key)) e.preventDefault();
@@ -213,7 +213,7 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
               rules={[{ type: "number", min: 1, message: "Số lượt phải lớn hơn 0" }]}
             >
               <InputNumber
-                className="w-full"
+                style={{ width: '100%' }}
                 min={1}
                 placeholder="Để trống nếu không giới hạn"
                 onKeyPress={(e) => {
@@ -229,7 +229,7 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
               rules={[{ type: "number", min: 0, message: "Điểm không hợp lệ" }]}
             >
               <InputNumber
-                className="w-full"
+                style={{ width: '100%' }}
                 min={0}
                 placeholder="Để trống nếu không yêu cầu điểm"
                 onKeyPress={(e) => {
@@ -248,7 +248,7 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
             >
               <DatePicker.RangePicker
                 showTime
-                className="w-full"
+                style={{ width: '100%' }}
                 format="DD/MM/YYYY HH:mm"
                 placeholder={["Bắt đầu", "Kết thúc"]}
               />
