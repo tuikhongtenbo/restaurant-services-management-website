@@ -49,8 +49,22 @@ export const VoucherFormModal: React.FC<VoucherFormModalProps> = ({
     try {
       const values = await form.validateFields();
 
-      // Transform dateRange to validFrom and validUntil
       const payload = { ...values };
+      
+      // Ensure numeric fields are properly formatted as numbers, not strings
+      if (payload.discountValue) {
+        payload.discountValue = Number(String(payload.discountValue).replace(/%/g, '').replace(/,/g, ''));
+      }
+      if (payload.minOrderValue) {
+        payload.minOrderValue = Number(String(payload.minOrderValue).replace(/,/g, ''));
+      }
+      if (payload.usageLimit) {
+        payload.usageLimit = Number(payload.usageLimit);
+      }
+      if (payload.minPoints) {
+        payload.minPoints = Number(payload.minPoints);
+      }
+
       if (values.dateRange && values.dateRange.length === 2) {
         payload.validFrom = values.dateRange[0]?.toISOString();
         payload.validUntil = values.dateRange[1]?.toISOString();
