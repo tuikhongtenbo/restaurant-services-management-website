@@ -1,0 +1,79 @@
+/* Phủ kín toàn bộ màn hình, luôn nằm trên cùng (z-index cao) */
+.loaderOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #ffffff; /* Nền trắng giống Vietjet */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+}
+
+.loaderContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Kích thước ảnh máy bay/mascot */
+.mascot {
+  width: 120px;
+  height: auto;
+  /* Nếu là ảnh tĩnh, bạn có thể thêm animation bay lên xuống nhẹ nhẹ ở đây */
+  animation: bounce 2s infinite ease-in-out;
+}
+
+/* Khung chứa thanh loading */
+.progressBar {
+  width: 150px;
+  height: 4px;
+  background-color: #f0f0f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+/* Thanh chạy màu đỏ */
+.progressFill {
+  height: 100%;
+  background-color: #50280f;
+  width: 0%;
+  animation: loadingBar 1.5s infinite ease-in-out;
+}
+
+@keyframes loadingBar {
+  0% {
+    width: 0%;
+    transform: translateX(-100%);
+  }
+  50% {
+    width: 100%;
+    transform: translateX(0%);
+  }
+  100% {
+    width: 100%;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.loaderOverlay.exiting {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+}

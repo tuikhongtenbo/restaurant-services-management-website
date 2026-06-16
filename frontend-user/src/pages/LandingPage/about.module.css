@@ -1,0 +1,48 @@
+.hero {
+  width: 90vw;
+  height: 80vh;
+  margin-left: 5vw;
+  border: 1px solid #fff;
+  display: flex;
+  /* 1. Đổi thành row để nằm ngang, hoặc giữ column nếu bạn muốn xếp chồng */
+  flex-direction: row;
+  align-items: stretch; /* Để con tự lấp đầy chiều cao của cha */
+  position: relative;
+  box-sizing: border-box;
+  padding: 20px; /* Tạo khoảng cách với viền fieldset */
+  /* background: #dfcfcf; */
+}
+
+legend {
+  font-size: 6rem;
+  color: #fff;
+  text-transform: uppercase;
+}
+.leftContent {
+  width: 50%;
+  height: 100%;
+
+  background: #50280f;
+}
+.rightContent {
+  width: 50%;
+  height: 100%;
+  display: flex;
+  background-image: url("/images/bv-3607-1689749327.webp");
+  background-size: cover;
+}
+.leftContent h1 {
+  color: #fff;
+  font-size: 4rem;
+  margin: auto;
+  font-family: "Quintessential", serif;
+  padding: 10px;
+}
+.description {
+  font-size: 1rem;
+  line-height: 1.8; /* Khoảng cách dòng thoáng */
+  max-width: 800px; /* Giới hạn chiều rộng đoạn văn để dễ đọc */
+  font-weight: 300;
+  color: #fff;
+  padding: 20px;
+}

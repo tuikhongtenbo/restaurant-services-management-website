@@ -1,0 +1,183 @@
+.container {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.notLoggedIn {
+  margin-top: 200px;
+  color: #fff;
+  text-align: center;
+  font-size: 18px;
+}
+
+.notLoggedIn button {
+  margin-top: 16px;
+  padding: 10px 28px;
+  background: #ff6600;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.pageContent {
+  position: relative;
+  z-index: 10;
+  margin-top: 140px;
+  width: 100%;
+  max-width: 600px;
+  padding: 0 20px 60px;
+}
+
+/* Card */
+.card {
+  background: rgba(20, 18, 15, 0.88);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  animation: cardIn 0.4s ease;
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Card header */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 32px 32px 28px;
+  background: linear-gradient(135deg, rgba(212,175,55,0.12), rgba(255,102,0,0.08));
+}
+
+.avatarLarge {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4af37, #ff6600);
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 30px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(212,175,55,0.4);
+}
+
+.cardHeaderInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.displayName {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.roleBadge {
+  display: inline-block;
+  background: rgba(212,175,55,0.15);
+  color: #d4af37;
+  border: 1px solid rgba(212,175,55,0.4);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(255,255,255,0.08);
+  margin: 0;
+}
+
+/* Info section */
+.infoSection {
+  padding: 28px 32px;
+}
+
+.sectionTitle {
+  color: rgba(255,255,255,0.5);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin: 0 0 20px;
+}
+
+.infoGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.infoLabel {
+  color: rgba(255,255,255,0.45);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.infoValue {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* Actions */
+.actions {
+  padding: 20px 32px 28px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.actionBtn {
+  flex: 1;
+  min-width: 160px;
+  padding: 12px 20px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.85);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s, border-color 0.2s;
+  text-align: center;
+}
+
+.actionBtn:hover {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  border-color: rgba(255,255,255,0.25);
+}
+
+.logoutBtn {
+  color: #ff6b6b !important;
+  border-color: rgba(255,107,107,0.25) !important;
+}
+
+.logoutBtn:hover {
+  background: rgba(255,107,107,0.1) !important;
+  border-color: rgba(255,107,107,0.4) !important;
+}

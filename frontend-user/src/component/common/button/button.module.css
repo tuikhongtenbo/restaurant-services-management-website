@@ -1,0 +1,27 @@
+.btn {
+  padding: 12px 32px;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.primary {
+  background-color: #f0724f; /* Màu cam giống thiết kế */
+  color: white;
+}
+
+.primary:hover {
+  background-color: #e05e3b;
+}
+
+.outline {
+  background-color: transparent;
+  border: 1px solid white;
+  color: white;
+}

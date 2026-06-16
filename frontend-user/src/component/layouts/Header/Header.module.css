@@ -1,0 +1,338 @@
+/* Font chữ bạn nên import ở file index.css (ví dụ: Montserrat hoặc Lato) */
+
+.header {
+  top: 0;
+  left: 0;
+  width: 100vw;
+
+  z-index: 1000;
+  padding: 20px 0 0 0;
+  color: #fff;
+  height: 100px;
+
+  /* Tạo gradient đen mờ từ trên xuống để chữ dễ đọc trên nền ảnh */
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+  font-family: sans-serif; /* Thay bằng font dự án của bạn */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Canh giữa toàn bộ */
+  position: relative;
+}
+
+/* --- Menu Links --- */
+.navGroup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 1px; /* Giãn chữ giống thiết kế */
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: color 0.3s;
+  color: #fff;
+}
+
+.navItem:hover {
+  color: #d4af37; /* Màu vàng kim khi hover */
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  margin-top: 2px;
+}
+
+/* --- Logo --- */
+.logoWrapper {
+  margin: 0 60px; /* Khoảng cách từ logo ra 2 bên menu */
+}
+
+/* Tạo hình dáng logo giống trong ảnh (Chữ H trong khung bo tròn) */
+.logoPlaceholder {
+  width: 60px;
+  height: 60px;
+  border: 2px solid #a89f91; /* Màu nâu vàng nhạt */
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: #fff;
+}
+
+.logoInner {
+  font-size: 32px;
+  font-weight: bold;
+  color: #a89f91;
+}
+.logoImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-top: 15%;
+}
+
+/* --- Actions (Lang + Button) --- */
+.actions {
+  position: absolute;
+  right: 0; /* Đẩy hẳn về bên phải màn hình */
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.langSelector {
+  background-color: white;
+  color: #333;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+}
+
+.flag {
+  font-size: 16px;
+}
+
+/* Dropdown ngôn ngữ (mặc định ẩn) */
+.langDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  padding: 8px 12px;
+  display: none; /* Hiện tại ẩn */
+  color: #333;
+}
+
+.langSelector:hover .langDropdown {
+  display: block;
+}
+
+.bookBtn {
+  background: rgba(0, 0, 0, 0.4); /* Nền tối mờ */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 10px 24px;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.bookBtn:hover {
+  background: #d4af37;
+  border-color: #d4af37;
+}
+.btn {
+  position: relative;
+  left: 50px;
+}
+.btn button {
+  margin: 10px;
+}
+.btn .registerBtn {
+  background: #ff6600;
+  color: #fff;
+}
+.btn .loginBtn {
+  background: transparent;
+  color: #ff6600;
+}
+.btn .registerBtn:hover {
+  background: #fff;
+  border: none;
+  color: #ff6600;
+  transition: 0.3s;
+}
+.btn .loginBtn:hover {
+  background: #fff;
+  border: none;
+}
+.line {
+  height: 50px;
+  width: 2px;
+  background: gray;
+
+  margin-left: 50px;
+}
+.bottomLine {
+  position: absolute;
+  width: 80vw;
+  height: 1px;
+  background: #fff;
+  top: 125px;
+}
+
+/* --- Responsive (Mobile) --- */
+@media (max-width: 1024px) {
+  .navGroup {
+    display: none;
+  }
+  .container {
+    justify-content: space-between;
+  }
+  .logoWrapper {
+    margin: 0;
+  }
+}
+
+/* ===== USER MENU / DROPDOWN ===== */
+.userMenu {
+  position: relative;
+}
+
+.userBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 24px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.userBtn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #d4af37;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.userName {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.staffBadge {
+  background: #d4af37;
+  color: #1a1a1a;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  letter-spacing: 0.5px;
+}
+
+.chevron {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 220px;
+  background: rgba(20, 18, 15, 0.96);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 2000;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  animation: dropdownIn 0.15s ease;
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.dropdownHeader {
+  padding: 14px 16px;
+}
+
+.dropdownName {
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  margin: 0 0 2px;
+}
+
+.dropdownEmail {
+  color: rgba(255,255,255,0.5);
+  font-size: 12px;
+  margin: 0 0 6px;
+}
+
+.dropdownRole {
+  display: inline-block;
+  background: rgba(212,175,55,0.15);
+  color: #d4af37;
+  border: 1px solid rgba(212,175,55,0.4);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.dropdownDivider {
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+  margin: 0;
+}
+
+.dropdownItem {
+  width: 100%;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.85);
+  text-align: left;
+  padding: 11px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  display: block;
+  transition: background 0.15s;
+}
+
+.dropdownItem:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+.logoutItem {
+  color: #ff6b6b !important;
+}
+
+.logoutItem:hover {
+  background: rgba(255, 107, 107, 0.1) !important;
+}
+

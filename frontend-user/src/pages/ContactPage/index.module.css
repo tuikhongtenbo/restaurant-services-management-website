@@ -1,0 +1,145 @@
+.container {
+  width: 100vw;
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  overflow-x: hidden;
+}
+
+.wrapper {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  width: 100%;
+  max-width: 1100px;
+  gap: 60px;
+}
+
+.infoCol {
+  flex: 1;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.title {
+  font-size: 3.5rem;
+  margin-bottom: 20px;
+}
+
+.description {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  opacity: 0.9;
+  margin-bottom: 30px;
+}
+
+.contactDetails {
+  margin-bottom: 30px;
+}
+
+.infoItem {
+  margin-bottom: 12px;
+  font-size: 1rem;
+}
+
+.infoItem strong {
+  color: #f0724f; /* Màu cam chủ đạo của bạn */
+}
+
+.mapContainer {
+  width: 100%;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Glassmorphism Card */
+.rightCol {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.glassCard {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 30px;
+  padding: 40px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Custom cho các thẻ không phải Input component của bạn */
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.select,
+.textarea {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 12px;
+  color: white;
+  outline: none;
+  font-family: inherit;
+}
+
+.select option {
+  background: #222; /* Để text option hiển thị được trên nền đen */
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.select:focus,
+.textarea:focus {
+  border-color: #f0724f;
+}
+
+.submitBtn {
+  margin-top: 10px;
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .wrapper {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .title {
+    font-size: 2.5rem;
+  }
+
+  .infoCol {
+    align-items: center;
+  }
+
+  .rightCol {
+    justify-content: center;
+  }
+}

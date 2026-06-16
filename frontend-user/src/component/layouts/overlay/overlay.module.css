@@ -1,0 +1,23 @@
+.backgroundImage {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("/images/best modern vietnamese restaurants-3.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  filter: blur(3px); /* Độ mờ */
+  z-index: -2; /* Đẩy xuống lớp dưới cùng */
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5); /* Độ tối 50% */
+  z-index: -1; /* Nằm trên hình nền (-2) nhưng dưới nội dung (0) */
+}

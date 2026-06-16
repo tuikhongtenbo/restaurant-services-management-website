@@ -1,0 +1,167 @@
+.hero {
+  width: 90vw;
+  height: 100vh;
+  margin-left: 5vw;
+  border: 1px solid #fff;
+  display: flex;
+  /* 1. Đổi thành row để nằm ngang, hoặc giữ column nếu bạn muốn xếp chồng */
+  flex-direction: row;
+  align-items: stretch; /* Để con tự lấp đầy chiều cao của cha */
+  position: relative;
+  box-sizing: border-box;
+  padding: 20px; /* Tạo khoảng cách với viền fieldset */
+  /* background: #dfcfcf; */
+  text-align: right;
+  margin-top: 10%;
+}
+
+legend {
+  font-size: 4rem;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.leftContent {
+  width: 50%;
+  height: 100%;
+  display: flex;
+  background-image: url("/images/main-2.png.webp");
+  background-size: cover;
+}
+.rightContent {
+  width: 50%;
+  height: 100%;
+  background: #50280f;
+
+  color: #fff;
+  text-align: start;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px; /* Giới hạn chiều rộng nếu cần */
+  margin: 0 auto;
+
+  background-color: #fdfbf7; /* Màu nền kem nhạt giống ảnh */
+  color: #fff; /* Màu chữ xám đậm */
+  font-family:
+    "Helvetica Neue", Helvetica, Arial, sans-serif; /* Hoặc font chữ bạn chọn */
+}
+
+/* --- Main Title --- */
+.mainTitle {
+  font-size: 3.5rem;
+  font-weight: 300; /* Font mỏng */
+
+  margin-bottom: 1rem;
+  letter-spacing: 2px;
+  color: #fff;
+  padding-left: 30px;
+  font-family: "Quintessential", serif;
+  /* position: relative;
+  top: -5%; */
+}
+
+/* --- QR Grid Section --- */
+
+/* --- Info Blocks --- */
+.infoWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start; /* Căn lề trái */
+  padding-left: 30px;
+}
+
+.infoBlock {
+  width: 100%;
+  max-width: 400px;
+}
+
+.subTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 0.5rem;
+
+  border-bottom: 1px solid #dcdcdc; /* Đường gạch chân mờ */
+  color: #fff;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0.2rem;
+  font-size: 1rem;
+  color: #fff;
+}
+
+.infoRow a {
+  text-decoration: none;
+  color: inherit; /* Kế thừa màu xám */
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s;
+}
+
+.infoRow a:hover {
+  border-bottom: 1px solid #666;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff; /* Màu icon */
+}
+
+/* --- Button --- */
+.reservationBtn {
+  margin-top: 1rem;
+  background-color: #a08875; /* Màu nâu giống trong ảnh */
+  color: #fff;
+  border: none;
+  padding: 15px 30px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.reservationBtn:hover {
+  background-color: #8a7361; /* Màu tối hơn khi hover */
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .mainTitle {
+    font-size: 2.5rem;
+    text-align: center;
+  }
+
+  .qrGrid {
+    justify-content: center;
+  }
+
+  .infoWrapper {
+    align-items: center; /* Căn giữa trên mobile */
+  }
+
+  .infoBlock {
+    text-align: center; /* Căn giữa chữ */
+  }
+
+  .subTitle {
+    border-bottom: none; /* Bỏ gạch chân trên mobile nếu muốn gọn */
+    text-decoration: underline;
+    text-decoration-color: #dcdcdc;
+    text-underline-offset: 10px;
+  }
+
+  .infoRow {
+    justify-content: center;
+  }
+}

@@ -1,0 +1,121 @@
+.hero {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* --- Content Box --- */
+.container {
+  width: 100%;
+  height: 100%; /* Ép container chiếm trọn 100vh chiều cao màn hình */
+  padding: 40px; /* Khoảng cách đệm an toàn tránh dính sát mép màn hình */
+  box-sizing: border-box;
+  
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Căn giữa khung viền theo chiều dọc */
+  position: relative;
+  z-index: 2; /* Đẩy nội dung nổi lên trên background overlay */
+}
+
+/* Khung lưới bao quanh vùng nội dung chính */
+.contentGrid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px; /* Độ rộng tối đa của khung viền, bạn có thể tăng lên 1400px nếu muốn rộng nữa */
+}
+
+.leftContent {
+  width: 100%;
+}
+
+/* Khung viền trắng bao quanh nội dung */
+.borderBox {
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  padding: 60px 40px;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+/* Typography */
+.mainTitle {
+  font-size: 6rem;
+  font-weight: 400;
+  color: #fff;
+  margin: 0;
+  line-height: 1;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+}
+
+.subTitle {
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: #fff;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin-bottom: 20px;
+}
+
+.quoteWrapper {
+  font-style: italic;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.quoteText {
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 600;
+  color: #fff;
+}
+
+.description {
+  font-size: 1rem;
+  line-height: 1.8;
+  max-width: 800px;
+  font-weight: 300;
+  color: #fff;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 100px;
+  width: 170%;
+  margin-top: 40px;
+}
+
+/* --- Responsive cho Mobile --- */
+@media (max-width: 768px) {
+  .container {
+    padding: 20px; /* Giảm padding trên mobile để tăng không gian hiển thị */
+  }
+
+  .borderBox {
+    padding: 35px 20px;
+  }
+
+  .mainTitle {
+    font-size: 3rem;
+  }
+
+  .subTitle {
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+  }
+
+  .description {
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+}
