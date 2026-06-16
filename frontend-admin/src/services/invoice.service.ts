@@ -70,6 +70,7 @@ export const invoiceService = {
     return apiClient<string>(`/invoices/${id}/print`, {
       method: "GET",
       requireAuth: true,
+      responseType: "text",
     });
   },
 };

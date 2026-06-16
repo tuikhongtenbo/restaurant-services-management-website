@@ -6,6 +6,7 @@ import { RefreshCw, Eye, Clock, DollarSign, ShoppingCart, XCircle } from "lucide
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
 import { orderService } from "@/services/order.service";
+import { invoiceService } from "@/services/invoice.service";
 import { Order, OrderStatus } from "@/types/order";
 import { OrderDetailModal } from "@/components/admin/orders/OrderDetailModal";
 
@@ -47,20 +48,36 @@ export default function OrdersPage() {
 
       const allOrders = res.data.data || [];
 
+      // Fetch invoices (size 10000) để lấy tổng tiền chính xác (sau discount, vat...)
+      // Bỏ filter date qua API vì backend filter theo UTC sẽ làm mất đơn hàng buổi sáng (0h-7h)
+      const invoiceRes = await invoiceService.getInvoices({
+        size: 10000,
+      });
+      const allInvoices = invoiceRes.data.data || [];
+      const invoiceMap = new Map();
+      allInvoices.forEach(inv => invoiceMap.set(inv.orderId, inv.totalAmount));
+
       // 1. Lọc theo ngày dựa vào local timezone (bỏ qua timezone UTC của backend)
       const targetStart = selectedDate.startOf("day").valueOf();
       const targetEnd = selectedDate.endOf("day").valueOf();
 
       let filteredOrders = allOrders.filter((ord) => {
-        const d = dayjs(ord.openedAt).valueOf();
+        const d = dayjs(ord.closedAt || ord.openedAt).valueOf();
         return d >= targetStart && d <= targetEnd;
       });
 
-      // 2. Tính toán Stats dựa trên tất cả đơn hàng TRONG NGÀY (không bị giới hạn bởi phân trang)
+      // 2. Tính toán Stats và gán giá trị hiển thị cho Thành tiền
       let open = 0, paid = 0, cancelled = 0, revenue = 0;
       filteredOrders.forEach(o => {
+        const invoiceTotal = invoiceMap.get(o.id);
+        const estimatedTotal = o.subtotal * 1.10; // VAT 10% tạm tính theo backend
+        (o as any).displayTotalAmount = invoiceTotal !== undefined ? invoiceTotal : estimatedTotal;
+
         if (o.status === "OPEN") open++;
-        else if (o.status === "PAID") { paid++; revenue += o.subtotal || 0; }
+        else if (o.status === "PAID") { 
+          paid++; 
+          revenue += invoiceTotal !== undefined ? invoiceTotal : estimatedTotal; 
+        }
         else if (o.status === "CANCELLED") cancelled++;
       });
       setStats({ open, paid, cancelled, revenue });
@@ -151,11 +168,13 @@ export default function OrdersPage() {
       ),
     },
     {
-      title: "Nhân viên",
-      dataIndex: "waiterName",
-      key: "waiterName",
-      width: 130,
-      render: (val: string) => val || <span className="text-zinc-300">—</span>,
+      title: "Thành tiền (VAT 10%)",
+      dataIndex: "displayTotalAmount",
+      key: "displayTotalAmount",
+      width: 150,
+      render: (val: number) => (
+        <span className="font-semibold text-zinc-800">{formatPrice(val)}</span>
+      ),
     },
     {
       title: "Trạng thái",
