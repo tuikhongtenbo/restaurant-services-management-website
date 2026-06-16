@@ -229,8 +229,8 @@ public class TableServiceImpl implements TableService {
     public TableResponse closeTable(UUID id) {
         Table table = findOrThrow(id);
 
-        if (table.getStatus() != TableStatus.SERVING) {
-            throw new BusinessException("Ban khong trong trang thai SERVING");
+        if (table.getStatus() != TableStatus.CLEANING) {
+            throw new BusinessException("Ban khong trong trang thai CLEANING");
         }
 
         // Temporarily disabled until Order module is implemented.

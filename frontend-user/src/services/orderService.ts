@@ -50,11 +50,23 @@ export const orderService = {
   },
 
   async getOpenOrderByTable(tableId: string): Promise<OrderResponse> {
-    const response = await ApiClient.get<{ data: OrderResponse }>(
-      API_ENDPOINTS.ORDERS.GET_BY_TABLE(tableId),
-      getAuthHeaders(),
-    );
-    return response.data;
+    try {
+      const response = await ApiClient.get<{ data: OrderResponse }>(
+        API_ENDPOINTS.ORDERS.GET_BY_TABLE(tableId),
+        getAuthHeaders(),
+      );
+      return response.data;
+    } catch (err) {
+      // Workaround for potential backend errors (e.g., LazyInitializationException)
+      const allOrders = await this.getAllOrders();
+      const openOrder = allOrders.find(
+        (o) => o.tableId === tableId && o.status === "OPEN"
+      );
+      if (openOrder) {
+        return openOrder;
+      }
+      throw err;
+    }
   },
 
   async getAllOrders(): Promise<OrderResponse[]> {
@@ -85,6 +97,15 @@ export const orderService = {
     const response = await ApiClient.put<{ data: OrderItemResponse }>(
       API_ENDPOINTS.ORDERS.UPDATE_ITEM(orderId, itemId),
       data,
+      getAuthHeaders(),
+    );
+    return response.data;
+  },
+
+  async updateItemStatus(itemId: string, status: string): Promise<OrderItemResponse> {
+    const response = await ApiClient.put<{ data: OrderItemResponse }>(
+      `${API_ENDPOINTS.ORDERS.UPDATE_ITEM_STATUS(itemId)}?status=${status}`,
+      null,
       getAuthHeaders(),
     );
     return response.data;

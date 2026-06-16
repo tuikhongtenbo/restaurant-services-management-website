@@ -285,6 +285,19 @@ export default function StaffPage() {
     }
   };
 
+  const handleChangeItemStatus = async (itemId: string, newStatus: string) => {
+    try {
+      await orderService.updateItemStatus(itemId, newStatus);
+      // Reload order
+      if (selectedTable) {
+        const order = await orderService.getOpenOrderByTable(selectedTable.id);
+        setCurrentOrder(order);
+      }
+    } catch (err) {
+      setSystemAlert({ title: "Lỗi", message: (err as Error).message });
+    }
+  };
+
   // ════════════════════════════════════════════════════════════
   // HANDLER: Thanh toán & xuất hoá đơn
   // ════════════════════════════════════════════════════════════
@@ -910,6 +923,27 @@ export default function StaffPage() {
                         </div>
                         <div className={styles.cartItemControls}>
                           <span>× {item.quantity}</span>
+                        </div>
+                        <div style={{ marginTop: "4px" }}>
+                          <select 
+                            value={item.status} 
+                            onChange={(e) => handleChangeItemStatus(item.id, e.target.value)}
+                            style={{ 
+                              fontSize: "12px", 
+                              padding: "4px", 
+                              borderRadius: "4px", 
+                              backgroundColor: item.status === "SERVED" ? "#22c55e" : item.status === "READY" ? "#3b82f6" : item.status === "PREPARING" ? "#f59e0b" : "#444", 
+                              color: "white",
+                              border: "none",
+                              cursor: "pointer"
+                            }}
+                          >
+                            <option value="PENDING">Chờ xử lý (PENDING)</option>
+                            <option value="PREPARING">Đang nấu (PREPARING)</option>
+                            <option value="READY">Đã xong (READY)</option>
+                            <option value="SERVED">Đã phục vụ (SERVED)</option>
+                            <option value="CANCELLED">Đã hủy (CANCELLED)</option>
+                          </select>
                         </div>
                         {item.note && <div className={styles.cartItemNote}>📝 {item.note}</div>}
                       </div>

@@ -47,6 +47,7 @@ export const API_ENDPOINTS = {
     GET_BY_TABLE: (tableId: string) => `${API_BASE_URL}/api/orders/table/${tableId}`,
     ADD_ITEM: (orderId: string) => `${API_BASE_URL}/api/orders/${orderId}/items`,
     UPDATE_ITEM: (orderId: string, itemId: string) => `${API_BASE_URL}/api/orders/${orderId}/items/${itemId}`,
+    UPDATE_ITEM_STATUS: (itemId: string) => `${API_BASE_URL}/api/orders/items/${itemId}/status`,
     CLOSE: (orderId: string) => `${API_BASE_URL}/api/orders/${orderId}/status/close`,
   },
   // Order (general)

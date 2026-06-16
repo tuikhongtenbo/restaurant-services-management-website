@@ -53,7 +53,7 @@ public class VoucherController {
      * Tìm voucher theo mã - CASHIER/ADMIN/MANAGER
      */
     @GetMapping("/code/{code}")
-    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER')")
+    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER','STAFF')")
     public ResponseEntity<ApiResponse<VoucherResponse>> getByCode(@PathVariable String code) {
         VoucherResponse voucher = voucherService.getByCode(code);
         return ResponseEntity.ok(ApiResponse.success("Voucher tìm thấy", voucher));
@@ -64,7 +64,7 @@ public class VoucherController {
      * Danh sách voucher khả dụng (còn hạn, chưa hết lượt) - CASHIER/ADMIN/MANAGER
      */
     @GetMapping("/available")
-    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER')")
+    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER','STAFF')")
     public ResponseEntity<ApiResponse<List<VoucherResponse>>> getAvailableVouchers() {
         List<VoucherResponse> vouchers = voucherService.getAvailableVouchers();
         return ResponseEntity.ok(ApiResponse.success("Voucher khả dụng", vouchers));

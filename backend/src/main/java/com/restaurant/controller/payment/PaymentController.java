@@ -50,7 +50,7 @@ public class PaymentController {
      * Preview checkout - tính toán trước khi thanh toán
      */
     @PostMapping("/checkout")
-    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER')")
+    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER','STAFF')")
     public ResponseEntity<ApiResponse<CheckoutResponse>> previewCheckout(
             @Valid @RequestBody CheckoutRequest request) {
         CheckoutResponse response = checkoutService.previewCheckout(request);
@@ -62,7 +62,7 @@ public class PaymentController {
      * Thanh toán tiền mặt
      */
     @PostMapping("/cash")
-    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER')")
+    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER','STAFF')")
     public ResponseEntity<ApiResponse<InvoiceResponse>> processCashPayment(
             @Valid @RequestBody CheckoutRequest request,
             @AuthenticationPrincipal CustomUserDetails principal) {
@@ -76,7 +76,7 @@ public class PaymentController {
      * Tạo hóa đơn PENDING và URL redirect VNPay sandbox/prod.
      */
     @PostMapping("/vnpay/create")
-    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER')")
+    @PreAuthorize("hasAnyRole('CASHIER','ADMIN','MANAGER','STAFF')")
     public ResponseEntity<ApiResponse<PaymentResponse>> createVnpayPayment(
             @Valid @RequestBody VnpayCreateRequest request,
             HttpServletRequest httpRequest,
