@@ -117,4 +117,13 @@ public class CustomerController {
         Page<PointTransactionResponse> history = pointTransactionService.getByCustomerId(principal.getId(), pageable);
         return ResponseEntity.ok(ApiResponse.success("Lịch sử giao dịch của bạn", history));
     }
+
+    @PutMapping("/change-profile")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<ApiResponse<CustomerResponse>> changeProfile(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @Valid @RequestBody CustomerUpdateRequest request) {
+        CustomerResponse customer = customerService.updateCustomer(principal.getId(), request);
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật thông tin thành công", customer));
+    }
 }
