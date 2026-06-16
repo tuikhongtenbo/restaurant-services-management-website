@@ -36,3 +36,4 @@ build/
 
 ### Environment ###
 .env
+backend/env
