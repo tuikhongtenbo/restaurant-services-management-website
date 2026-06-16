@@ -2,11 +2,12 @@ const BASE_URL = "http://localhost:8080/api";
 
 interface FetchOptions extends RequestInit {
   requireAuth?: boolean;
+  responseType?: "json" | "text" | "blob";
 }
 
 export async function apiClient<T>(
   endpoint: string,
-  { requireAuth = true, ...customConfig }: FetchOptions = {}
+  { requireAuth = true, responseType = "json", ...customConfig }: FetchOptions = {}
 ): Promise<T> {
   // Chuẩn bị headers mặc định
   const headers: HeadersInit = {
@@ -49,6 +50,13 @@ export async function apiClient<T>(
     // Nếu response rỗng (VD: 204 No Content), không parse JSON
     if (response.status === 204) {
       return {} as T;
+    }
+
+    if (responseType === "text") {
+      return (await response.text()) as any as T;
+    }
+    if (responseType === "blob") {
+      return (await response.blob()) as any as T;
     }
 
     return await response.json();

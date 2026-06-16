@@ -81,33 +81,39 @@ export default function DashboardPage() {
         }
       }
 
-      // Filter Invoices for Revenue
-      const validInvoices = allInvoices.filter((inv) => {
-        const d = dayjs(inv.createdAt);
-        return inv.status === "PAID" && d.valueOf() >= startDate.valueOf() && d.valueOf() <= endDate.valueOf();
-      });
-
-      let revenue = 0;
-      validInvoices.forEach((inv) => {
-        revenue += inv.totalAmount;
-        const dateKey = dayjs(inv.createdAt).format(dateFormat);
-        if (dateMap[dateKey] !== undefined) {
-          dateMap[dateKey] += inv.totalAmount;
-        } else {
-          dateMap[dateKey] = inv.totalAmount;
+      // Tạo map invoice để tra cứu
+      const invoiceMap = new Map();
+      allInvoices.forEach(inv => {
+        if (inv.status === "PAID") {
+          invoiceMap.set(inv.orderId, inv);
         }
       });
 
-      // Filter Orders & Items for Counts
+      // Filter Orders cho Doanh thu và Thống kê món
       const validOrders = allOrders.filter((ord) => {
         const d = dayjs(ord.closedAt || ord.openedAt);
         return d.valueOf() >= startDate.valueOf() && d.valueOf() <= endDate.valueOf();
       });
 
       let itemsSold = 0;
+      let revenue = 0;
       const itemCounts: Record<string, number> = {};
 
       validOrders.forEach((ord) => {
+        // 1. Tính doanh thu: Ưu tiên hóa đơn thực tế, fallback tạm tính nếu bị thiếu do thao tác DB
+        const inv = invoiceMap.get(ord.id);
+        const finalTotal = inv ? inv.totalAmount : (ord.subtotal * 1.10);
+
+        revenue += finalTotal;
+        const dateKey = dayjs(inv ? inv.createdAt : (ord.closedAt || ord.openedAt)).format(dateFormat);
+        
+        if (dateMap[dateKey] !== undefined) {
+          dateMap[dateKey] += finalTotal;
+        } else {
+          dateMap[dateKey] = finalTotal;
+        }
+
+        // 2. Thống kê món ăn
         if (ord.items && Array.isArray(ord.items)) {
           ord.items.forEach((item) => {
             if (item.status !== "CANCELLED") {
