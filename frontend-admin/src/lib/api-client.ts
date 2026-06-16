@@ -59,7 +59,17 @@ export async function apiClient<T>(
       return (await response.blob()) as any as T;
     }
 
-    return await response.json();
+    const text = await response.text();
+    if (!text) {
+      return {} as T;
+    }
+    
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      // Trả về text dạng chuỗi nếu không parse được JSON thay vì crash app
+      return text as any as T;
+    }
   } catch (error) {
     console.error(`[API Client Error] at ${endpoint}:`, error);
     throw error;

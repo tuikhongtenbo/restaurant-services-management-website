@@ -180,7 +180,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
         onCancel={() => setInvoiceModalOpen(false)}
         footer={null}
         width={800}
-        destroyOnClose
+        destroyOnHidden
       >
         {invoiceHtml && (
           <iframe
