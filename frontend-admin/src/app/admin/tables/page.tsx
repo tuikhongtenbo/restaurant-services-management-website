@@ -8,9 +8,13 @@ import { TableActionModal } from "@/components/admin/tables/TableActionModal";
 import { TableFormModal } from "@/components/admin/tables/TableFormModal";
 import { tableService } from "@/services/table.service";
 import { Table, TableLayoutResponse } from "@/types/table";
+import { Reservation } from "@/types/reservation";
+import { reservationService } from "@/services/reservation.service";
+import dayjs from "dayjs";
 
 export default function TablesPage() {
   const [layoutData, setLayoutData] = useState<TableLayoutResponse | null>(null);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -25,8 +29,15 @@ export default function TablesPage() {
   const fetchLayout = useCallback(async (showRefreshIndicator = false) => {
     try {
       if (showRefreshIndicator) setRefreshing(true);
-      const res = await tableService.getTableLayout();
+      const today = dayjs().format("YYYY-MM-DD");
+      const [res, calendarRes] = await Promise.all([
+        tableService.getTableLayout(),
+        reservationService.getCalendar(today).catch(() => null)
+      ]);
       setLayoutData(res.data);
+      if (calendarRes) {
+        setReservations((calendarRes as any).data?.reservations || (calendarRes as any).reservations || []);
+      }
     } catch (error: any) {
       message.error(error.message || "Lỗi khi lấy dữ liệu sơ đồ bàn");
     } finally {
@@ -100,13 +111,17 @@ export default function TablesPage() {
       label: `${area} (${tables.length})`,
       children: (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5 pt-4">
-          {tables.map((table) => (
-            <TableCard
-              key={table.id}
-              table={table}
-              onClick={handleTableClick}
-            />
-          ))}
+          {tables.map((table) => {
+            const tableRes = reservations.find(r => r.tableId === table.id && (r.status === "CONFIRMED" || r.status === "ARRIVED"));
+            return (
+              <TableCard
+                key={table.id}
+                table={table}
+                reservation={tableRes}
+                onClick={handleTableClick}
+              />
+            );
+          })}
         </div>
       ),
     };
@@ -175,6 +190,7 @@ export default function TablesPage() {
       {/* Action Modal */}
       <TableActionModal
         table={selectedTable}
+        reservation={selectedTable ? reservations.find(r => r.tableId === selectedTable.id && (r.status === "CONFIRMED" || r.status === "ARRIVED")) : undefined}
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
         onRefresh={handleRefresh}

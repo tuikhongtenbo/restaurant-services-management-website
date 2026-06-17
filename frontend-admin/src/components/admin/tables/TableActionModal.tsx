@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Tag, InputNumber, Form, message, Popconfirm } from "antd";
 import { Table } from "@/types/table";
-import { Users, Trash2, Edit, CheckCircle2, XCircle } from "lucide-react";
+import { Reservation } from "@/types/reservation";
+import { Users, Trash2, Edit, CheckCircle2, XCircle, Info } from "lucide-react";
 import { tableService } from "@/services/table.service";
 import { useRouter } from "next/navigation";
 
 interface TableActionModalProps {
   table: Table | null;
+  reservation?: Reservation;
   open: boolean;
   onClose: () => void;
   onRefresh: () => void;
@@ -15,6 +17,7 @@ interface TableActionModalProps {
 
 export const TableActionModal: React.FC<TableActionModalProps> = ({
   table,
+  reservation,
   open,
   onClose,
   onRefresh,
@@ -127,6 +130,29 @@ export const TableActionModal: React.FC<TableActionModalProps> = ({
             <span className="font-semibold">{table.area || "Chưa có"}</span>
           </div>
         </div>
+
+        {(() => {
+          let mergedNote = "";
+          if (reservation?.note && reservation.note.includes("[Ghep ban]")) {
+            const parts = reservation.note.split("[Ghep ban]");
+            if (parts.length > 1) {
+              const match = parts[1].split(". [GHEP_BAN:")[0];
+              if (match) {
+                mergedNote = match.trim();
+              }
+            }
+          }
+          if (!mergedNote) return null;
+          return (
+            <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 flex gap-3 text-amber-800">
+              <Info className="shrink-0 mt-0.5" size={18} />
+              <div>
+                <p className="font-semibold mb-1">Lưu ý Đơn đặt bàn (Ghép bàn)</p>
+                <p className="text-sm">{mergedNote}</p>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Nút Edit & Delete */}
         <div className="flex gap-3 justify-end border-b pb-4">

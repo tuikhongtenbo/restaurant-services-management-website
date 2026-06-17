@@ -1,11 +1,13 @@
 import React from "react";
 import { Table, TableStatus } from "@/types/table";
-import { Users, Clock, CheckCircle2, UtensilsCrossed, Trash2 } from "lucide-react";
+import { Reservation } from "@/types/reservation";
+import { Users, Clock, CheckCircle2, UtensilsCrossed, Trash2, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tag } from "antd";
 
 interface TableCardProps {
   table: Table;
+  reservation?: Reservation;
   onClick: (table: Table) => void;
 }
 
@@ -44,8 +46,20 @@ const getStatusConfig = (status: TableStatus) => {
   }
 };
 
-export const TableCard: React.FC<TableCardProps> = ({ table, onClick }) => {
+export const TableCard: React.FC<TableCardProps> = ({ table, reservation, onClick }) => {
   const config = getStatusConfig(table.status);
+
+  // Extract merged table note from reservation
+  let mergedNote = "";
+  if (reservation?.note && reservation.note.includes("[Ghep ban]")) {
+    const parts = reservation.note.split("[Ghep ban]");
+    if (parts.length > 1) {
+      const match = parts[1].split(". [GHEP_BAN:")[0];
+      if (match) {
+        mergedNote = match.trim();
+      }
+    }
+  }
 
   return (
     <div
@@ -75,6 +89,13 @@ export const TableCard: React.FC<TableCardProps> = ({ table, onClick }) => {
             {table.isActive ? "Đang hoạt động" : "Ngưng hoạt động"}
           </span>
         </div>
+
+        {mergedNote && (
+          <div className="mt-2 pt-2 border-t border-zinc-100 flex items-start gap-1.5 text-xs text-amber-600 bg-amber-50 p-2 rounded-md">
+            <Info size={14} className="mt-0.5 shrink-0" />
+            <span className="font-medium">{mergedNote}</span>
+          </div>
+        )}
       </div>
     </div>
   );
