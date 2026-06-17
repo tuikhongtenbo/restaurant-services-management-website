@@ -39,6 +39,7 @@ export default function StaffPage() {
   const [tables, setTables] = useState<RestaurantTable[]>([]);
   const [tablesLoading, setTablesLoading] = useState(true);
   const [selectedTable, setSelectedTable] = useState<RestaurantTable | null>(null);
+  const [selectedArea, setSelectedArea] = useState<string>("all");
 
   // ─── State order / giỏ hàng ──────────────────────────────────
   const [currentOrder, setCurrentOrder] = useState<OrderResponse | null>(null);
@@ -616,6 +617,8 @@ export default function StaffPage() {
     }
   };
 
+  const filteredTables = tables.filter((table) => selectedArea === "all" || table.area === selectedArea);
+
   // ════════════════════════════════════════════════════════════
   // RENDER
   // ════════════════════════════════════════════════════════════
@@ -691,11 +694,35 @@ export default function StaffPage() {
                 <span style={{ color: "#3b82f6" }}>● Đã đặt</span>
               </div>
 
+              <div style={{ marginBottom: "16px", display: "flex", gap: "8px" }}>
+                <button
+                  className={`${styles.tabBtn} ${selectedArea === "all" ? styles.tabActive : ""}`}
+                  style={{ padding: "6px 16px", minWidth: "auto", fontSize: "14px", height: "auto" }}
+                  onClick={() => setSelectedArea("all")}
+                >
+                  Tất cả các tầng
+                </button>
+                <button
+                  className={`${styles.tabBtn} ${selectedArea === "Tầng 1" ? styles.tabActive : ""}`}
+                  style={{ padding: "6px 16px", minWidth: "auto", fontSize: "14px", height: "auto" }}
+                  onClick={() => setSelectedArea("Tầng 1")}
+                >
+                  Tầng 1
+                </button>
+                <button
+                  className={`${styles.tabBtn} ${selectedArea === "Tầng 2" ? styles.tabActive : ""}`}
+                  style={{ padding: "6px 16px", minWidth: "auto", fontSize: "14px", height: "auto" }}
+                  onClick={() => setSelectedArea("Tầng 2")}
+                >
+                  Tầng 2
+                </button>
+              </div>
+
               {tablesLoading ? (
                 <div className={styles.loading}>Đang tải...</div>
               ) : (
                 <div className={styles.tableGrid}>
-                  {tables.map((table) => (
+                  {filteredTables.map((table) => (
                     <div
                       key={table.id}
                       className={`${styles.tableCard} ${selectedTable?.id === table.id ? styles.tableCardSelected : ""}`}
@@ -714,7 +741,7 @@ export default function StaffPage() {
                         {isTableEmpty(table) && (
                           <button
                             className={styles.openTableBtn}
-                            style={{ fontSize: "12px", padding: "4px 10px" }}
+                            style={{ fontSize: "12px", padding: "4px 10px",background:"blue" }}
                             onClick={() => handleOpenTable(table)}
                             disabled={tableActionLoading}
                           >
