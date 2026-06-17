@@ -17,6 +17,6 @@ public interface VoucherService {
     VoucherResponse update(UUID id, UpdateVoucherRequest request);
     void toggleActive(UUID id);
     void delete(UUID id);
-    BigDecimal validateAndCalculateDiscount(UUID voucherId, BigDecimal subtotal, String customerTier, Integer customerPoints);
+    BigDecimal validateAndCalculateDiscount(UUID voucherId, BigDecimal subtotal, UUID customerId, String customerTier, Integer customerPoints);
     List<VoucherResponse> getAvailableVouchers();
 }

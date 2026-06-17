@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -29,6 +30,9 @@ public class Customer {
 
     @Column(length = 150, unique = true)
     private String email;
+
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
 
     @Column(name = "password_hash", length = 255, nullable = false)
     private String passwordHash;

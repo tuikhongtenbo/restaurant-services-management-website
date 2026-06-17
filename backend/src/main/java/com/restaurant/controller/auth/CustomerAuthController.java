@@ -8,6 +8,7 @@ import com.restaurant.dto.request.auth.ChangePasswordRequest;
 import com.restaurant.dto.request.auth.UpdateCustomerRequest;
 import com.restaurant.dto.response.auth.AuthResponse;
 import com.restaurant.dto.response.auth.CustomerResponse;
+import com.restaurant.dto.response.auth.CustomerVoucherResponse;
 import com.restaurant.security.CustomUserDetails;
 import com.restaurant.service.auth.CustomerAuthService;
 import jakarta.validation.Valid;
@@ -17,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 // @RestController @RequestMapping("/api/auth/customer")
 //
@@ -89,5 +92,17 @@ public class CustomerAuthController {
             @Valid @RequestBody UpdateCustomerRequest request) {
         CustomerResponse response = customerAuthService.updateCustomerInfo(principal.getId(), request);
         return ResponseEntity.ok(ApiResponse.success("Profile updated successfully", response));
+    }
+
+    /**
+     * GET /api/auth/customer/vouchers
+     * Lấy danh sách voucher đã được cấp phát cho khách hàng đang đăng nhập.
+     */
+    @GetMapping("/vouchers")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<List<CustomerVoucherResponse>>> getMyVouchers(
+            @AuthenticationPrincipal CustomUserDetails principal) {
+        List<CustomerVoucherResponse> vouchers = customerAuthService.getMyVouchers(principal.getId());
+        return ResponseEntity.ok(ApiResponse.success(vouchers));
     }
 }
