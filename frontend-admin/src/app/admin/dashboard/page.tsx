@@ -19,12 +19,23 @@ import {
 
 dayjs.extend(isSameOrAfter);
 
-type TimeRange = "WEEK" | "MONTH" | "YEAR";
+type TimeRange = "TODAY" | "WEEK" | "MONTH" | "YEAR" | "CUSTOM";
+const { RangePicker } = DatePicker;
 
 export default function DashboardPage() {
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [generalLoading, setGeneralLoading] = useState(false);
+  const [topItemsLoading, setTopItemsLoading] = useState(false);
+  const [allOrders, setAllOrders] = useState<any[]>([]);
+  const [invoiceMap, setInvoiceMap] = useState<Map<string, any>>(new Map());
   const [timeRange, setTimeRange] = useState<TimeRange>("WEEK");
   const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs>(dayjs());
+  const [customDateRange, setCustomDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([null, null]);
+
+  const [topItemsSortBy, setTopItemsSortBy] = useState<"REVENUE" | "QUANTITY">("REVENUE");
+  const [topItemsTimeRange, setTopItemsTimeRange] = useState<TimeRange>("WEEK");
+  const [topItemsSelectedDate, setTopItemsSelectedDate] = useState<dayjs.Dayjs>(dayjs());
+  const [topItemsCustomDateRange, setTopItemsCustomDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null]>([null, null]);
 
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
@@ -34,30 +45,57 @@ export default function DashboardPage() {
   const [topItems, setTopItems] = useState<any[]>([]);
 
   useEffect(() => {
-    fetchData();
-  }, [timeRange, selectedDate]);
+    fetchInitialData();
+  }, []);
 
-  const fetchData = async () => {
+  const fetchInitialData = async () => {
     try {
-      setLoading(true);
-      // Fetch maximum 10,000 records to calculate stats
+      setInitialLoading(true);
       const [invoiceRes, orderRes] = await Promise.all([
         invoiceService.getInvoices({ size: 10000 }),
         orderService.getOrders({ size: 10000, status: "PAID" }),
       ]);
 
-      const allInvoices = invoiceRes.data.data || [];
-      const allOrders = orderRes.data.data || [];
+      const invoices = invoiceRes.data.data || [];
+      const orders = orderRes.data.data || [];
 
+      const map = new Map();
+      invoices.forEach(inv => {
+        if (inv.status === "PAID") {
+          map.set(inv.orderId, inv);
+        }
+      });
+
+      setInvoiceMap(map);
+      setAllOrders(orders);
+    } catch (error: any) {
+      message.error("Lỗi khi tải dữ liệu thống kê: " + error.message);
+    } finally {
+      setInitialLoading(false);
+    }
+  };
+
+  // General Stats Effect
+  useEffect(() => {
+    if (initialLoading) return;
+    
+    setGeneralLoading(true);
+    const timer = setTimeout(() => {
       const now = selectedDate;
       let startDate = now;
       let endDate = now;
       let dateFormat = "DD/MM";
 
-      // Khởi tạo các mốc thời gian trống để biểu đồ không bị đứt đoạn
       const dateMap: Record<string, number> = {};
 
-      if (timeRange === "WEEK") {
+      if (timeRange === "TODAY") {
+        startDate = now.startOf("day");
+        endDate = now.endOf("day");
+        dateFormat = "HH:00";
+        for (let i = 0; i <= now.hour(); i++) {
+          dateMap[now.hour(i).format(dateFormat)] = 0;
+        }
+      } else if (timeRange === "WEEK") {
         startDate = now.subtract(6, "day").startOf("day");
         endDate = now.endOf("day");
         dateFormat = "DD/MM";
@@ -79,17 +117,28 @@ export default function DashboardPage() {
         for (let i = 0; i < 12; i++) {
           dateMap[now.month(i).format(dateFormat)] = 0;
         }
+      } else if (timeRange === "CUSTOM" && customDateRange[0] && customDateRange[1]) {
+        startDate = customDateRange[0].startOf("day");
+        endDate = customDateRange[1].endOf("day");
+        
+        const diffDays = endDate.diff(startDate, "day");
+        if (diffDays > 60) {
+          dateFormat = "MM/YYYY";
+          let current = startDate.clone().startOf("month");
+          while (current.isBefore(endDate) || current.isSame(endDate, "month")) {
+            dateMap[current.format(dateFormat)] = 0;
+            current = current.add(1, "month");
+          }
+        } else {
+          dateFormat = "DD/MM";
+          let current = startDate.clone().startOf("day");
+          while (current.isBefore(endDate) || current.isSame(endDate, "day")) {
+            dateMap[current.format(dateFormat)] = 0;
+            current = current.add(1, "day");
+          }
+        }
       }
 
-      // Tạo map invoice để tra cứu
-      const invoiceMap = new Map();
-      allInvoices.forEach(inv => {
-        if (inv.status === "PAID") {
-          invoiceMap.set(inv.orderId, inv);
-        }
-      });
-
-      // Filter Orders cho Doanh thu và Thống kê món
       const validOrders = allOrders.filter((ord) => {
         const d = dayjs(ord.closedAt || ord.openedAt);
         return d.valueOf() >= startDate.valueOf() && d.valueOf() <= endDate.valueOf();
@@ -97,10 +146,8 @@ export default function DashboardPage() {
 
       let itemsSold = 0;
       let revenue = 0;
-      const itemCounts: Record<string, number> = {};
 
       validOrders.forEach((ord) => {
-        // 1. Tính doanh thu: Ưu tiên hóa đơn thực tế, fallback tạm tính nếu bị thiếu do thao tác DB
         const inv = invoiceMap.get(ord.id);
         const finalTotal = inv ? inv.totalAmount : (ord.subtotal * 1.10);
 
@@ -113,49 +160,100 @@ export default function DashboardPage() {
           dateMap[dateKey] = finalTotal;
         }
 
-        // 2. Thống kê món ăn
         if (ord.items && Array.isArray(ord.items)) {
-          ord.items.forEach((item) => {
+          ord.items.forEach((item: any) => {
             if (item.status !== "CANCELLED") {
               itemsSold += item.quantity;
-              itemCounts[item.itemName] = (itemCounts[item.itemName] || 0) + item.quantity;
             }
           });
         }
       });
 
-      // Format Chart Data
       const formattedChartData = Object.keys(dateMap).map((key) => ({
         date: key,
         revenue: dateMap[key],
       }));
 
-      // Format Top Items
-      const sortedTopItems = Object.keys(itemCounts)
-        .map((name) => ({ name, quantity: itemCounts[name] }))
-        .sort((a, b) => b.quantity - a.quantity)
-        .slice(0, 5) // Lấy Top 5
-        .map((item, index) => ({ ...item, rank: index + 1 }));
-
       setTotalRevenue(revenue);
       setTotalOrders(validOrders.length);
       setTotalItemsSold(itemsSold);
       setChartData(formattedChartData);
-      setTopItems(sortedTopItems);
+      setGeneralLoading(false);
+    }, 300);
 
-    } catch (error: any) {
-      message.error("Lỗi khi tải dữ liệu thống kê: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return () => clearTimeout(timer);
+  }, [timeRange, selectedDate, customDateRange, allOrders, invoiceMap, initialLoading]);
+
+  // Top Items Effect
+  useEffect(() => {
+    if (initialLoading) return;
+
+    setTopItemsLoading(true);
+    const timer = setTimeout(() => {
+      const topNow = topItemsSelectedDate;
+      let topStartDate = topNow;
+      let topEndDate = topNow;
+
+      if (topItemsTimeRange === "TODAY") {
+        topStartDate = topNow.startOf("day");
+        topEndDate = topNow.endOf("day");
+      } else if (topItemsTimeRange === "WEEK") {
+        topStartDate = topNow.subtract(6, "day").startOf("day");
+        topEndDate = topNow.endOf("day");
+      } else if (topItemsTimeRange === "MONTH") {
+        topStartDate = topNow.startOf("month");
+        topEndDate = topNow.endOf("month");
+      } else if (topItemsTimeRange === "YEAR") {
+        topStartDate = topNow.startOf("year");
+        topEndDate = topNow.endOf("year");
+      } else if (topItemsTimeRange === "CUSTOM" && topItemsCustomDateRange[0] && topItemsCustomDateRange[1]) {
+        topStartDate = topItemsCustomDateRange[0].startOf("day");
+        topEndDate = topItemsCustomDateRange[1].endOf("day");
+      }
+
+      const validOrdersForTop = allOrders.filter((ord) => {
+        const d = dayjs(ord.closedAt || ord.openedAt);
+        return d.valueOf() >= topStartDate.valueOf() && d.valueOf() <= topEndDate.valueOf();
+      });
+
+      const itemCounts: Record<string, number> = {};
+      const itemRevenues: Record<string, number> = {};
+
+      validOrdersForTop.forEach((ord) => {
+        if (ord.items && Array.isArray(ord.items)) {
+          ord.items.forEach((item: any) => {
+            if (item.status !== "CANCELLED") {
+              itemCounts[item.itemName] = (itemCounts[item.itemName] || 0) + item.quantity;
+              const itemTotal = item.totalPrice || (item.unitPrice * item.quantity) || 0;
+              itemRevenues[item.itemName] = (itemRevenues[item.itemName] || 0) + itemTotal;
+            }
+          });
+        }
+      });
+
+      const sortedTopItems = Object.keys(itemRevenues)
+        .map((name) => ({ name, quantity: itemCounts[name], revenue: itemRevenues[name] }))
+        .sort((a, b) => topItemsSortBy === "REVENUE" ? b.revenue - a.revenue : b.quantity - a.quantity)
+        .slice(0, 5)
+        .map((item, index) => ({ ...item, rank: index + 1 }));
+
+      setTopItems(sortedTopItems);
+      setTopItemsLoading(false);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [topItemsTimeRange, topItemsSelectedDate, topItemsCustomDateRange, topItemsSortBy, allOrders, initialLoading]);
 
   const formatPrice = (value: number) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value);
 
   const getTimeLabel = () => {
+    if (timeRange === "TODAY") return "Hôm nay, " + selectedDate.format("DD/MM/YYYY");
     if (timeRange === "WEEK") return "7 ngày tính từ " + selectedDate.format("DD/MM");
     if (timeRange === "MONTH") return "Tháng " + selectedDate.format("MM/YYYY");
+    if (timeRange === "CUSTOM" && customDateRange[0] && customDateRange[1]) {
+      return `${customDateRange[0].format("DD/MM/YYYY")} - ${customDateRange[1].format("DD/MM/YYYY")}`;
+    }
     return "Năm " + selectedDate.format("YYYY");
   };
 
@@ -169,14 +267,15 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {loading ? (
+      {initialLoading ? (
         <div className="flex justify-center items-center h-[50vh]">
           <Spin size="large" />
         </div>
       ) : (
         <>
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <Spin spinning={generalLoading}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <Card className="rounded-xl border-zinc-200 shadow-sm">
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-emerald-100 text-emerald-600 rounded-lg mt-1">
@@ -227,32 +326,51 @@ export default function DashboardPage() {
                 </div>
               </div>
             </Card>
-          </div>
+            </div>
+          </Spin>
 
           {/* Charts & Tables */}
           <div className="flex flex-col gap-5">
             {/* Chart Area */}
+            <Spin spinning={generalLoading}>
             <Card
               className="rounded-xl border-zinc-200 shadow-sm w-full"
               title={
                 <div className="flex justify-between items-center w-full">
                   <span className="font-bold text-zinc-800">Biểu đồ Doanh thu</span>
                   <div className="flex gap-2">
-                    <DatePicker
-                      value={selectedDate}
-                      onChange={(date) => date && setSelectedDate(date)}
-                      picker={timeRange === "YEAR" ? "year" : timeRange === "MONTH" ? "month" : "date"}
-                      format={timeRange === "YEAR" ? "YYYY" : timeRange === "MONTH" ? "MM/YYYY" : "DD/MM/YYYY"}
-                      allowClear={false}
-                    />
+                    {timeRange === "CUSTOM" ? (
+                      <RangePicker
+                        value={customDateRange as any}
+                        onChange={(dates) => {
+                          if (dates) {
+                            setCustomDateRange([dates[0], dates[1]]);
+                          } else {
+                            setCustomDateRange([null, null]);
+                          }
+                        }}
+                        format="DD/MM/YYYY"
+                        allowClear={false}
+                      />
+                    ) : (
+                      <DatePicker
+                        value={selectedDate}
+                        onChange={(date) => date && setSelectedDate(date)}
+                        picker={timeRange === "YEAR" ? "year" : timeRange === "MONTH" ? "month" : "date"}
+                        format={timeRange === "YEAR" ? "YYYY" : timeRange === "MONTH" ? "MM/YYYY" : "DD/MM/YYYY"}
+                        allowClear={false}
+                      />
+                    )}
                     <Select
                       value={timeRange}
                       onChange={(v) => setTimeRange(v)}
                       className="w-40 font-normal"
                       options={[
+                        { value: "TODAY", label: "Hôm nay" },
                         { value: "WEEK", label: "Theo tuần" },
                         { value: "MONTH", label: "Theo tháng" },
                         { value: "YEAR", label: "Theo năm" },
+                        { value: "CUSTOM", label: "Tùy chỉnh" },
                       ]}
                     />
                   </div>
@@ -299,19 +417,67 @@ export default function DashboardPage() {
                 </ResponsiveContainer>
               </div>
             </Card>
+            </Spin>
 
             {/* Top Items Table */}
             <Card
               className="rounded-xl border-zinc-200 shadow-sm w-full"
               title={
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
                   <span className="font-bold text-zinc-800">Top Món Bán Chạy Nhất</span>
-                  <span className="text-sm font-normal text-zinc-500">Dữ liệu: {getTimeLabel()}</span>
+                  <div className="flex flex-wrap gap-2">
+                    <Select
+                      value={topItemsSortBy}
+                      onChange={(v) => setTopItemsSortBy(v)}
+                      className="w-[140px] font-normal"
+                      options={[
+                        { value: "REVENUE", label: "Theo doanh thu" },
+                        { value: "QUANTITY", label: "Theo lượt bán" },
+                      ]}
+                    />
+                    {topItemsTimeRange === "CUSTOM" ? (
+                      <RangePicker
+                        value={topItemsCustomDateRange as any}
+                        onChange={(dates) => {
+                          if (dates) {
+                            setTopItemsCustomDateRange([dates[0], dates[1]]);
+                          } else {
+                            setTopItemsCustomDateRange([null, null]);
+                          }
+                        }}
+                        format="DD/MM/YYYY"
+                        allowClear={false}
+                        className="w-[240px]"
+                      />
+                    ) : (
+                      <DatePicker
+                        value={topItemsSelectedDate}
+                        onChange={(date) => date && setTopItemsSelectedDate(date)}
+                        picker={topItemsTimeRange === "YEAR" ? "year" : topItemsTimeRange === "MONTH" ? "month" : "date"}
+                        format={topItemsTimeRange === "YEAR" ? "YYYY" : topItemsTimeRange === "MONTH" ? "MM/YYYY" : "DD/MM/YYYY"}
+                        allowClear={false}
+                        className="w-[120px]"
+                      />
+                    )}
+                    <Select
+                      value={topItemsTimeRange}
+                      onChange={(v) => setTopItemsTimeRange(v)}
+                      className="w-[110px] font-normal"
+                      options={[
+                        { value: "TODAY", label: "Hôm nay" },
+                        { value: "WEEK", label: "Theo tuần" },
+                        { value: "MONTH", label: "Theo tháng" },
+                        { value: "YEAR", label: "Theo năm" },
+                        { value: "CUSTOM", label: "Tùy chỉnh" },
+                      ]}
+                    />
+                  </div>
                 </div>
               }
               styles={{ body: { padding: 0 } }}
             >
               <Table
+                loading={topItemsLoading}
                 dataSource={topItems}
                 rowKey="name"
                 pagination={false}
@@ -344,6 +510,13 @@ export default function DashboardPage() {
                     key: 'quantity',
                     align: 'right',
                     render: (val) => <span className="font-bold text-zinc-900">{val}</span>
+                  },
+                  {
+                    title: 'Doanh thu',
+                    dataIndex: 'revenue',
+                    key: 'revenue',
+                    align: 'right',
+                    render: (val) => <span className="font-bold text-emerald-600">{formatPrice(val)}</span>
                   }
                 ]}
               />

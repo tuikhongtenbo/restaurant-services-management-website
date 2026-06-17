@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thực Đơn Nhà Hàng</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #e63946;
+            --secondary-color: #1d3557;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-primary: #2b2d42;
+            --text-secondary: #8d99ae;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            color: var(--text-primary);
+        }
+
+        header {
+            background-color: var(--card-bg);
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .menu-item {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+        }
+
+        .item-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .item-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .category-tag {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary-color);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .item-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+            color: var(--secondary-color);
+            line-height: 1.4;
+        }
+
+        .item-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+            line-height: 1.5;
+        }
+
+        .item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+
+        .item-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .btn-order {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-order:hover {
+            background-color: #d90429;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            padding: 4rem;
+        }
+
+        /* Categories Filter */
+        .categories {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .category-btn {
+            background-color: var(--card-bg);
+            border: 2px solid #e2e8f0;
+            padding: 0.5rem 1.5rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+
+        .category-btn.active, .category-btn:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Thực Đơn Tinh Hoa</h1>
+    </header>
+
+    <div class="container">
+        <div class="categories" id="categories-container">
+            <!-- Thêm các nút lọc category bằng JS -->
+        </div>
+
+        <div class="loading" id="loading">
+            Đang tải thực đơn hấp dẫn...
+        </div>
+
+        <div class="menu-grid" id="menu-container">
+            <!-- Render items qua JS -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchMenu();
+        });
+
+        let allItems = [];
+
+        async function fetchMenu() {
+            try {
+                // Call API backend
+                const response = await fetch('/api/public/menu');
+                const result = await response.json();
+                
+                if (result.status === 200 && result.data) {
+                    allItems = result.data;
+                    document.getElementById('loading').style.display = 'none';
+                    renderCategories();
+                    renderMenu(allItems);
+                } else {
+                    document.getElementById('loading').innerText = 'Không thể tải thực đơn!';
+                }
+            } catch (error) {
+                console.error("Lỗi khi tải menu:", error);
+                document.getElementById('loading').innerText = 'Lỗi kết nối Server!';
+            }
+        }
+
+        function formatPrice(price) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+        }
+
+        function formatCategory(cat) {
+            return cat.replace(/-/g, ' ');
+        }
+
+        function renderCategories() {
+            const categoriesContainer = document.getElementById('categories-container');
+            const uniqueCats = [...new Set(allItems.map(item => item.category))];
+            
+            let html = `<button class="category-btn active" onclick="filterMenu('all', this)">TẤT CẢ</button>`;
+            uniqueCats.forEach(cat => {
+                if (cat) {
+                    html += `<button class="category-btn" onclick="filterMenu('${cat}', this)">${formatCategory(cat).toUpperCase()}</button>`;
+                }
+            });
+            categoriesContainer.innerHTML = html;
+        }
+
+        window.filterMenu = function(category, element) {
+            // Update active class
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+
+            // Filter data
+            if (category === 'all') {
+                renderMenu(allItems);
+            } else {
+                const filtered = allItems.filter(item => item.category === category);
+                renderMenu(filtered);
+            }
+        }
+
+        function renderMenu(items) {
+            const container = document.getElementById('menu-container');
+            container.innerHTML = '';
+
+            items.forEach(item => {
+                const imageUrl = item.imageUrl || 'https://via.placeholder.com/400x300?text=No+Image';
+                const price = formatPrice(item.price);
+                const category = item.category ? formatCategory(item.category) : 'Khác';
+
+                const html = `
+                    <div class="menu-item">
+                        <img src="${imageUrl}" alt="${item.name}" class="item-image" onerror="this.src='https://via.placeholder.com/400x300?text=Image+Not+Found'">
+                        <div class="item-content">
+                            <div class="category-tag">${category}</div>
+                            <h3 class="item-title">${item.name}</h3>
+                            <p class="item-desc">${item.description || 'Hương vị tuyệt hảo từ bếp trưởng'}</p>
+                            <div class="item-footer">
+                                <span class="item-price">${price}</span>
+                                <button class="btn-order">Chọn Món</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+    </script>
+</body>
+</html>

@@ -86,6 +86,13 @@ export default function TablesPage() {
     });
   }
 
+  // Sort existing areas logically (e.g., Tầng 1 before Tầng 2)
+  existingAreas.sort((a, b) => {
+    if (a === "Chưa phân khu vực") return 1;
+    if (b === "Chưa phân khu vực") return -1;
+    return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
+  });
+
   const tabItems = existingAreas.map((area) => {
     const tables = groupedAreas[area];
     return {
