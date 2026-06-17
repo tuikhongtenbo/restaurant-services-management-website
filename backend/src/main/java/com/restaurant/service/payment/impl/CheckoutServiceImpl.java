@@ -15,6 +15,7 @@ import com.restaurant.dto.response.payment.InvoiceResponse;
 import com.restaurant.dto.response.payment.PaymentResponse;
 import com.restaurant.dto.response.payment.VnpayCallbackResponse;
 import com.restaurant.model.Customer;
+import com.restaurant.model.CustomerVoucher;
 import com.restaurant.model.Invoice;
 import com.restaurant.model.Order;
 import com.restaurant.model.OrderItem;
@@ -47,6 +48,7 @@ public class CheckoutServiceImpl implements CheckoutService {
     private final InvoiceRepository invoiceRepository;
     private final CustomerRepository customerRepository;
     private final VoucherRepository voucherRepository;
+    private final CustomerVoucherRepository customerVoucherRepository;
     private final VoucherService voucherService;
     private final PointTransactionService pointTransactionService;
     private final VnpayService vnpayService;
@@ -85,8 +87,9 @@ public class CheckoutServiceImpl implements CheckoutService {
         if (request.getVoucherId() != null) {
             String tierStr = customer != null ? customer.getTier() : null;
             Integer points = customer != null ? customer.getCurrentPoints() : null;
+            UUID customerId = customer != null ? customer.getId() : null;
             discountAmount = voucherService.validateAndCalculateDiscount(
-                    request.getVoucherId(), subtotal, tierStr, points);
+                    request.getVoucherId(), subtotal, customerId, tierStr, points);
             Voucher voucher = voucherRepository.findById(request.getVoucherId()).orElse(null);
             if (voucher != null) {
                 voucherCode = voucher.getCode();
@@ -431,6 +434,19 @@ public class CheckoutServiceImpl implements CheckoutService {
             Voucher voucher = voucherRepository.findById(voucherId).orElse(null);
             if (voucher != null) {
                 voucher.setUsedCount(voucher.getUsedCount() + 1);
+                
+                // Nếu đây là voucher cá nhân, đánh dấu là đã sử dụng
+                customerVoucherRepository.findByVoucherId(voucherId).ifPresent(cv -> {
+                    cv.setIsUsed(true);
+                    cv.setUsedAt(OffsetDateTime.now());
+                    customerVoucherRepository.save(cv);
+                });
+
+                // Vô hiệu hóa voucher nếu đã đạt giới hạn sử dụng
+                if (voucher.getUsageLimit() != null && voucher.getUsedCount() >= voucher.getUsageLimit()) {
+                    voucher.setIsActive(false);
+                }
+
                 voucherRepository.save(voucher);
             }
         }

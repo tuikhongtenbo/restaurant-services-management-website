@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -18,4 +19,5 @@ public class CustomerResponse {
     private String tier;
     private BigDecimal totalSpent;
     private Integer currentPoints;
+    private LocalDate dateOfBirth;
 }

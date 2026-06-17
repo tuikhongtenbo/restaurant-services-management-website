@@ -2,7 +2,10 @@ package com.restaurant.dto.request.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+
+import java.time.LocalDate;
 
 @Data
 public class CustomerRegisterRequest {
@@ -18,4 +21,7 @@ public class CustomerRegisterRequest {
 
     @NotBlank(message = "Password is required")
     private String password;
+
+    @NotNull(message = "Date of birth is required")
+    private LocalDate dateOfBirth;
 }

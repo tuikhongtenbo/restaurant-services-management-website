@@ -7,7 +7,9 @@ import com.restaurant.common.exceptions.ResourceNotFoundException;
 import com.restaurant.dto.request.payment.CreateVoucherRequest;
 import com.restaurant.dto.request.payment.UpdateVoucherRequest;
 import com.restaurant.dto.response.payment.VoucherResponse;
+import com.restaurant.model.CustomerVoucher;
 import com.restaurant.model.Voucher;
+import com.restaurant.repository.CustomerVoucherRepository;
 import com.restaurant.repository.VoucherRepository;
 import com.restaurant.service.payment.VoucherService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,6 +31,7 @@ import java.util.UUID;
 public class VoucherServiceImpl implements VoucherService {
 
     private final VoucherRepository voucherRepository;
+    private final CustomerVoucherRepository customerVoucherRepository;
 
     // ─────────────────────────────────────────────────────────────────────────
     // QUERY: Danh sách voucher (phân trang)
@@ -140,9 +144,24 @@ public class VoucherServiceImpl implements VoucherService {
     @Override
     @Transactional(readOnly = true)
     public BigDecimal validateAndCalculateDiscount(UUID voucherId, BigDecimal subtotal,
-                                                   String customerTier, Integer customerPoints) {
+                                                   UUID customerId, String customerTier, Integer customerPoints) {
         Voucher voucher = findOrThrow(voucherId);
         OffsetDateTime now = OffsetDateTime.now();
+
+        // 1. Kiểm tra nếu đây là voucher cá nhân (có bản ghi trong CustomerVoucher)
+        Optional<CustomerVoucher> cvOpt = customerVoucherRepository.findByVoucherId(voucherId);
+        if (cvOpt.isPresent()) {
+            CustomerVoucher cv = cvOpt.get();
+            if (customerId == null) {
+                throw new BusinessException("Voucher này là voucher cá nhân. Vui lòng nhập số điện thoại khách hàng để sử dụng.");
+            }
+            if (!cv.getCustomer().getId().equals(customerId)) {
+                throw new BusinessException("Voucher này không thuộc sở hữu của khách hàng này.");
+            }
+            if (cv.getIsUsed()) {
+                throw new BusinessException("Khách hàng đã sử dụng voucher này rồi.");
+            }
+        }
 
         // Validate trạng thái và thời hạn
         if (!voucher.getIsActive()) {
