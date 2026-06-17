@@ -2,15 +2,21 @@ package com.restaurant.service.auth.impl;
 
 import com.restaurant.common.enums.UserStatus;
 import com.restaurant.common.enums.UserType;
+import com.restaurant.common.enums.VoucherDiscountType;
 import com.restaurant.common.exceptions.BusinessException;
+import com.restaurant.dto.request.auth.ChangePasswordRequest;
 import com.restaurant.dto.request.auth.CustomerLoginRequest;
 import com.restaurant.dto.request.auth.CustomerRegisterRequest;
-import com.restaurant.dto.request.auth.ChangePasswordRequest;
 import com.restaurant.dto.request.auth.UpdateCustomerRequest;
 import com.restaurant.dto.response.auth.AuthResponse;
 import com.restaurant.dto.response.auth.CustomerResponse;
+import com.restaurant.dto.response.auth.CustomerVoucherResponse;
 import com.restaurant.model.Customer;
+import com.restaurant.model.CustomerVoucher;
+import com.restaurant.model.Voucher;
 import com.restaurant.repository.CustomerRepository;
+import com.restaurant.repository.CustomerVoucherRepository;
+import com.restaurant.repository.VoucherRepository;
 import com.restaurant.security.JwtTokenProvider;
 import com.restaurant.service.auth.CustomerAuthService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +24,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.Period;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,6 +37,8 @@ import java.util.UUID;
 public class CustomerAuthServiceImpl implements CustomerAuthService {
 
     private final CustomerRepository customerRepository;
+    private final VoucherRepository voucherRepository;
+    private final CustomerVoucherRepository customerVoucherRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
 
@@ -48,17 +61,28 @@ public class CustomerAuthServiceImpl implements CustomerAuthService {
             throw new BusinessException("Phone number is already registered");
         }
 
-        // Bước 3: Tạo Customer mới — mã hoá mật khẩu trước khi lưu
+        // Bước 3: Kiểm tra tuổi (>= 16 tuổi)
+        LocalDate today = LocalDate.now();
+        int age = Period.between(request.getDateOfBirth(), today).getYears();
+        if (age < 16) {
+            throw new BusinessException("Customer must be at least 16 years old to register");
+        }
+
+        // Bước 4: Tạo Customer mới — mã hoá mật khẩu trước khi lưu
         Customer customer = Customer.builder()
                 .fullName(request.getFullName())
                 .phone(request.getPhone())
                 .email(request.getEmail())
+                .dateOfBirth(request.getDateOfBirth())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .build();
 
         customerRepository.save(customer);
 
-        // Bước 4: Tạo JWT và trả về ngay để client đăng nhập luôn
+        // Bước 5: Cấp phát voucher chào mừng giảm 200k cho khách hàng mới
+        CustomerVoucher welcomeVoucher = assignWelcomeVoucher(customer);
+
+        // Bước 6: Tạo JWT và trả về ngay để client đăng nhập luôn
         String accessToken = jwtTokenProvider.generateToken(
                 customer.getId(), customer.getEmail(), UserType.CUSTOMER);
 
@@ -67,6 +91,7 @@ public class CustomerAuthServiceImpl implements CustomerAuthService {
                 .tokenType("Bearer")
                 .expiresIn(jwtTokenProvider.getAccessTokenExpirationMs())
                 .user(buildCustomerResponse(customer))
+                .welcomeVoucher(buildCustomerVoucherResponse(welcomeVoucher))
                 .build();
     }
 
@@ -182,6 +207,71 @@ public class CustomerAuthServiceImpl implements CustomerAuthService {
                 .tier(customer.getTier())             // Hạng thành viên: BRONZE / SILVER / GOLD
                 .totalSpent(customer.getTotalSpent()) // Tổng chi tiêu tích luỹ (dùng để tính tier)
                 .currentPoints(customer.getCurrentPoints()) // Điểm hiện tại có thể đổi ưu đãi
+                .dateOfBirth(customer.getDateOfBirth())
+                .build();
+    }
+
+    // WELCOME VOUCHER: Tạo voucher chào mừng và gắn với khách hàng mới
+    //  - Mỗi khách hàng nhận 1 voucher FIXED giảm 200.000đ
+    //  - Chỉ dùng được 1 lần (usageLimit = 1)
+    //  - Hạn dùng: 30 ngày kể từ ngày đăng ký
+    //  - Đơn hàng tối thiểu 200.000đ mới được áp dụng
+    private CustomerVoucher assignWelcomeVoucher(Customer customer) {
+        // Sinh mã code duy nhất dạng: WELCOME-XXXXXXXX
+        String code = "WELCOME-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
+        // Tạo voucher mới dành riêng cho khách hàng này
+        Voucher voucher = Voucher.builder()
+                .code(code)
+                .description("Voucher chào mừng thành viên mới - giảm 200.000đ")
+                .discountType(VoucherDiscountType.FIXED)
+                .discountValue(new BigDecimal("200000"))
+                .minOrderValue(new BigDecimal("200000")) // Đơn tối thiểu 200k
+                .validFrom(OffsetDateTime.now())
+                .validUntil(OffsetDateTime.now().plusDays(30)) // Hạn dùng 30 ngày
+                .usageLimit(1) // Chỉ dùng 1 lần
+                .build();
+        voucherRepository.save(voucher);
+
+        // Tạo bản ghi gắn voucher với khách hàng
+        CustomerVoucher customerVoucher = CustomerVoucher.builder()
+                .customer(customer)
+                .voucher(voucher)
+                .build();
+        return customerVoucherRepository.save(customerVoucher);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // QUERY: Lấy danh sách voucher được cấp cho khách hàng đang đăng nhập
+    // ─────────────────────────────────────────────────────────────────────────
+    @Override
+    @Transactional(readOnly = true)
+    public List<CustomerVoucherResponse> getMyVouchers(UUID customerId) {
+        return customerVoucherRepository.findByCustomerId(customerId)
+                .stream()
+                .map(this::buildCustomerVoucherResponse)
+                .toList();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // PRIVATE HELPER: Map CustomerVoucher entity → CustomerVoucherResponse DTO
+    // ─────────────────────────────────────────────────────────────────────────
+    private CustomerVoucherResponse buildCustomerVoucherResponse(CustomerVoucher cv) {
+        Voucher v = cv.getVoucher();
+        return CustomerVoucherResponse.builder()
+                .id(cv.getId())
+                .voucherId(v.getId())
+                .code(v.getCode())
+                .description(v.getDescription())
+                .discountType(v.getDiscountType())
+                .discountValue(v.getDiscountValue())
+                .minOrderValue(v.getMinOrderValue())
+                .validFrom(v.getValidFrom())
+                .validUntil(v.getValidUntil())
+                .isUsed(cv.getIsUsed())
+                .usedAt(cv.getUsedAt())
+                .assignedAt(cv.getAssignedAt())
                 .build();
     }
 }
+
