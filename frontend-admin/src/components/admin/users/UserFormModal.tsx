@@ -123,7 +123,16 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
             <Input placeholder="nva@restaurant.com" />
           </Form.Item>
 
-          <Form.Item name="phone" label="Số điện thoại">
+          <Form.Item
+            name="phone"
+            label="Số điện thoại"
+            rules={[
+              {
+                pattern: /^(0[1-9])+([0-9]{8})$/,
+                message: "Số điện thoại không hợp lệ",
+              },
+            ]}
+          >
             <Input placeholder="0901234567" />
           </Form.Item>
         </div>

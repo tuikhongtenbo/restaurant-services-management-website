@@ -26,10 +26,16 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,11 +56,27 @@ public class ReservationServiceImpl implements ReservationService {
     private static final ZoneId    RESTAURANT_ZONE            = ZoneId.of("Asia/Ho_Chi_Minh");
 
     /**
-     * Trạng thái "đang chiếm slot" — dùng thống nhất ở mọi chỗ.
-     * PENDING không block vì chưa confirmed.
+     * Trang thai "dang chiem slot" - dung thong nhat o moi cho.
+     * PENDING khong block vi chua confirmed.
      */
     private static final Set<ReservationStatus> BLOCKING_STATUSES =
             Set.of(ReservationStatus.CONFIRMED, ReservationStatus.ARRIVED);
+
+    /**
+     * Dinh dang luu "ban phu" (khi ghep nhieu ban cho 1 reservation) vao truong note,
+     * vi schema hien tai reservations.table_id chi luu duoc 1 UUID.
+     *
+     *   - COMBINED_TABLES_NOTE_PREFIX: phan text de nhan vien doc duoc bang mat.
+     *   - COMBINED_TABLES_PATTERN    : phan [GHEP_BAN:id1,id2,...] de code parse lai
+     *     duoc danh sach UUID ban phu khi can release/arrived.
+     *
+     * Day la giai phap TAM. Ve lau dai nen tach thanh bang rieng
+     * reservation_combined_tables (reservation_id, table_id) de khong phai parse text.
+     */
+    private static final String  COMBINED_TABLES_NOTE_PREFIX = "[Ghep ban]";
+    private static final String  COMBINED_TABLES_SEPARATOR   = " | ";
+    private static final Pattern COMBINED_TABLES_PATTERN     =
+            Pattern.compile("\\[GHEP_BAN:([0-9a-fA-F\\-,]+)\\]");
 
     // ------------------------------------------------------------------ dependencies
 
@@ -64,28 +86,30 @@ public class ReservationServiceImpl implements ReservationService {
     // ================================================================== private helpers
 
     /**
-     * Kiểm tra nhà hàng còn đủ capacity cho partySize vào wantedTime không.
+     * Kiem tra con ban phu hop cho partySize vao wantedTime khong.
      *
-     * Logic:
-     *   - Lấy tất cả bàn active có capacity >= partySize → capableTables
-     *   - Đếm số reservation BLOCKING trong cửa sổ ±RESERVATION_DURATION_HOURS:
-     *       + Đã gán bàn: chỉ tính nếu bàn đó thuộc capableTables
-     *       + Chưa gán bàn: vẫn tính là chiếm 1 bàn (đã CONFIRMED, chắc chắn sẽ được gán)
-     *   - Nếu số reservation blocking < số bàn capable → còn chỗ
-     */
-    /**
-     * Kiểm tra còn bàn phù hợp cho partySize vào wantedTime không.
-     *
-     * Thuật toán simulate gán bàn:
-     *   1. Pool = tất cả bàn active.
-     *   2. Reservation BLOCKING đã có tableId → xoá bàn đó khỏi pool.
-     *   3. Reservation BLOCKING chưa có tableId → greedy assign bàn nhỏ nhất vừa đủ
-     *      trong pool (sắp xếp partySize tăng dần để bàn nhỏ fill trước, tránh lãng phí bàn lớn).
-     *   4. Pool còn bàn nào capacity >= partySize mới → còn chỗ.
+     * Thuat toan simulate gan ban:
+     *   1. Pool = tat ca ban active.
+     *   2. Reservation BLOCKING da co tableId -> xoa ban do khoi pool.
+     *   3. Reservation BLOCKING chua co tableId -> greedy assign ban nho nhat vua du
+     *      trong pool (sap xep partySize tang dan de ban nho fill truoc, tranh lang phi ban lon).
+     *   4. Pool con ban nao capacity >= partySize moi -> con cho (don le hoac ghep nhieu ban).
      */
     private boolean hasCapacity(Integer partySize, OffsetDateTime wantedTime, UUID excludeReservationId) {
         List<Table> allTables = tableRepository.findByIsActiveTrueAndDeletedAtIsNull();
         if (allTables.isEmpty()) return false;
+
+        int totalCapacity = allTables.stream().mapToInt(Table::getCapacity).sum();
+        // Chan som: neu partySize vuot ca tong capacity toan nha hang thi chac chan
+        // khong bao gio du cho, khong can dung toi cac reservation khac de check tiep.
+        if (partySize > totalCapacity) {
+            return false;
+        }
+
+        int maxTableCapacity = allTables.stream()
+                .map(Table::getCapacity)
+                .max(Integer::compareTo)
+                .orElse(0);
 
         List<Reservation> blocking = reservationRepository
                 .findByReservedAtBetween(
@@ -97,7 +121,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .filter(r -> BLOCKING_STATUSES.contains(r.getStatus()))
                 .toList();
 
-        // Step 1: xoá bàn đã được gán cụ thể
+        // Step 1: xoa ban da duoc gan cu the
         Set<UUID> assignedTableIds = blocking.stream()
                 .filter(r -> r.getTableId() != null)
                 .map(Reservation::getTableId)
@@ -107,26 +131,151 @@ public class ReservationServiceImpl implements ReservationService {
                 .filter(t -> !assignedTableIds.contains(t.getId()))
                 .collect(Collectors.toCollection(ArrayList::new));
 
-        // Step 2: simulate gán bàn cho reservation chưa có tableId
-        // Sắp xếp partySize tăng dần → bàn nhỏ được fill trước, tránh lãng phí bàn lớn
+        // Step 2: simulate gan ban cho reservation chua co tableId
+        // Sap xep partySize tang dan -> ban nho duoc fill truoc, tranh lang phi ban lon
         blocking.stream()
                 .filter(r -> r.getTableId() == null)
                 .sorted(Comparator.comparingInt(Reservation::getPartySize))
-                .forEach(r ->
-                    availablePool.stream()
-                            .filter(t -> t.getCapacity() >= r.getPartySize())
-                            .min(Comparator.comparingInt(Table::getCapacity))
-                            .ifPresent(availablePool::remove)
-                );
+                .forEach(r -> {
+                    if (r.getPartySize() > maxTableCapacity) {
+                        availablePool.removeAll(findBestTableCombination(availablePool, r.getPartySize()));
+                    } else {
+                        availablePool.stream()
+                                .filter(t -> t.getCapacity() >= r.getPartySize())
+                                .min(Comparator.comparingInt(Table::getCapacity))
+                                .ifPresent(availablePool::remove);
+                    }
+                });
 
-        // Step 3: còn bàn nào chứa được partySize mới không
+        // Step 3: con ban nao chua duoc partySize moi khong
+        if (partySize > maxTableCapacity) {
+            return !findBestTableCombination(availablePool, partySize).isEmpty();
+        }
         return availablePool.stream().anyMatch(t -> t.getCapacity() >= partySize);
     }
 
     /**
-     * Validate thời gian đặt bàn:
-     *   1. Không được trong quá khứ.
-     *   2. Phải nằm trong giờ mở cửa (OPEN_TIME → CLOSE_TIME).
+     * Tong suc chua toi da cua nha hang = tong capacity cua tat ca ban active.
+     * Day la gioi han TUYET DOI, khong phu thuoc thoi gian hay reservation khac.
+     */
+    private int getRestaurantTotalCapacity() {
+        return tableRepository.findByIsActiveTrueAndDeletedAtIsNull()
+                .stream()
+                .mapToInt(Table::getCapacity)
+                .sum();
+    }
+
+    /**
+     * Validate partySize so voi tong suc chua nha hang - KHONG lien quan thoi gian.
+     *
+     * Khac voi hasCapacity():
+     *   - hasCapacity() tra loi "con cho vao THOI DIEM nay khong" (phu thuoc booking khac).
+     *   - Ham nay tra loi "nha hang co BAO GIO phuc vu duoc partySize nay khong".
+     */
+    private void validatePartySizeAgainstRestaurantCapacity(Integer partySize) {
+        int totalCapacity = getRestaurantTotalCapacity();
+        if (partySize > totalCapacity) {
+            throw new BusinessException(
+                    "So khach (" + partySize + ") vuot qua tong suc chua toi da hien co cua nha hang ("
+                            + totalCapacity + " cho). Vui long lien he truc tiep nha hang de duoc ho tro rieng.");
+        }
+    }
+
+    /**
+     * Tim to hop ban nho nhat (it ban nhat, it lang phi nhat) co tong capacity >= partySize.
+     * Dung subset-sum: voi moi tong co the dat duoc, chi giu lai to hop it ban nhat.
+     */
+    private List<Table> findBestTableCombination(List<Table> pool, int partySize) {
+        if (pool.isEmpty()) return List.of();
+
+        int maxCapacity = pool.stream()
+                .map(Table::getCapacity)
+                .max(Integer::compareTo)
+                .orElse(0);
+        int sumLimit = partySize + maxCapacity;
+
+        Map<Integer, List<Table>> combinations = new HashMap<>();
+        combinations.put(0, new ArrayList<>());
+
+        pool.stream()
+                .sorted(Comparator.comparingInt(Table::getCapacity))
+                .forEach(table -> {
+                    Map<Integer, List<Table>> snapshot = new HashMap<>(combinations);
+                    snapshot.forEach((sum, tables) -> {
+                        int newSum = sum + table.getCapacity();
+                        if (newSum > sumLimit) return;
+
+                        List<Table> candidate = new ArrayList<>(tables);
+                        candidate.add(table);
+
+                        List<Table> current = combinations.get(newSum);
+                        if (current == null || candidate.size() < current.size()) {
+                            combinations.put(newSum, candidate);
+                        }
+                    });
+                });
+
+        return combinations.entrySet()
+                .stream()
+                .filter(entry -> entry.getKey() >= partySize)
+                .min(Comparator
+                        .comparingInt((Map.Entry<Integer, List<Table>> entry) -> entry.getKey() - partySize)
+                        .thenComparingInt(entry -> entry.getValue().size()))
+                .map(Map.Entry::getValue)
+                .orElse(List.of());
+    }
+
+    /**
+     * Ghi lai cac "ban phu" (ngoai ban chinh da luu o tableId) vao note, theo dinh dang
+     * vua doc duoc (cho nhan vien) vua parse lai duoc (cho code).
+     * Vi du: "[Ghep ban] Can ke them ban: B05 (6 cho), B06 (6 cho). [GHEP_BAN:uuid1,uuid2]"
+     */
+    private String appendCombinedTablesNote(String existingNote, List<Table> secondaryTables) {
+        String tableList = secondaryTables.stream()
+                .map(t -> t.getNumber() + " (" + t.getCapacity() + " cho)")
+                .collect(Collectors.joining(", "));
+        String idList = secondaryTables.stream()
+                .map(t -> t.getId().toString())
+                .collect(Collectors.joining(","));
+
+        String marker = COMBINED_TABLES_NOTE_PREFIX + " Can ke them ban: " + tableList
+                + ". [GHEP_BAN:" + idList + "]";
+
+        if (existingNote == null || existingNote.isBlank()) {
+            return marker;
+        }
+        return existingNote + COMBINED_TABLES_SEPARATOR + marker;
+    }
+
+    /** Doc lai danh sach UUID ban phu da ghi trong note (xem appendCombinedTablesNote). */
+    private List<UUID> extractCombinedTableIds(String note) {
+        if (note == null) return List.of();
+        Matcher matcher = COMBINED_TABLES_PATTERN.matcher(note);
+        if (!matcher.find()) return List.of();
+        return Arrays.stream(matcher.group(1).split(","))
+                .map(UUID::fromString)
+                .toList();
+    }
+
+    /** Xoa phan marker ghep ban khoi note sau khi da release, giu lai note goc cua khach (neu co). */
+    private String stripCombinedTablesNote(String note) {
+        if (note == null) return null;
+        int markerIndex = note.indexOf(COMBINED_TABLES_NOTE_PREFIX);
+        if (markerIndex < 0) return note;
+        if (markerIndex == 0) return null;
+
+        String before = note.substring(0, markerIndex);
+        if (before.endsWith(COMBINED_TABLES_SEPARATOR)) {
+            before = before.substring(0, before.length() - COMBINED_TABLES_SEPARATOR.length());
+        }
+        before = before.trim();
+        return before.isBlank() ? null : before;
+    }
+
+    /**
+     * Validate thoi gian dat ban:
+     *   1. Khong duoc trong qua khu.
+     *   2. Phai nam trong gio mo cua (OPEN_TIME -> CLOSE_TIME).
      */
     private void validateReservationTime(OffsetDateTime reservedAt) {
         OffsetDateTime now = OffsetDateTime.now(RESTAURANT_ZONE);
@@ -144,15 +293,28 @@ public class ReservationServiceImpl implements ReservationService {
         }
     }
 
+    /**
+     * Giai phong ban cho reservation - bao gom CA ban chinh (tableId) VA cac ban phu
+     * (neu co ghep ban, duoc parse lai tu note qua extractCombinedTableIds).
+     */
     private void releaseTable(Reservation reservation) {
-        if (reservation.getTableId() == null) return;
-
-        tableRepository.findById(reservation.getTableId())
-                .ifPresent(table -> {
+        extractCombinedTableIds(reservation.getNote()).forEach(tableId ->
+                tableRepository.findById(tableId).ifPresent(table -> {
                     table.setStatus(TableStatus.EMPTY);
                     tableRepository.save(table);
-                });
-        reservation.setTableId(null);
+                })
+        );
+
+        if (reservation.getTableId() != null) {
+            tableRepository.findById(reservation.getTableId())
+                    .ifPresent(table -> {
+                        table.setStatus(TableStatus.EMPTY);
+                        tableRepository.save(table);
+                    });
+            reservation.setTableId(null);
+        }
+
+        reservation.setNote(stripCombinedTablesNote(reservation.getNote()));
         reservationRepository.save(reservation);
     }
 
@@ -214,10 +376,20 @@ public class ReservationServiceImpl implements ReservationService {
 
     // ------------------------------------------------------------------ create / confirm
 
-    /** Tạo reservation ở trạng thái PENDING. Chỉ validate thời gian; capacity check ở bước confirm. */
+    /**
+     * Tao reservation o trang thai PENDING.
+     *
+     * Validate o buoc nay:
+     *   1. Thoi gian dat ban hop le (khong qua khu, trong gio mo cua).
+     *   2. partySize khong vuot tong suc chua TUYET DOI cua nha hang (bat ke gio nao).
+     *
+     * Capacity check theo KHUNG GIO cu the (phu thuoc cac booking khac) van duoc
+     * de o buoc confirm.
+     */
     @Override
     public ReservationResponse createReservation(CreateReservationRequest request, UUID staffId) {
         validateReservationTime(request.getReservedAt());
+        validatePartySizeAgainstRestaurantCapacity(request.getPartySize());
 
         Reservation reservation = Reservation.builder()
                 .customerName(request.getCustomerName())
@@ -234,14 +406,16 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     /**
-     * Confirm một reservation PENDING.
+     * Confirm mot reservation PENDING.
      *
-     * Kiểm tra theo thứ tự:
-     *   1. Trạng thái phải là PENDING.
-     *   2. Giờ đặt không được là quá khứ / ngoài giờ mở cửa.
-     *   3. Nhà hàng còn đủ capacity cho partySize trong khung giờ đó.
+     * Kiem tra theo thu tu:
+     *   1. Trang thai phai la PENDING.
+     *   2. Gio dat khong duoc la qua khu / ngoai gio mo cua.
+     *   3. Nha hang con du capacity cho partySize trong khung gio do (don le hoac ghep ban).
      *
-     * Nếu không đủ capacity → tự động CANCELLED và ném BusinessException.
+     * Neu khong du capacity -> tu dong CANCELLED va nem BusinessException.
+     * Luu y: confirm KHONG gan tableId cu the - viec gan ban (don hoac ghep) duoc
+     * thuc hien rieng boi job autoAssignTables() gan gio den.
      */
     @Override
     public ReservationResponse confirmReservation(UUID id, UUID staffId) {
@@ -287,6 +461,7 @@ public class ReservationServiceImpl implements ReservationService {
         OffsetDateTime newReservedAt = request.getReservedAt() != null ? request.getReservedAt() : r.getReservedAt();
 
         validateReservationTime(newReservedAt);
+        validatePartySizeAgainstRestaurantCapacity(newPartySize);
 
         if (!hasCapacity(newPartySize, newReservedAt, r.getId())) {
             throw new BusinessException("Khung gio moi khong con du cho " + newPartySize + " nguoi.");
@@ -317,6 +492,14 @@ public class ReservationServiceImpl implements ReservationService {
 
         table.setStatus(TableStatus.SERVING);
         tableRepository.save(table);
+
+        // Neu reservation nay duoc ghep nhieu ban, chuyen luon cac ban phu sang SERVING
+        extractCombinedTableIds(r.getNote()).forEach(tableId ->
+                tableRepository.findById(tableId).ifPresent(t -> {
+                    t.setStatus(TableStatus.SERVING);
+                    tableRepository.save(t);
+                })
+        );
 
         r.setStatus(ReservationStatus.ARRIVED);
         return toResponse(reservationRepository.save(r));
@@ -351,24 +534,73 @@ public class ReservationServiceImpl implements ReservationService {
 
     // ------------------------------------------------------------------ scheduled jobs
 
+    /**
+     * Gan ban cho cac reservation CONFIRMED sap den gio (trong vong ASSIGN_BEFORE_MINUTES).
+     *
+     * Chien luoc 2 buoc:
+     *   1. Uu tien tim MOT ban don le vua du partySize, lang phi cho it nhat.
+     *   2. Neu khong co ban don le nao du -> thu ghep nhieu ban (findBestTableCombination)
+     *      tu danh sach ban dang EMPTY. Ban LON NHAT trong to hop duoc luu vao
+     *      reservation.tableId (ban chinh); cac ban con lai (ban phu) duoc danh dau
+     *      RESERVED va ghi vao note de nhan vien biet can ke them ban nao.
+     *
+     * Neu khong tim duoc phuong an nao (don le hoac ghep) -> bo qua, cho lan chay
+     * sau (60s/lan) hoac nhan vien tu xu ly thu cong.
+     */
     @Scheduled(fixedRate = 60_000)
     @Override
     public void autoAssignTables() {
         OffsetDateTime now  = OffsetDateTime.now(RESTAURANT_ZONE);
         OffsetDateTime soon = now.plusMinutes(ASSIGN_BEFORE_MINUTES);
 
-        reservationRepository.findUnassignedUpcoming(now, soon).forEach(reservation ->
-            tableRepository.findByIsActiveTrueAndStatusAndDeletedAtIsNull(TableStatus.EMPTY)
-                    .stream()
-                    .filter(t -> t.getCapacity() >= reservation.getPartySize())
-                    .min(Comparator.comparingInt(t -> t.getCapacity() - reservation.getPartySize()))
-                    .ifPresent(table -> {
-                        table.setStatus(TableStatus.RESERVED);
-                        reservation.setTableId(table.getId());
-                        reservationRepository.save(reservation);
-                        tableRepository.save(table);
-                    })
-        );
+        reservationRepository.findUnassignedUpcoming(now, soon).forEach(this::tryAssignTable);
+    }
+
+    private void tryAssignTable(Reservation reservation) {
+        List<Table> emptyTables = tableRepository
+                .findByIsActiveTrueAndStatusAndDeletedAtIsNull(TableStatus.EMPTY);
+
+        Optional<Table> singleTable = emptyTables.stream()
+                .filter(t -> t.getCapacity() >= reservation.getPartySize())
+                .min(Comparator.comparingInt(t -> t.getCapacity() - reservation.getPartySize()));
+
+        if (singleTable.isPresent()) {
+            assignSingleTable(reservation, singleTable.get());
+            return;
+        }
+
+        List<Table> combination = findBestTableCombination(emptyTables, reservation.getPartySize());
+        if (!combination.isEmpty()) {
+            assignCombinedTables(reservation, combination);
+        }
+    }
+
+    private void assignSingleTable(Reservation reservation, Table table) {
+        table.setStatus(TableStatus.RESERVED);
+        reservation.setTableId(table.getId());
+        reservationRepository.save(reservation);
+        tableRepository.save(table);
+    }
+
+    /**
+     * Gan nhieu ban ghep cho 1 reservation - giai phap TAM, chua co bang trung gian
+     * luu quan he 1-N giua reservation va table (xem comment o COMBINED_TABLES_*).
+     */
+    private void assignCombinedTables(Reservation reservation, List<Table> combination) {
+        Table primaryTable = combination.stream()
+                .max(Comparator.comparingInt(Table::getCapacity))
+                .orElseThrow();
+
+        List<Table> secondaryTables = combination.stream()
+                .filter(t -> !t.getId().equals(primaryTable.getId()))
+                .toList();
+
+        combination.forEach(t -> t.setStatus(TableStatus.RESERVED));
+        tableRepository.saveAll(combination);
+
+        reservation.setTableId(primaryTable.getId());
+        reservation.setNote(appendCombinedTablesNote(reservation.getNote(), secondaryTables));
+        reservationRepository.save(reservation);
     }
 
     @Scheduled(fixedRate = 60_000)
@@ -409,17 +641,17 @@ public class ReservationServiceImpl implements ReservationService {
     // ------------------------------------------------------------------ booking suggestion
 
     /**
-     * Gợi ý lịch đặt bàn dựa theo các ngày khách rảnh.
+     * Goi y lich dat ban dua theo cac ngay khach ranh.
      *
-     * Khách cung cấp:
-     *   - preferredDates : danh sách ngày khách có thể đến
-     *   - partySize      : số người
+     * Khach cung cap:
+     *   - preferredDates : danh sach ngay khach co the den
+     *   - partySize      : so nguoi
      *
-     * Kết quả: mỗi ngày còn slot trống được trả về kèm danh sách giờ có thể đặt.
-     * Ngày nào không còn slot nào phù hợp sẽ bị loại khỏi kết quả.
+     * Ket qua: moi ngay con slot trong duoc tra ve kem danh sach gio co the dat.
+     * Ngay nao khong con slot nao phu hop se bi loai khoi ket qua.
      *
-     * Slot được tính bằng hasCapacity() — chỉ kiểm tra capacity tổng,
-     * không gắn bàn cụ thể ở bước này.
+     * Slot duoc tinh bang hasCapacity() - chi kiem tra capacity tong (don le hoac
+     * ghep ban), khong gan ban cu the o buoc nay.
      */
     @Override
     @Transactional(readOnly = true)
@@ -433,7 +665,7 @@ public class ReservationServiceImpl implements ReservationService {
                 .filter(date -> !date.isBefore(today) && date.isBefore(horizon))
                 .sorted()
                 .map(date -> {
-                    // Slot cuối phải kết thúc trước CLOSE_TIME → start tối đa CLOSE_TIME - duration
+                    // Slot cuoi phai ket thuc truoc CLOSE_TIME -> start toi da CLOSE_TIME - duration
                     LocalTime lastSlot = CLOSE_TIME.minusHours(RESERVATION_DURATION_HOURS);
 
                     List<LocalTime> slots = Stream
